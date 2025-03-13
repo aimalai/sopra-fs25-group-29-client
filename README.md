@@ -1,13 +1,5 @@
 # Getting Started
 
-### Hello from Malai
-
-### Hello from Admir
-
-### Hello from Nacer
-
-### Hello from Nirojan
-
 ### MacOS, Linux and WSL
 
 If you are using MacOS, Linux or WSL(Windows-Subsystem-Linux), you can skip
