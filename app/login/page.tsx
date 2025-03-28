@@ -34,8 +34,6 @@ const Login: React.FC = () => {
       router.push("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
-        const backendErrorMessage =
-          error.message || "Login failed due to server error.";
         // Set form fields with inline error messages
         form.setFields([
           { name: "username", errors: ["Please check your username"] },
