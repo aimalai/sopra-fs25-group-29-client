@@ -6,7 +6,7 @@ export class ApiService {
   private defaultHeaders: HeadersInit;
 
   constructor() {
-    this.baseURL = getApiDomain();
+    this.baseURL = getApiDomain(); // Ensure this points to your backend, e.g., http://localhost:8080
     this.defaultHeaders = {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -24,7 +24,7 @@ export class ApiService {
    */
   private async processResponse<T>(
     res: Response,
-    errorMessage: string,
+    errorMessage: string
   ): Promise<T> {
     if (!res.ok) {
       let errorDetail = res.statusText;
@@ -40,18 +40,18 @@ export class ApiService {
       }
       const detailedMessage = `${errorMessage} (${res.status}: ${errorDetail})`;
       const error: ApplicationError = new Error(
-        detailedMessage,
+        detailedMessage
       ) as ApplicationError;
       error.info = JSON.stringify(
         { status: res.status, statusText: res.statusText },
         null,
-        2,
+        2
       );
       error.status = res.status;
       throw error;
     }
     return res.headers.get("Content-Type")?.includes("application/json")
-      ? res.json() as Promise<T>
+      ? (res.json() as Promise<T>)
       : Promise.resolve(res as T);
   }
 
@@ -68,13 +68,13 @@ export class ApiService {
     });
     return this.processResponse<T>(
       res,
-      "An error occurred while fetching the data.\n",
+      "An error occurred while fetching the data.\n"
     );
   }
 
   /**
    * POST request.
-   * @param endpoint - The API endpoint (e.g. "/users").
+   * @param endpoint - The API endpoint (e.g. "/users/register").
    * @param data - The payload to post.
    * @returns JSON data of type T.
    */
@@ -87,7 +87,7 @@ export class ApiService {
     });
     return this.processResponse<T>(
       res,
-      "An error occurred while posting the data.\n",
+      "An error occurred while posting the data.\n"
     );
   }
 
@@ -106,7 +106,7 @@ export class ApiService {
     });
     return this.processResponse<T>(
       res,
-      "An error occurred while updating the data.\n",
+      "An error occurred while updating the data.\n"
     );
   }
 
@@ -123,7 +123,25 @@ export class ApiService {
     });
     return this.processResponse<T>(
       res,
-      "An error occurred while deleting the data.\n",
+      "An error occurred while deleting the data.\n"
     );
+  }
+
+  /**
+   * Registration request.
+   * @param data - The registration form data.
+   * @returns JSON data of type T.
+   */
+  public async register<T>(data: unknown): Promise<T> {
+    return this.post<T>("/users/register", data);
+  }
+
+  /**
+   * Login request.
+   * @param data - The login form data.
+   * @returns JSON data of type T.
+   */
+  public async login<T>(data: unknown): Promise<T> {
+    return this.post<T>("/users/login", data);
   }
 }
