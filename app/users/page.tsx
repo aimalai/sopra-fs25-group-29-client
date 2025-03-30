@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
 
   const handleSearchClick = () => {
     if (searchQuery.trim()) {
-      console.log("Search triggered for:", searchQuery);
+      router.push(`/results?query=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -88,13 +88,13 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-wrapper">
-      <div className="search-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+      <div className="search-container" style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
         <Space>
           <Input
             placeholder="Search for Movies & TV Shows"
             value={searchQuery}
             onChange={handleSearchChange}
-            style={{ width: '400px' }}
+            style={{ width: "400px" }}
             suffix={
               <Button
                 type="primary"
@@ -108,11 +108,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="card-container">
-        <Card
-          title="Get all users from secure endpoint:"
-          loading={!users}
-          className="dashboard-container"
-        >
+        <Card title="Get all users from secure endpoint:" loading={!users} className="dashboard-container">
           {users && (
             <>
               <Table<User>
