@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Button, Card, Table, message } from "antd";
+import { Button, Card, Table, message, Input, Space } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
 
 const columns: TableProps<User>["columns"] = [
@@ -30,6 +31,7 @@ const Dashboard: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [users, setUsers] = useState<User[] | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
@@ -58,6 +60,16 @@ const Dashboard: React.FC = () => {
     fetchUsers();
   }, [apiService]);
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchClick = () => {
+    if (searchQuery.trim()) {
+      console.log("Search triggered for:", searchQuery);
+    }
+  };
+
   const handleLogout = async (): Promise<void> => {
     try {
       await apiService.put(`/users/${userId}/logout`, {});
@@ -75,29 +87,50 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="card-container">
-      <Card
-        title="Get all users from secure endpoint:"
-        loading={!users}
-        className="dashboard-container"
-      >
-        {users && (
-          <>
-            <Table<User>
-              columns={columns}
-              dataSource={users}
-              rowKey="id"
-              onRow={(row) => ({
-                onClick: () => router.push(`/users/${row.id}`),
-                style: { cursor: "pointer" },
-              })}
-            />
-            <Button onClick={handleLogout} type="primary">
-              Logout
-            </Button>
-          </>
-        )}
-      </Card>
+    <div className="dashboard-wrapper">
+      <div className="search-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        <Space>
+          <Input
+            placeholder="Search for Movies & TV Shows"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            style={{ width: '400px' }}
+            suffix={
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={handleSearchClick}
+                style={{ marginLeft: 10 }}
+              />
+            }
+          />
+        </Space>
+      </div>
+
+      <div className="card-container">
+        <Card
+          title="Get all users from secure endpoint:"
+          loading={!users}
+          className="dashboard-container"
+        >
+          {users && (
+            <>
+              <Table<User>
+                columns={columns}
+                dataSource={users}
+                rowKey="id"
+                onRow={(row) => ({
+                  onClick: () => router.push(`/users/${row.id}`),
+                  style: { cursor: "pointer" },
+                })}
+              />
+              <Button onClick={handleLogout} type="primary">
+                Logout
+              </Button>
+            </>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };
