@@ -87,28 +87,56 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-wrapper">
-      <div className="search-container" style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-        <Space>
-          <Input
-            placeholder="Search for Movies & TV Shows"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            style={{ width: "400px" }}
-            suffix={
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearchClick}
-                style={{ marginLeft: 10 }}
-              />
-            }
-          />
-        </Space>
+    <div className="dashboard-wrapper" style={{ padding: "20px" }}>
+      <div style={{ position: "relative" }}>
+        <div
+          className="search-container"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            margin: "20px auto",
+            marginTop: "40px",
+          }}
+        >
+          <Space>
+            <Input
+              placeholder="Search for Movies & TV Shows"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              style={{ width: "400px" }}
+              suffix={
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  onClick={handleSearchClick}
+                  style={{ marginLeft: 10 }}
+                />
+              }
+            />
+          </Space>
+        </div>
+        <Button
+          type="default"
+          onClick={() => router.push("/profile")}
+          style={{ position: "absolute", right: "20px", top: "50px" }}
+        >
+          Profile
+        </Button>
       </div>
-
-      <div className="card-container">
-        <Card title="Get all users from secure endpoint:" loading={!users} className="dashboard-container">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "20px",
+          marginTop: "60px",
+        }}
+      >
+        <Card
+          title="Get all users from secure endpoint:"
+          loading={!users}
+          className="dashboard-container"
+          style={{ width: "350px" }}
+        >
           {users && (
             <>
               <Table<User>
@@ -120,11 +148,31 @@ const Dashboard: React.FC = () => {
                   style: { cursor: "pointer" },
                 })}
               />
-              <Button onClick={handleLogout} type="primary">
+              <Button onClick={handleLogout} type="primary" style={{ marginTop: "20px" }}>
                 Logout
               </Button>
             </>
           )}
+        </Card>
+
+        <Card title="Friends Overview" className="dashboard-container" style={{ width: "350px" }}>
+          <Table
+            dataSource={[]}
+            columns={[
+              {
+                title: "Friend Name",
+                dataIndex: "name",
+                key: "name",
+              },
+              {
+                title: "Status",
+                dataIndex: "status",
+                key: "status",
+              },
+            ]}
+            locale={{ emptyText: "No friends to display" }}
+            pagination={false}
+          />
         </Card>
       </div>
     </div>
