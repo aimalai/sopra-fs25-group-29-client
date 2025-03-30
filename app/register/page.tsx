@@ -1,5 +1,5 @@
 "use client";
-
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -11,43 +11,47 @@ interface FormFieldProps {
   value: string;
 }
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
-  const { set: setToken} = useLocalStorage<string>("token", "");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<number>("userId", 0);
 
-  const handleLogin = async (values: FormFieldProps) => {
+  const handleRegister = async (values: FormFieldProps) => {
+    setIsLoading(true);
     try {
-      const response = await apiService.post<User>("/users/login", values);
-      
+      const response = await apiService.post<User>("/users", values);
+
       if (response.token) {
         setToken(response.token);
-      } 
+      }
       if (response.id) {
         setUserId(Number(response.id));
       }
-      message.success("Login Successful: You have been successfully logged in.");
+      message.success("Registration Successful: You have been successfully registered and logged in.");
       router.push("/users");
     } catch (error: unknown) {
       if (error instanceof Error) {
-        message.error("Login Failed: " + (error.message || "An error occurred during login."));
+        message.error("Registration Failed: " + (error.message || "An error occurred during registration."));
       } else {
-        message.error("Login Failed: An unknown error occurred during login.");
+        message.error("Registration Failed: An unknown error occurred during registration.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
-  
 
   return (
     <div className="auth-container">
       <Form
         form={form}
-        name="login"
+        name="register"
         size="large"
         variant="outlined"
-        onFinish={handleLogin}
+        onFinish={handleRegister}
         layout="vertical"
       >
         <Form.Item
@@ -65,12 +69,21 @@ const Login: React.FC = () => {
           <Input type="password" placeholder="Enter password" />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" className="auth-button">
-            Login
+          <Button
+            type="primary"
+            htmlType="submit"
+            className="auth-button"
+            loading={isLoading}
+          >
+            Register
           </Button>
         </Form.Item>
         <Form.Item>
-          <Button type="primary" className="auth-button" onClick={() => router.push("/")}>
+          <Button
+            type="primary"
+            className="auth-button"
+            onClick={() => router.push("/")}
+          >
             Back
           </Button>
         </Form.Item>
@@ -78,9 +91,9 @@ const Login: React.FC = () => {
           <Button
             type="primary"
             className="auth-button"
-            onClick={() => router.push("/register")}
+            onClick={() => router.push("/login")}
           >
-            Not registered yet? Register
+            Already have an account? Login
           </Button>
         </Form.Item>
       </Form>
@@ -88,4 +101,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Register;
