@@ -2,10 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useApi } from "@/hooks/useApi";
 import { Table, Card, Button, message } from "antd";
+import { useApi } from "@/hooks/useApi";
 
-const columns = [
+const ResultsPage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query") || "";
+  const router = useRouter();
+  const apiService = useApi();
+  const [movies, setMovies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const columns = [
     {
       title: "Poster",
       dataIndex: "poster_path",
@@ -28,6 +36,11 @@ const columns = [
       title: "Title",
       dataIndex: "title",
       key: "title",
+      render: (text: string, record: any) => (
+        <a onClick={() => router.push(`/results/details?id=${record.id}`)}>
+          {text}
+        </a>
+      ),
     },
     {
       title: "Release Date",
@@ -42,15 +55,6 @@ const columns = [
       key: "overview",
     },
   ];
-  
-
-const ResultsPage: React.FC = () => {
-  const searchParams = useSearchParams();
-  const query = searchParams.get("query") || "";
-  const apiService = useApi();
-  const [movies, setMovies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchMovies = async () => {
