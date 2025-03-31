@@ -34,8 +34,9 @@ reason).
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+|    @aimalai        | 31.03.25 | 134dbc0            | server issues #60 #61 #62 #63   | 4 issues part of user story 1       |
+|                    | 31.03.25 | edb1aa5            | client issues #1 #2 #3          | 3 issues part of user story 1       |
+|                    | 31.03.25 | above commits      | Database Design and Setup       | persistence layer for the project   |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
