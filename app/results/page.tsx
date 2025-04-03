@@ -10,7 +10,7 @@ const ResultsPage: React.FC = () => {
   const query = searchParams.get("query") || "";
   const router = useRouter();
   const apiService = useApi();
-  const [movies, setMovies] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const columns = [
@@ -34,20 +34,24 @@ const ResultsPage: React.FC = () => {
     },
     {
       title: "Title",
-      dataIndex: "title",
       key: "title",
-      render: (text: string, record: any) => (
-        <a onClick={() => router.push(`/results/details?id=${record.id}`)}>
-          {text}
-        </a>
-      ),
+      render: (_: any, record: any) => {
+        const title = record.media_type === "tv" ? record.name : record.title;
+        return (
+          <a onClick={() => router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)}>
+            {title}
+          </a>
+        );
+      },
     },
     {
       title: "Release Date",
-      dataIndex: "release_date",
       key: "release_date",
       width: 120,
-      render: (text: string) => <span style={{ whiteSpace: "nowrap" }}>{text}</span>,
+      render: (_: any, record: any) => {
+        const releaseDate = record.media_type === "tv" ? record.first_air_date : record.release_date;
+        return <span style={{ whiteSpace: "nowrap" }}>{releaseDate}</span>;
+      },
     },
     {
       title: "Overview",
@@ -57,22 +61,22 @@ const ResultsPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const fetchResults = async () => {
       if (query.trim().length === 0) return;
       setLoading(true);
       try {
         const response = await apiService.get(`/api/movies/search?query=${encodeURIComponent(query)}`);
         const parsedResponse = typeof response === "string" ? JSON.parse(response) : response;
-        setMovies(parsedResponse.results || []);
+        setResults(parsedResponse.results || []);
       } catch (error) {
-        console.error("Error fetching movies:", error);
-        message.error("Error fetching movies. Please try again.");
+        console.error("Error fetching search results:", error);
+        message.error("Error fetching search results. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovies();
+    fetchResults();
   }, [query, apiService]);
 
   return (
@@ -84,7 +88,7 @@ const ResultsPage: React.FC = () => {
         <Table
           style={{ marginTop: "20px" }}
           columns={columns}
-          dataSource={movies}
+          dataSource={results}
           rowKey="id"
           loading={loading}
         />

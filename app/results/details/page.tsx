@@ -5,12 +5,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Button, message, Spin } from "antd";
 import { useApi } from "@/hooks/useApi";
 
-interface MovieDetails {
+interface MediaDetails {
   id: number;
   title: string;
   description: string;
   cast: string;
   ratings: number;
+  vote_count: number;
   release_date: string;
   genre: string;
   poster_path: string;
@@ -18,33 +19,35 @@ interface MovieDetails {
 
 const DetailsPage: React.FC = () => {
   const searchParams = useSearchParams();
-  const movieId = searchParams.get("id");
+  const id = searchParams.get("id");
+  const mediaType = searchParams.get("media_type") || "movie";
   const router = useRouter();
   const apiService = useApi();
-  const [movie, setMovie] = useState<MovieDetails | null>(null);
+  const [details, setDetails] = useState<MediaDetails | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchMovieDetails = async () => {
-      if (!movieId) {
-        message.error("No movie ID provided.");
+    const fetchDetails = async () => {
+      if (!id) {
+        message.error("No ID provided.");
         return;
       }
       setLoading(true);
       try {
-        const response = await apiService.get(`/api/movies/details?id=${movieId}`);
+        const endpoint = mediaType === "tv" ? "/api/movies/tv/details" : "/api/movies/details";
+        const response = await apiService.get(`${endpoint}?id=${id}`);
         const data = typeof response === "string" ? JSON.parse(response) : response;
-        setMovie(data);
+        setDetails(data);
       } catch (error) {
-        console.error("Error loading movie details:", error);
-        message.error("Error loading movie details.");
+        console.error("Error loading details:", error);
+        message.error("Error loading details.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovieDetails();
-  }, [movieId, apiService]);
+    fetchDetails();
+  }, [id, mediaType, apiService]);
 
   if (loading) {
     return (
@@ -54,10 +57,10 @@ const DetailsPage: React.FC = () => {
     );
   }
 
-  if (!movie) {
+  if (!details) {
     return (
       <div style={{ padding: "20px" }}>
-        <p>No movie details available.</p>
+        <p>No details available.</p>
         <Button type="primary" onClick={() => router.back()}>
           Go Back
         </Button>
@@ -68,7 +71,7 @@ const DetailsPage: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <Card
-        title={movie.title}
+        title={details.title}
         extra={
           <Button type="primary" onClick={() => router.back()}>
             Back to Results
@@ -76,20 +79,33 @@ const DetailsPage: React.FC = () => {
         }
       >
         <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
-          {movie.poster_path && (
+          {details.poster_path && (
             <img
-              alt="Movie Poster"
-              src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
+              alt="Poster"
+              src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
               style={{ width: "200px", height: "auto", borderRadius: "4px" }}
             />
           )}
           <div>
-            <p><strong>Release Date:</strong> {movie.release_date}</p>
-            <p><strong>Genre:</strong> {movie.genre}</p>
-            <p><strong>Rating:</strong> {movie.ratings}</p>
-            <p><strong>Cast:</strong> {movie.cast}</p>
-            <p><strong>Description:</strong></p>
-            <p>{movie.description}</p>
+            <p>
+              <strong>Release Date:</strong> {details.release_date}
+            </p>
+            <p>
+              <strong>Genre:</strong> {details.genre}
+            </p>
+            <p>
+              <strong>Rating:</strong> {details.ratings.toFixed(1)} / 10
+            </p>
+            <p>
+              <strong>Votes:</strong> {details.vote_count}
+            </p>
+            <p>
+              <strong>Cast:</strong> {details.cast}
+            </p>
+            <p>
+              <strong>Description:</strong>
+            </p>
+            <p>{details.description}</p>
           </div>
         </div>
       </Card>
