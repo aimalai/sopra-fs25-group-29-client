@@ -19,9 +19,9 @@ const Login: React.FC = () => {
 
   const handleLogin = async (values: LoginFormProps) => {
     try {
-      // Call the login API with corrected endpoint
+      // Call the login API
       const response = await apiService.post<{ token: string }>(
-        "/users/login", // Corrected endpoint
+        "/users/login",
         values
       );
 
@@ -30,14 +30,34 @@ const Login: React.FC = () => {
         setToken(response.token);
       }
 
-      // Redirect to user dashboard or homepage
+      // Redirect to user dashboard
       router.push("/dashboard");
     } catch (error) {
-      if (error instanceof Error) {
-        // Set form fields with inline error messages
+      if (error instanceof Response) {
+        // Parse backend response for the error message
+        const errorResponse = await error.json();
+        const errorMessage =
+          errorResponse?.message || "An unknown error occurred";
+
+        // Handle lockout error (403 Forbidden)
+        if (error.status === 403) {
+          form.setFields([
+            {
+              name: "username",
+              errors: [errorMessage], // Display lockout message inline
+            },
+            {
+              name: "password",
+              errors: [""], // Clear password error
+            },
+          ]);
+          return;
+        }
+
+        // Handle invalid credentials
         form.setFields([
-          { name: "username", errors: ["Please check your username"] },
-          { name: "password", errors: ["Please check your password"] },
+          { name: "username", errors: ["Invalid username or password"] },
+          { name: "password", errors: ["Invalid username or password"] },
         ]);
       } else {
         console.error("An unknown error occurred during login.");
