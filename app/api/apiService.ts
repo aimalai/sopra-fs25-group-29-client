@@ -90,4 +90,24 @@ export class ApiService {
       "An error occurred while posting the data.\n"
     );
   }
+
+  /**
+   * LOGOUT request.
+   * @param token - The user's session token.
+   * @returns Void promise.
+   */
+  public async logout(token: string): Promise<void> {
+    const url = `${this.baseURL}/users/logout`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        ...this.defaultHeaders,
+        Authorization: token, // Pass the token in the Authorization header
+      },
+    });
+    await this.processResponse<void>(
+      res,
+      "An error occurred while logging out.\n"
+    );
+  }
 }
