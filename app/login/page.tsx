@@ -1,8 +1,7 @@
-"use client"; // Disables SSR for components using React hooks
+"use client"; // Ensures the component uses React hooks and browser APIs
 
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
 import { Button, Form, Input } from "antd";
 import "../styles/globals.css";
 
@@ -15,32 +14,35 @@ const Login: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
-  const { set: setToken } = useLocalStorage<string>("token", "");
 
   const handleLogin = async (values: LoginFormProps) => {
     try {
-      // Call the login API
-      const response = await apiService.post<{ token: string }>(
-        "/users/login",
-        values
-      );
+      // Call the login API and ensure response is explicitly typed
+      const response: Response = await apiService.post("/users/login", values);
 
-      // Store the token in local storage
-      if (response.token) {
-        setToken(response.token);
+      // Debug: Log the raw API response
+      console.log("Login API Raw Response:", response);
+
+      // Extract the token and save it in localStorage
+      const token = await response.text(); // Parse the response as plain text
+      if (token) {
+        localStorage.setItem("token", token); // Save the token directly
+        console.log("Token saved to localStorage:", token);
+      } else {
+        console.warn("No token found in the login response!");
       }
 
       // Redirect to user dashboard
       router.push("/dashboard");
     } catch (error) {
-      if (error instanceof Response) {
-        // Parse backend response for the error message
-        const errorResponse = await error.json();
+      console.error("Login Error:", error);
+
+      if (error instanceof Error) {
         const errorMessage =
-          errorResponse?.message || "An unknown error occurred";
+          error.message || "An unknown error occurred during login.";
 
         // Handle lockout error (403 Forbidden)
-        if (error.status === 403) {
+        if (errorMessage.includes("Account locked")) {
           form.setFields([
             {
               name: "username",

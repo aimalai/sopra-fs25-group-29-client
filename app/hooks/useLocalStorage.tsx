@@ -33,7 +33,10 @@ export default function useLocalStorage<T>(
     try {
       const stored = globalThis.localStorage.getItem(key);
       if (stored) {
+        console.log(`Found value in localStorage for key "${key}":`, stored); // Debug log
         setValue(JSON.parse(stored) as T);
+      } else {
+        console.log(`No value found in localStorage for key "${key}".`);
       }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
@@ -42,17 +45,27 @@ export default function useLocalStorage<T>(
 
   // Simple setter that updates both state and localStorage
   const set = (newVal: T) => {
+    console.log(`Saving to localStorage - Key: "${key}", Value: "${newVal}"`);
     setValue(newVal);
     if (typeof window !== "undefined") {
-      globalThis.localStorage.setItem(key, JSON.stringify(newVal));
+      try {
+        globalThis.localStorage.setItem(key, JSON.stringify(newVal));
+      } catch (error) {
+        console.error(`Error saving to localStorage key "${key}":`, error);
+      }
     }
   };
 
   // Removes the key from localStorage and resets the state
   const clear = () => {
+    console.log(`Clearing value in localStorage for key "${key}"`);
     setValue(defaultValue);
     if (typeof window !== "undefined") {
-      globalThis.localStorage.removeItem(key);
+      try {
+        globalThis.localStorage.removeItem(key);
+      } catch (error) {
+        console.error(`Error clearing localStorage key "${key}":`, error);
+      }
     }
   };
 

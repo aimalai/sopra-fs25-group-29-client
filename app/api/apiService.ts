@@ -109,5 +109,8 @@ export class ApiService {
       res,
       "An error occurred while logging out.\n"
     );
+
+    // Clear token from localStorage after successful logout
+    localStorage.removeItem("authToken");
   }
 }
