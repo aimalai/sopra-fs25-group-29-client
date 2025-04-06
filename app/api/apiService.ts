@@ -21,7 +21,7 @@ export class ApiService {
    * @returns Parsed JSON data.
    * @throws ApplicationError if res.ok is false.
    */
-  private async processResponse<T>(res: Response,): Promise<T> {
+  private async processResponse<T>(res: Response): Promise<T> {
     if (!res.ok) {
       let errorDetail = res.statusText;
       try {
@@ -32,9 +32,7 @@ export class ApiService {
           errorDetail = JSON.stringify(errorInfo);
         }
       } catch {
-        // If parsing fails, keep using res.statusText
       }
-      // Format: "400: User does not exist"
       const detailedMessage = `${res.status}: ${errorDetail}`;
       const error: ApplicationError = new Error(detailedMessage) as ApplicationError;
       error.info = JSON.stringify(
@@ -45,11 +43,13 @@ export class ApiService {
       error.status = res.status;
       throw error;
     }
-    if (res.status === 204) {
+    
+    const text = await res.text();
+    if (!text) {
       return {} as T;
     }
-    return res.json() as Promise<T>;
-  }
+    return JSON.parse(text) as T;
+  }  
 
   /**
    * GET request.

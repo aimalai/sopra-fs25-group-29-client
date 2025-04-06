@@ -37,13 +37,6 @@ const formBoxStyle: CSSProperties = {
   width: "320px"
 };
 
-const headingStyle: CSSProperties = {
-  color: "#000",
-  marginBottom: "16px",
-  fontWeight: "bold",
-  fontSize: "1.25rem"
-};
-
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
@@ -86,10 +79,10 @@ const Login: React.FC = () => {
   return (
     <div style={containerStyle}>
       <div style={logoContainerStyle}>
+        {}
         <img src="/NiroLogo.png" alt="App Logo" style={logoStyle} />
       </div>
       <div style={formBoxStyle}>
-        <div style={headingStyle}>Login below!</div>
         <Form
           form={form}
           name="login"
@@ -98,14 +91,14 @@ const Login: React.FC = () => {
           layout="vertical"
         >
           <Form.Item
-            label={<span style={{ color: "#000" }}>Username</span>}
+            label={<span style={{ color: "#000" }}>Choose your Username</span>}
             name="username"
             rules={[{ required: true, message: "Please input your username!" }]}
           >
             <Input style={inputStyle} placeholder="Enter username" />
           </Form.Item>
           <Form.Item
-            label={<span style={{ color: "#000" }}>Password</span>}
+            label={<span style={{ color: "#000" }}>Choose your Password</span>}
             name="password"
             rules={[{ required: true, message: "Please input your password!" }]}
           >

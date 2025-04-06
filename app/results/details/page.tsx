@@ -147,10 +147,34 @@ const DetailsPage: React.FC = () => {
                 <p>{details.description}</p>
               </div>
               <div style={{ display: "flex", alignItems: "center" }}>
-                <Button
+              <Button
                   type="primary"
-                  onClick={() => message.info("Added to watchlist!")}
-                  style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
+                  onClick={async () => {
+                    try {
+                      console.log("Add to Watchlist button clicked");
+                      const userId = localStorage.getItem("userId");
+                      console.log("Retrieved userId:", userId);
+                      if (!userId) {
+                        console.error("User not logged in");
+                        throw new Error("User not logged in");
+                      }
+                      console.log("Details object:", details);
+                      const watchlistItem = {
+                        movieId: details.id.toString(),
+                        title: details.title,
+                        posterPath: details.poster_path,
+                      };
+                      console.log("Constructed watchlist item:", watchlistItem);
+
+                      const response = await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
+                      console.log("Response from add-to-watchlist API:", response);
+
+                      message.success("Film zur Watchlist hinzugefügt!");
+                    } catch (error) {
+                      console.error("Error adding to watchlist:", error);
+                      message.error("Fehler beim Hinzufügen zur Watchlist.");
+                    }
+                  }}
                 >
                   Add to Watchlist
                 </Button>

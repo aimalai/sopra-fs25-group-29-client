@@ -33,37 +33,27 @@ export default function RootLayout({
             token: {
               colorPrimary: "#22426b",
               borderRadius: 8,
-              // Statt "#fff" => "#000" (damit Text schwarz ist)
-              colorText: "#000",
+              colorText: "#fff",
               fontSize: 16,
 
-              // Statt "#16181D" => helleres Grau, z.B. "#f2f2f2"
-              colorBgContainer: "#f2f2f2",
+              colorBgContainer: "#16181D",
             },
             components: {
               Button: {
-                // Alle Buttons sind weiterhin grün (#75bd9d),
-                // falls ihr es hier überschreiben wollt,
-                // lasst es oder ändert es ggf. auf #007BFF
-                colorPrimary: "#75bd9d",
-                algorithm: true,
+                colorPrimary: "#75bd9d", 
+                algorithm: true, 
                 controlHeight: 38,
               },
               Input: {
-                colorBorder: "gray",
+                colorBorder: "gray", 
                 colorTextPlaceholder: "#888888",
-                algorithm: false,
+                algorithm: false, 
               },
               Form: {
-                labelColor: "#000", // statt #fff
-                algorithm: theme.defaultAlgorithm,
+                labelColor: "#fff",
+                algorithm: theme.defaultAlgorithm, 
               },
-              // Falls ihr den Table-Hintergrund zusätzlich überschreiben wollt:
-              Table: {
-                // Farbe für Tabellencontainer
-                colorBgContainer: "#e0e0e0",
-                colorText: "#000",
-              },
+              Card: {},
             },
           }}
         >
