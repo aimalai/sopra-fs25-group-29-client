@@ -10,7 +10,7 @@ interface MediaDetails {
   title: string;
   description: string;
   cast: string;
-  ratings: number; // auf einer Skala von 0 bis 10
+  ratings: number;
   vote_count: number;
   release_date: string;
   genre: string;
@@ -72,14 +72,13 @@ const DetailsPage: React.FC = () => {
     );
   }
 
-  // Umrechnung des Ratings von 0-10 auf 0-5
   const ratingOutOfFive = (details.ratings / 2).toFixed(1);
 
   return (
     <div
       style={{
-        backgroundColor: "#eee", // Gesamthintergrund in Hellgrau
-        color: "black",         // Alle Texte in Schwarz
+        backgroundColor: "#eee",
+        color: "black",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -87,12 +86,10 @@ const DetailsPage: React.FC = () => {
         position: "relative",
       }}
     >
-      {/* Logo oben links */}
       <div style={{ position: "absolute", top: 20, left: 20 }}>
         <img alt="Logo" src="/NiroLogo.png" style={{ width: "120px", height: "auto" }} />
       </div>
 
-      {/* Haupt-Container für die Card, zentriert */}
       <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
         <Card
           title={`Detailed View for "${details.title}"`}
@@ -106,12 +103,8 @@ const DetailsPage: React.FC = () => {
               Back to Results
             </Button>
           }
-          style={{
-            backgroundColor: "#ddd", // Card-Hintergrund in Grauton
-            border: "1px solid #bbb",
-          }}
+          style={{ backgroundColor: "#ddd", border: "1px solid #bbb" }}
         >
-          {/* Innere Box (dunkelgrau) als Flex-Container */}
           <div
             style={{
               backgroundColor: "#ccc",
@@ -123,7 +116,6 @@ const DetailsPage: React.FC = () => {
               gap: "20px",
             }}
           >
-            {/* Linke Spalte: Filmplakat */}
             {details.poster_path && (
               <img
                 alt="Poster"
@@ -131,7 +123,6 @@ const DetailsPage: React.FC = () => {
                 style={{ width: "200px", height: "auto", borderRadius: "4px" }}
               />
             )}
-            {/* Rechte Spalte: Details */}
             <div
               style={{
                 display: "flex",
@@ -140,7 +131,6 @@ const DetailsPage: React.FC = () => {
                 flex: 1,
               }}
             >
-              {/* Obere Sektion: Textdetails */}
               <div>
                 <p>
                   <strong>Release Date:</strong> {details.release_date}
@@ -156,16 +146,11 @@ const DetailsPage: React.FC = () => {
                 </p>
                 <p>{details.description}</p>
               </div>
-              {/* Untere Sektion: Button und Rating, am unteren Rand ausgerichtet */}
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Button
                   type="primary"
                   onClick={() => message.info("Added to watchlist!")}
-                  style={{
-                    backgroundColor: "#1890ff",
-                    borderColor: "#1890ff",
-                    color: "white",
-                  }}
+                  style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
                 >
                   Add to Watchlist
                 </Button>
