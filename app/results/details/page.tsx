@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, Button, message, Spin } from "antd";
+import { Card, Button, message, Spin, Rate } from "antd";
 import { useApi } from "@/hooks/useApi";
 
 interface MediaDetails {
@@ -10,7 +10,7 @@ interface MediaDetails {
   title: string;
   description: string;
   cast: string;
-  ratings: number;
+  ratings: number; // auf einer Skala von 0 bis 10
   vote_count: number;
   release_date: string;
   genre: string;
@@ -59,56 +59,137 @@ const DetailsPage: React.FC = () => {
 
   if (!details) {
     return (
-      <div style={{ padding: "20px" }}>
+      <div style={{ padding: "20px", backgroundColor: "#eee", color: "black" }}>
         <p>No details available.</p>
-        <Button type="primary" onClick={() => router.back()}>
-          Go Back
+        <Button
+          type="primary"
+          onClick={() => router.back()}
+          style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
+        >
+          Back to Results
         </Button>
       </div>
     );
   }
 
+  // Umrechnung des Ratings von 0-10 auf 0-5
+  const ratingOutOfFive = (details.ratings / 2).toFixed(1);
+
   return (
-    <div style={{ padding: "20px" }}>
-      <Card
-        title={details.title}
-        extra={
-          <Button type="primary" onClick={() => router.back()}>
-            Back to Results
-          </Button>
-        }
-      >
-        <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
-          {details.poster_path && (
-            <img
-              alt="Poster"
-              src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
-              style={{ width: "200px", height: "auto", borderRadius: "4px" }}
-            />
-          )}
-          <div>
-            <p>
-              <strong>Release Date:</strong> {details.release_date}
-            </p>
-            <p>
-              <strong>Genre:</strong> {details.genre}
-            </p>
-            <p>
-              <strong>Rating:</strong> {details.ratings.toFixed(1)} / 10
-            </p>
-            <p>
-              <strong>Votes:</strong> {details.vote_count}
-            </p>
-            <p>
-              <strong>Cast:</strong> {details.cast}
-            </p>
-            <p>
-              <strong>Description:</strong>
-            </p>
-            <p>{details.description}</p>
+    <div
+      style={{
+        backgroundColor: "#eee", // Gesamthintergrund in Hellgrau
+        color: "black",         // Alle Texte in Schwarz
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        position: "relative",
+      }}
+    >
+      {/* Logo oben links */}
+      <div style={{ position: "absolute", top: 20, left: 20 }}>
+        <img alt="Logo" src="/NiroLogo.png" style={{ width: "120px", height: "auto" }} />
+      </div>
+
+      {/* Haupt-Container für die Card, zentriert */}
+      <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
+        <Card
+          title={`Detailed View for "${details.title}"`}
+          headStyle={{ color: "black" }}
+          extra={
+            <Button
+              type="primary"
+              onClick={() => router.back()}
+              style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
+            >
+              Back to Results
+            </Button>
+          }
+          style={{
+            backgroundColor: "#ddd", // Card-Hintergrund in Grauton
+            border: "1px solid #bbb",
+          }}
+        >
+          {/* Innere Box (dunkelgrau) als Flex-Container */}
+          <div
+            style={{
+              backgroundColor: "#ccc",
+              padding: "20px",
+              borderRadius: "4px",
+              color: "black",
+              display: "flex",
+              flexDirection: "row",
+              gap: "20px",
+            }}
+          >
+            {/* Linke Spalte: Filmplakat */}
+            {details.poster_path && (
+              <img
+                alt="Poster"
+                src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
+                style={{ width: "200px", height: "auto", borderRadius: "4px" }}
+              />
+            )}
+            {/* Rechte Spalte: Details */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                flex: 1,
+              }}
+            >
+              {/* Obere Sektion: Textdetails */}
+              <div>
+                <p>
+                  <strong>Release Date:</strong> {details.release_date}
+                </p>
+                <p>
+                  <strong>Genre:</strong> {details.genre}
+                </p>
+                <p>
+                  <strong>Cast:</strong> {details.cast}
+                </p>
+                <p>
+                  <strong>Description:</strong>
+                </p>
+                <p>{details.description}</p>
+              </div>
+              {/* Untere Sektion: Button und Rating, am unteren Rand ausgerichtet */}
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <Button
+                  type="primary"
+                  onClick={() => message.info("Added to watchlist!")}
+                  style={{
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                    color: "white",
+                  }}
+                >
+                  Add to Watchlist
+                </Button>
+                <div
+                  style={{
+                    marginLeft: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                  }}
+                >
+                  <Rate
+                    disabled
+                    allowHalf
+                    defaultValue={Number(ratingOutOfFive)}
+                    style={{ fontSize: "16px", color: "#faad14" }}
+                  />
+                  <span>({ratingOutOfFive}/5)</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
