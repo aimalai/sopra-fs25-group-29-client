@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Button, Card, Table, message, Input, Space } from "antd";
+import { Button, Card, Table, message, Input, Space, Spin } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
 
@@ -32,6 +32,8 @@ const Dashboard: React.FC = () => {
   const apiService = useApi();
   const [users, setUsers] = useState<User[] | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [watchlistMovies, setWatchlistMovies] = useState<any[]>([]);
+  const [loadingWatchlist, setLoadingWatchlist] = useState(false);
 
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
@@ -59,6 +61,34 @@ const Dashboard: React.FC = () => {
 
     fetchUsers();
   }, [apiService]);
+
+  useEffect(() => {
+    const fetchWatchlistMovies = async () => {
+      if (!userId) return;
+      setLoadingWatchlist(true);
+      try {
+        const movieIds: string[] = await apiService.get(`/users/${userId}/watchlist`);
+        const promises = movieIds.map(async (movieId) => {
+          try {
+            const response = await apiService.get(`/api/movies/details?id=${movieId}`);
+            const movie = typeof response === "string" ? JSON.parse(response) : response;
+            return movie;
+          } catch (error) {
+            console.error("Error fetching details for movie id", movieId, error);
+            return null;
+          }
+        });
+        const movies = await Promise.all(promises);
+        setWatchlistMovies(movies.filter((m) => m !== null));
+      } catch (error) {
+        console.error("Error fetching watchlist:", error);
+      } finally {
+        setLoadingWatchlist(false);
+      }
+    };
+
+    fetchWatchlistMovies();
+  }, [apiService, userId]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -178,6 +208,62 @@ const Dashboard: React.FC = () => {
             locale={{ emptyText: "No friends to display" }}
             pagination={false}
           />
+        </Card>
+
+        {}
+        <Card
+          title="Your Watchlist"
+          className="dashboard-container"
+          style={{ flex: "1 1 300px", maxWidth: "350px" }}
+        >
+          {loadingWatchlist ? (
+            <Spin />
+          ) : watchlistMovies && watchlistMovies.length > 0 ? (
+            <Table
+              columns={[
+                {
+                  title: "Poster",
+                  dataIndex: "poster_path",
+                  key: "poster",
+                  width: 100,
+                  render: (posterPath: string) => {
+                    if (!posterPath) {
+                      return <span>No Poster</span>;
+                    }
+                    return (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w200${posterPath}`}
+                        alt="Poster"
+                        style={{ width: "60px", height: "auto", borderRadius: "4px" }}
+                      />
+                    );
+                  },
+                },
+                {
+                  title: "Title",
+                  key: "title",
+                  render: (_: any, record: any) => (
+                    <a onClick={() => router.push(`/results/details?id=${record.id}&media_type=movie`)}>
+                      {record.title}
+                    </a>
+                  ),
+                },
+                {
+                  title: "Release Date",
+                  key: "release_date",
+                  width: 120,
+                  render: (_: any, record: any) => (
+                    <span style={{ whiteSpace: "nowrap" }}>{record.release_date}</span>
+                  ),
+                },
+              ]}
+              dataSource={watchlistMovies}
+              rowKey="id"
+              pagination={false}
+            />
+          ) : (
+            <p>No movies in watchlist</p>
+          )}
         </Card>
       </div>
       <Button
