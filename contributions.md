@@ -63,11 +63,11 @@ reason).
 
 ---
 
-## Contributions Week 2 - [Begin Date] to [End Date]
+## Contributions Week 2 - [31.03.2025] to [06.04.2025]
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@Zec01]**  | [03.04]   | [https://github.com/aimalai/sopra-fs25-group-29-client/commit/09e0bcc19e9b25430bfcc10b364347b0628dcaf0, https://github.com/aimalai/sopra-fs25-group-29-server/commit/006dfa82e55a7cb750ca3f1f7ca49fb680a7c3d1] | [Last Week: We only had Movies from the API. Now we are also able to look for Tv Shows.] | [It is important so we can use both important mediatypes and not only Movies.] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
