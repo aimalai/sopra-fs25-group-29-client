@@ -98,14 +98,14 @@ const Login: React.FC = () => {
           layout="vertical"
         >
           <Form.Item
-            label={<span style={{ color: "#000" }}>Choose your Username</span>}
+            label={<span style={{ color: "#000" }}>Username</span>}
             name="username"
             rules={[{ required: true, message: "Please input your username!" }]}
           >
             <Input style={inputStyle} placeholder="Enter username" />
           </Form.Item>
           <Form.Item
-            label={<span style={{ color: "#000" }}>Choose your Password</span>}
+            label={<span style={{ color: "#000" }}>Password</span>}
             name="password"
             rules={[{ required: true, message: "Please input your password!" }]}
           >
