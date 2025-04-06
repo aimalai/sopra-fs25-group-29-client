@@ -126,6 +126,7 @@ const Dashboard: React.FC = () => {
       <div
         style={{
           display: "flex",
+          flexWrap: "wrap",
           justifyContent: "center",
           gap: "20px",
           marginTop: "60px",
@@ -135,7 +136,7 @@ const Dashboard: React.FC = () => {
           title="Get all users from secure endpoint:"
           loading={!users}
           className="dashboard-container"
-          style={{ width: "350px" }}
+          style={{ flex: "1 1 300px", maxWidth: "350px" }}
         >
           {users && (
             <>
@@ -155,7 +156,11 @@ const Dashboard: React.FC = () => {
           )}
         </Card>
 
-        <Card title="Friends Overview" className="dashboard-container" style={{ width: "350px" }}>
+        <Card
+          title="Friends Overview"
+          className="dashboard-container"
+          style={{ flex: "1 1 300px", maxWidth: "350px" }}
+        >
           <Table
             dataSource={[]}
             columns={[
@@ -175,6 +180,19 @@ const Dashboard: React.FC = () => {
           />
         </Card>
       </div>
+      <Button
+        type="primary"
+        onClick={() => router.push("/watchparty")}
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 1000,
+        }}
+      >
+        Create Watchparty
+      </Button>
     </div>
   );
 };

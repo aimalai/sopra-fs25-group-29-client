@@ -54,6 +54,18 @@ export default function RootLayout({
                 algorithm: theme.defaultAlgorithm, 
               },
               Card: {},
+              DatePicker: {
+                colorBgContainer: "#2f2f2f",
+                colorText: "#fff",
+                colorTextPlaceholder: "#cccccc",
+                colorBorder: "#444444",
+              },
+              TimePicker: {
+                colorBgContainer: "#2f2f2f",
+                colorText: "#fff",
+                colorTextPlaceholder: "#cccccc",
+                colorBorder: "#444444",
+              },
             },
           }}
         >
