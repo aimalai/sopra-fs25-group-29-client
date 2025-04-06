@@ -37,6 +37,13 @@ const formBoxStyle: CSSProperties = {
   width: "320px"
 };
 
+const headingStyle: CSSProperties = {
+  color: "#000",
+  marginBottom: "16px",
+  fontWeight: "bold",
+  fontSize: "1.25rem"
+};
+
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
@@ -79,10 +86,10 @@ const Login: React.FC = () => {
   return (
     <div style={containerStyle}>
       <div style={logoContainerStyle}>
-        {/* Make sure that NiroLogo.png is actually in your /public folder */}
         <img src="/NiroLogo.png" alt="App Logo" style={logoStyle} />
       </div>
       <div style={formBoxStyle}>
+        <div style={headingStyle}>Login below!</div>
         <Form
           form={form}
           name="login"

@@ -31,32 +31,39 @@ export default function RootLayout({
           theme={{
             algorithm: theme.defaultAlgorithm,
             token: {
-              // general theme options are set in token, meaning all primary elements (button, menu, ...) will have this color
-              colorPrimary: "#22426b", // selected input field boarder will have this color as well
+              colorPrimary: "#22426b",
               borderRadius: 8,
-              colorText: "#fff",
+              // Statt "#fff" => "#000" (damit Text schwarz ist)
+              colorText: "#000",
               fontSize: 16,
 
-              // Alias Token
-              colorBgContainer: "#16181D",
+              // Statt "#16181D" => helleres Grau, z.B. "#f2f2f2"
+              colorBgContainer: "#f2f2f2",
             },
-            // if a component type needs special styling, setting here will override default options set in token
             components: {
               Button: {
-                colorPrimary: "#75bd9d", // this will color all buttons in #75bd9d, overriding the default primaryColor #22426b set in token line 35
-                algorithm: true, // enable algorithm (redundant with line 33 but here for demo purposes)
+                // Alle Buttons sind weiterhin grün (#75bd9d),
+                // falls ihr es hier überschreiben wollt,
+                // lasst es oder ändert es ggf. auf #007BFF
+                colorPrimary: "#75bd9d",
+                algorithm: true,
                 controlHeight: 38,
               },
               Input: {
-                colorBorder: "gray", // color boarder selected is not overridden but instead is set by primary color in line 35
+                colorBorder: "gray",
                 colorTextPlaceholder: "#888888",
-                algorithm: false, // disable algorithm (line 32)
+                algorithm: false,
               },
               Form: {
-                labelColor: "#fff",
-                algorithm: theme.defaultAlgorithm, // specify a specifc algorithm instead of true/false
+                labelColor: "#000", // statt #fff
+                algorithm: theme.defaultAlgorithm,
               },
-              Card: {},
+              // Falls ihr den Table-Hintergrund zusätzlich überschreiben wollt:
+              Table: {
+                // Farbe für Tabellencontainer
+                colorBgContainer: "#e0e0e0",
+                colorText: "#000",
+              },
             },
           }}
         >
