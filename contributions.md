@@ -63,7 +63,7 @@ reason).
 
 ---
 
-## Contributions Week 2 - [Begin Date] to [End Date]
+## Contributions Week 2 - [31.03.2025] to [06.04.2025]
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
@@ -73,8 +73,8 @@ reason).
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@Admir17]** | [05.04.2025]   | [https://github.com/aimalai/sopra-fs25-group-29-server/commit/c8d42657fc690fedb1755557277f69a3f81d6ec7] | [Brief description of the task] | [Why this contribution is relevant] | The task was to prepare the Backend for adding Movies/TVShows to the Watchlist, prepared the Rest Controller, DTO, and Mapping on the currently logged in user.
+| This contribution is relevant for future issues which need the Watchlist to work with like sharing a watchlist with friends for example and to display the watchlist on the dashboard.                   | [06.04.2025]   | [https://github.com/aimalai/sopra-fs25-group-29-client/commit/1e7bee3f6f5c8be41421d99c6bd22fd8da890fa8] | [Brief description of the task] | Added Watchlist Card to Dashboard in the frontend, Once a user adds a movie/series, it appears in the watchlist. | This change is crucial for upcoming features regarding friends & collaboration for example to share a watchlist with each other.
 
 ---
 
