@@ -33,38 +33,29 @@ export default function RootLayout({
             token: {
               colorPrimary: "#22426b",
               borderRadius: 8,
-              colorText: "#fff",
+              colorText: "#000",
               fontSize: 16,
 
-              colorBgContainer: "#16181D",
+              colorBgContainer: "#f2f2f2",
             },
             components: {
               Button: {
-                colorPrimary: "#75bd9d", 
-                algorithm: true, 
+                colorPrimary: "#75bd9d",
+                algorithm: true,
                 controlHeight: 38,
               },
               Input: {
-                colorBorder: "gray", 
+                colorBorder: "gray",
                 colorTextPlaceholder: "#888888",
-                algorithm: false, 
+                algorithm: false,
               },
               Form: {
-                labelColor: "#fff",
-                algorithm: theme.defaultAlgorithm, 
+                labelColor: "#000",
+                algorithm: theme.defaultAlgorithm,
               },
-              Card: {},
-              DatePicker: {
-                colorBgContainer: "#2f2f2f",
-                colorText: "#fff",
-                colorTextPlaceholder: "#cccccc",
-                colorBorder: "#444444",
-              },
-              TimePicker: {
-                colorBgContainer: "#2f2f2f",
-                colorText: "#fff",
-                colorTextPlaceholder: "#cccccc",
-                colorBorder: "#444444",
+              Table: {
+                colorBgContainer: "#e0e0e0",
+                colorText: "#000",
               },
             },
           }}
