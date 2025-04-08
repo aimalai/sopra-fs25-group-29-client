@@ -10,6 +10,7 @@ interface RegisterFormProps {
   username: string;
   password: string;
   confirmPassword: string;
+  email: string; // NEW: Added email field
 }
 
 const Register: React.FC = () => {
@@ -20,39 +21,30 @@ const Register: React.FC = () => {
 
   const handleRegister = async (values: RegisterFormProps) => {
     try {
-      // Call the API service's /users/register endpoint
+      // Call the API service's /users/register endpoint with email included
       const token = await apiService.post<string>("/users/register", values);
 
-      // Use the localStorage setter function to save the token if available
       if (token) {
         setToken(token);
       }
 
-      // Navigate to the users overview page
       router.push("/users");
     } catch (error) {
       if (error instanceof Error) {
         const backendErrorMessage =
           error.message || "Registration failed due to server error.";
-        // Map errors to specific form fields with inline messages
+
         if (backendErrorMessage.includes("Username is already taken")) {
           form.setFields([
             { name: "username", errors: ["Username is already taken."] },
           ]);
+        } else if (backendErrorMessage.includes("Email is already taken")) {
+          form.setFields([
+            { name: "email", errors: ["Email is already taken."] },
+          ]); // NEW: Email validation
         } else if (backendErrorMessage.includes("Passwords do not match")) {
           form.setFields([
             { name: "confirmPassword", errors: ["Passwords do not match."] },
-          ]);
-        } else if (
-          backendErrorMessage.includes(
-            "Password must be at least 8 characters long"
-          )
-        ) {
-          form.setFields([
-            {
-              name: "password",
-              errors: ["Password must meet the minimum requirements."],
-            },
           ]);
         } else {
           form.setFields([{ name: "username", errors: [backendErrorMessage] }]);
@@ -78,6 +70,16 @@ const Register: React.FC = () => {
           rules={[{ required: true, message: "Please input your username!" }]}
         >
           <Input placeholder="Enter username" />
+        </Form.Item>
+        <Form.Item
+          name="email"
+          label="Email" // NEW: Added email input
+          rules={[
+            { required: true, message: "Please input your email!" },
+            { type: "email", message: "Please enter a valid email address!" },
+          ]}
+        >
+          <Input placeholder="Enter email" />
         </Form.Item>
         <Form.Item
           name="password"

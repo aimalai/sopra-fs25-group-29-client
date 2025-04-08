@@ -92,6 +92,28 @@ export class ApiService {
   }
 
   /**
+   * OTP Verification request.
+   * @param username - The username.
+   * @param otp - The OTP entered by the user.
+   * @returns JSON response containing the login token.
+   */
+  public async sendOtpVerification(
+    username: string,
+    otp: string
+  ): Promise<string> {
+    const url = `${this.baseURL}/users/verify-otp`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.defaultHeaders,
+      body: JSON.stringify({ username, otp }),
+    });
+    return this.processResponse<string>(
+      res,
+      "An error occurred while verifying OTP.\n"
+    );
+  }
+
+  /**
    * LOGOUT request.
    * @param token - The user's session token.
    * @returns Void promise.
