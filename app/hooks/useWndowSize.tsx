@@ -30,7 +30,6 @@ const useWindowSize = (): UseWindowSizeReturn => {
     }
     if (typeof window !== "undefined") {
       globalThis.addEventListener("resize", handleResize);
-      // Set initial dimensions
       handleResize();
     }
     return () => globalThis.removeEventListener("resize", handleResize);

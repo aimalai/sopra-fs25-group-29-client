@@ -27,9 +27,8 @@ export default function useLocalStorage<T>(
 ): LocalStorage<T> {
   const [value, setValue] = useState<T>(defaultValue);
 
-  // On mount, try to read the stored value
   useEffect(() => {
-    if (typeof window === "undefined") return; // SSR safeguard
+    if (typeof window === "undefined") return;
     try {
       const stored = globalThis.localStorage.getItem(key);
       if (stored) {
@@ -40,7 +39,6 @@ export default function useLocalStorage<T>(
     }
   }, [key]);
 
-  // Simple setter that updates both state and localStorage
   const set = (newVal: T) => {
     setValue(newVal);
     if (typeof window !== "undefined") {
@@ -48,7 +46,6 @@ export default function useLocalStorage<T>(
     }
   };
 
-  // Removes the key from localStorage and resets the state
   const clear = () => {
     setValue(defaultValue);
     if (typeof window !== "undefined") {

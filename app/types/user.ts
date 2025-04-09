@@ -4,6 +4,6 @@ export interface User {
   username: string | null;
   token: string | null;
   status: string | null;
-  creationDate: string | null; 
+  creationDate: string | null;
   birthday?: string | null;
 }

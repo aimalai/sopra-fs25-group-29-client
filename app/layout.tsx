@@ -28,43 +28,43 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-      <Suspense>
-        <ConfigProvider
-          theme={{
-            algorithm: theme.defaultAlgorithm,
-            token: {
-              colorPrimary: "#22426b",
-              borderRadius: 8,
-              colorText: "#000",
-              fontSize: 16,
-
-              colorBgContainer: "#f2f2f2",
-            },
-            components: {
-              Button: {
-                colorPrimary: "#75bd9d",
-                algorithm: true,
-                controlHeight: 38,
-              },
-              Input: {
-                colorBorder: "gray",
-                colorTextPlaceholder: "#888888",
-                algorithm: false,
-              },
-              Form: {
-                labelColor: "#000",
-                algorithm: theme.defaultAlgorithm,
-              },
-              Table: {
-                colorBgContainer: "#e0e0e0",
+        <Suspense>
+          <ConfigProvider
+            theme={{
+              algorithm: theme.defaultAlgorithm,
+              token: {
+                colorPrimary: "#22426b",
+                borderRadius: 8,
                 colorText: "#000",
+                fontSize: 16,
+
+                colorBgContainer: "#f2f2f2",
               },
-            },
-          }}
-        >
-          <AntdRegistry>{children}</AntdRegistry>
-        </ConfigProvider>
-      </Suspense>
+              components: {
+                Button: {
+                  colorPrimary: "#75bd9d",
+                  algorithm: true,
+                  controlHeight: 38,
+                },
+                Input: {
+                  colorBorder: "gray",
+                  colorTextPlaceholder: "#888888",
+                  algorithm: false,
+                },
+                Form: {
+                  labelColor: "#000",
+                  algorithm: theme.defaultAlgorithm,
+                },
+                Table: {
+                  colorBgContainer: "#e0e0e0",
+                  colorText: "#000",
+                },
+              },
+            }}
+          >
+            <AntdRegistry>{children}</AntdRegistry>
+          </ConfigProvider>
+        </Suspense>
       </body>
     </html>
   );

@@ -99,7 +99,7 @@ const DetailsPage: React.FC = () => {
             height={120}
           />
         </div>
-  
+
         <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
           <Card
             title={`Detailed View for "${details.title}"`}

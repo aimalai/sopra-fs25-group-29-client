@@ -43,13 +43,13 @@ export class ApiService {
       error.status = res.status;
       throw error;
     }
-    
+
     const text = await res.text();
     if (!text) {
       return {} as T;
     }
     return JSON.parse(text) as T;
-  }  
+  }
 
   /**
    * GET request.

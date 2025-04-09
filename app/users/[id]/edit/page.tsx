@@ -1,4 +1,4 @@
-"use client"; // SSR disabled so that browser APIs (localStorage) can be used
+"use client";
 
 import React, { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ const EditUser: React.FC = () => {
   }, [router]);
 
   useEffect(() => {
-    if (!isOwnProfile){
+    if (!isOwnProfile) {
       router.replace("/users");
     }
   }, [router, isOwnProfile]);
