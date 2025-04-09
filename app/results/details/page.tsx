@@ -1,5 +1,6 @@
 "use client";
 
+import { App as AntdApp } from "antd";
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Button, message, Spin, Rate } from "antd";
@@ -77,137 +78,143 @@ const DetailsPage: React.FC = () => {
   const ratingOutOfFive = (details.ratings / 2).toFixed(1);
 
   return (
-    <div
-      style={{
-        backgroundColor: "#eee",
-        color: "black",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        position: "relative",
-      }}
-    >
-      <div style={{ position: "absolute", top: 20, left: 20 }}>
-        <Image
-          alt="Logo"
-          src="/NiroLogo.png"
-          style={{ width: "120px", height: "auto" }}
-          width={120}
-          height={120}
-        />
-      </div>
-
-      <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
-        <Card
-          title={`Detailed View for "${details.title}"`}
-          headStyle={{ color: "black" }}
-          extra={
-            <Button
-              type="primary"
-              onClick={() => router.back()}
-              style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
-            >
-              Back to Results
-            </Button>
-          }
-          style={{ backgroundColor: "#ddd", border: "1px solid #bbb" }}
-        >
-          <div
-            style={{
-              backgroundColor: "#ccc",
-              padding: "20px",
-              borderRadius: "4px",
-              color: "black",
-              display: "flex",
-              flexDirection: "row",
-              gap: "20px",
-            }}
+    <AntdApp>
+      <div
+        style={{
+          backgroundColor: "#eee",
+          color: "black",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          position: "relative",
+        }}
+      >
+        <div style={{ position: "absolute", top: 20, left: 20 }}>
+          <Image
+            alt="Logo"
+            src="/NiroLogo.png"
+            style={{ width: "120px", height: "auto" }}
+            width={120}
+            height={120}
+          />
+        </div>
+  
+        <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
+          <Card
+            title={`Detailed View for "${details.title}"`}
+            headStyle={{ color: "black" }}
+            extra={
+              <Button
+                type="primary"
+                onClick={() => router.back()}
+                style={{
+                  backgroundColor: "#1890ff",
+                  borderColor: "#1890ff",
+                  color: "white",
+                }}
+              >
+                Back to Results
+              </Button>
+            }
+            style={{ backgroundColor: "#ddd", border: "1px solid #bbb" }}
           >
-            {details.poster_path && (
-              <Image
-                alt="Poster"
-                src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
-                style={{ borderRadius: "4px" }}
-                width={200}
-                height={300}
-              />
-            )}
             <div
               style={{
+                backgroundColor: "#ccc",
+                padding: "20px",
+                borderRadius: "4px",
+                color: "black",
                 display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                flex: 1,
+                flexDirection: "row",
+                gap: "20px",
               }}
             >
-              <div>
-                <p>
-                  <strong>Release Date:</strong> {details.release_date}
-                </p>
-                <p>
-                  <strong>Genre:</strong> {details.genre}
-                </p>
-                <p>
-                  <strong>Cast:</strong> {details.cast}
-                </p>
-                <p>
-                  <strong>Description:</strong>
-                </p>
-                <p>{details.description}</p>
-              </div>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    try {
-                      console.log("Add to Watchlist button clicked");
-                      const userId = localStorage.getItem("userId");
-                      console.log("Retrieved userId:", userId);
-                      if (!userId) {
-                        console.error("User not logged in");
-                        throw new Error("User not logged in");
+              {details.poster_path && (
+                <Image
+                  alt="Poster"
+                  src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
+                  style={{ borderRadius: "4px" }}
+                  width={200}
+                  height={300}
+                />
+              )}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  flex: 1,
+                }}
+              >
+                <div>
+                  <p>
+                    <strong>Release Date:</strong> {details.release_date}
+                  </p>
+                  <p>
+                    <strong>Genre:</strong> {details.genre}
+                  </p>
+                  <p>
+                    <strong>Cast:</strong> {details.cast}
+                  </p>
+                  <p>
+                    <strong>Description:</strong>
+                  </p>
+                  <p>{details.description}</p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <Button
+                    type="primary"
+                    onClick={async () => {
+                      try {
+                        console.log("Add to Watchlist button clicked");
+                        const userId = localStorage.getItem("userId");
+                        console.log("Retrieved userId:", userId);
+                        if (!userId) {
+                          console.error("User not logged in");
+                          throw new Error("User not logged in");
+                        }
+                        console.log("Details object:", details);
+                        const watchlistItem = {
+                          movieId: details.id.toString(),
+                          title: details.title,
+                          posterPath: details.poster_path,
+                        };
+                        console.log("Constructed watchlist item:", watchlistItem);
+                        const response = await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
+                        await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
+                        console.log("Response from add-to-watchlist API:", response);
+                        message.success("Added movie to Watchlist!");
+                      } catch {
+                        message.error("Error adding to Watchlist:");
                       }
-                      console.log("Details object:", details);
-                      const watchlistItem = {
-                        movieId: details.id.toString(),
-                        title: details.title,
-                        posterPath: details.poster_path,
-                      };
-                      console.log("Constructed watchlist item:", watchlistItem);
-                      const response = await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
-                      console.log("Response from add-to-watchlist API:", response);
-                      message.success("Film zur Watchlist hinzugefügt!");
-                    } catch (error) {
-                      console.error("Error adding to watchlist:", error);
-                      message.error("Fehler beim Hinzufügen zur Watchlist.");
-                    }
-                  }}
-                >
-                  Add to Watchlist
-                </Button>
-                <div
-                  style={{
-                    marginLeft: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                  }}
-                >
-                  <Rate
-                    disabled
-                    allowHalf
-                    defaultValue={Number(ratingOutOfFive)}
-                    style={{ fontSize: "16px", color: "#faad14" }}
-                  />
-                  <span>({ratingOutOfFive}/5)</span>
+                    }}
+                  >
+                    Add to Watchlist
+                  </Button>
+                  <div
+                    style={{
+                      marginLeft: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                    }}
+                  >
+                    <Rate
+                      disabled
+                      allowHalf
+                      defaultValue={Number(ratingOutOfFive)}
+                      style={{ fontSize: "16px", color: "#faad14" }}
+                    />
+                    <span>({ratingOutOfFive}/5)</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+    </AntdApp>
   );
 };
 
