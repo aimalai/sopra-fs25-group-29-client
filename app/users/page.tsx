@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
   const [watchlistMovies, setWatchlistMovies] = useState<Movie[]>([]);
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
   const [friendQuery, setFriendQuery] = useState("");
-  const [friendResults, setFriendResults] = useState([]);
+  const [friendResults, setFriendResults] = useState<User[]>([]);
 
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
@@ -127,12 +127,14 @@ const Dashboard: React.FC = () => {
   };
 
   const searchFriends = async () => {
-    try {
-      const results = await apiService.get(`/users?username=${encodeURIComponent(friendQuery)}`);
-      setFriendResults(results);
-    } catch (error) {
-      message.error("Error searching for friends. Please try again.");
-    }
+    await apiService
+      .get<User[]>(`/users?username=${encodeURIComponent(friendQuery)}`)
+      .then((results) => {
+        setFriendResults(results);
+      })
+      .catch(() => {
+        message.error("Error searching for friends. Please try again.");
+      });
   };
 
   const watchlistColumns = [
@@ -246,48 +248,48 @@ const Dashboard: React.FC = () => {
         </Card>
 
         <Card
-  title="Friends Overview"
-  className="dashboard-container"
-  style={{ flex: "1 1 300px", maxWidth: "350px" }}
->
-  <div style={{ marginBottom: 10, display: "flex" }}>
-    <Input
-      placeholder="Search for friends..."
-      value={friendQuery}
-      onChange={(e) => setFriendQuery(e.target.value)}
-      style={{ flex: 1, marginRight: 5 }}
-    />
-    <Button onClick={searchFriends}>Search</Button>
-  </div>
-  <Table
-    dataSource={friendResults}
-    rowKey="id"
-    columns={[
-      {
-        title: "Username",
-        dataIndex: "username",
-        key: "username",
-      },
-      {
-        title: "Birth Date",
-        dataIndex: "birthday",
-        key: "birthday",
-      },
-      {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
-        render: (status: string) =>
-          status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
-      },
-    ]}
-    pagination={false}
-    locale={{ emptyText: "No friends found" }}
-    onRow={(record) => ({
-      onClick: () => router.push(`/users/${record.id}`),
-    })}
-  />
-</Card>
+          title="Friends Overview"
+          className="dashboard-container"
+          style={{ flex: "1 1 300px", maxWidth: "350px" }}
+        >
+          <div style={{ marginBottom: 10, display: "flex" }}>
+            <Input
+              placeholder="Search for friends..."
+              value={friendQuery}
+              onChange={(e) => setFriendQuery(e.target.value)}
+              style={{ flex: 1, marginRight: 5 }}
+            />
+            <Button onClick={searchFriends}>Search</Button>
+          </div>
+          <Table
+            dataSource={friendResults}
+            rowKey="id"
+            columns={[
+              {
+                title: "Username",
+                dataIndex: "username",
+                key: "username",
+              },
+              {
+                title: "Birth Date",
+                dataIndex: "birthday",
+                key: "birthday",
+              },
+              {
+                title: "Status",
+                dataIndex: "status",
+                key: "status",
+                render: (status: string) =>
+                  status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
+              },
+            ]}
+            pagination={false}
+            locale={{ emptyText: "No friends found" }}
+            onRow={(record) => ({
+              onClick: () => router.push(`/users/${record.id}`),
+            })}
+          />
+        </Card>
 
         <Card
           title="Your Watchlist"
