@@ -1,9 +1,9 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Card, Table, message, DatePicker, TimePicker } from "antd";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
+import type { Moment } from "moment";
 
 interface Watchparty {
   id: number;
@@ -27,8 +27,8 @@ const WatchpartyPage: React.FC = () => {
 
   const onFinish = async (values: {
     title: string;
-    date: any;
-    time: any;
+    date: Moment;
+    time: Moment;
     contentLink: string;
   }) => {
     try {
@@ -41,8 +41,12 @@ const WatchpartyPage: React.FC = () => {
       setWatchparties((prev) => [...prev, newParty]);
       message.success("Watchparty created!");
       form.resetFields();
-    } catch (error: any) {
-      message.error("Error creating watchparty: " + error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        message.error("Error creating watchparty: " + error.message);
+      } else {
+        message.error("Error creating watchparty");
+      }
     }
   };
 
@@ -51,8 +55,12 @@ const WatchpartyPage: React.FC = () => {
       try {
         setWatchparties([]);
         setInvitations([]);
-      } catch (error: any) {
-        message.error("Error fetching data: " + error.message);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          message.error("Error fetching data: " + error.message);
+        } else {
+          message.error("Error fetching data");
+        }
       }
     };
     fetchData();
@@ -185,7 +193,7 @@ const WatchpartyPage: React.FC = () => {
           <h2>Invitations</h2>
           <Card style={{ background: "#2f2f2f", border: "none" }}>
             <Table
-              dataSource={[]}
+              dataSource={invitations}
               columns={invitationColumns}
               rowKey="id"
               pagination={false}

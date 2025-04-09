@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -86,7 +87,13 @@ const Login: React.FC = () => {
   return (
     <div style={containerStyle}>
       <div style={logoContainerStyle}>
-        <img src="/NiroLogo.png" alt="App Logo" style={logoStyle} />
+        <Image
+          src="/NiroLogo.png"
+          alt="App Logo"
+          style={logoStyle}
+          width={200}
+          height={200}
+        />
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Login below!</div>

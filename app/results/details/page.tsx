@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Button, message, Spin, Rate } from "antd";
 import { useApi } from "@/hooks/useApi";
+import Image from "next/image";
 
 interface MediaDetails {
   id: number;
@@ -34,7 +35,8 @@ const DetailsPage: React.FC = () => {
       }
       setLoading(true);
       try {
-        const endpoint = mediaType === "tv" ? "/api/movies/tv/details" : "/api/movies/details";
+        const endpoint =
+          mediaType === "tv" ? "/api/movies/tv/details" : "/api/movies/details";
         const response = await apiService.get(`${endpoint}?id=${id}`);
         const data = typeof response === "string" ? JSON.parse(response) : response;
         setDetails(data);
@@ -87,7 +89,13 @@ const DetailsPage: React.FC = () => {
       }}
     >
       <div style={{ position: "absolute", top: 20, left: 20 }}>
-        <img alt="Logo" src="/NiroLogo.png" style={{ width: "120px", height: "auto" }} />
+        <Image
+          alt="Logo"
+          src="/NiroLogo.png"
+          style={{ width: "120px", height: "auto" }}
+          width={120}
+          height={120}
+        />
       </div>
 
       <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
@@ -117,10 +125,12 @@ const DetailsPage: React.FC = () => {
             }}
           >
             {details.poster_path && (
-              <img
+              <Image
                 alt="Poster"
                 src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
-                style={{ width: "200px", height: "auto", borderRadius: "4px" }}
+                style={{ borderRadius: "4px" }}
+                width={200}
+                height={300}
               />
             )}
             <div
@@ -147,7 +157,7 @@ const DetailsPage: React.FC = () => {
                 <p>{details.description}</p>
               </div>
               <div style={{ display: "flex", alignItems: "center" }}>
-              <Button
+                <Button
                   type="primary"
                   onClick={async () => {
                     try {
@@ -165,10 +175,8 @@ const DetailsPage: React.FC = () => {
                         posterPath: details.poster_path,
                       };
                       console.log("Constructed watchlist item:", watchlistItem);
-
                       const response = await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
                       console.log("Response from add-to-watchlist API:", response);
-
                       message.success("Film zur Watchlist hinzugefügt!");
                     } catch (error) {
                       console.error("Error adding to watchlist:", error);

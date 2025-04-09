@@ -5,6 +5,7 @@ import { Card, Button, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
+import Image from "next/image";
 
 const pageContainerStyle: CSSProperties = {
   display: "flex",
@@ -88,7 +89,13 @@ const UserProfile: React.FC = () => {
   return (
     <div style={pageContainerStyle}>
       <div style={logoContainerStyle}>
-        <img src="/NiroLogo.png" alt="App Logo" style={logoStyle} />
+        <Image
+          src="/NiroLogo.png"
+          alt="App Logo"
+          style={logoStyle}
+          width={160}
+          height={100}
+        />
       </div>
       {user ? (
         <div style={contentStyle}>

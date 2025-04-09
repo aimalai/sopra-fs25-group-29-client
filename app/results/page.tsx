@@ -1,9 +1,21 @@
 "use client";
 
-import React, { useEffect, useState, CSSProperties } from "react";
+import React, { useEffect, useState, CSSProperties, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Table, Button, message } from "antd";
 import { useApi } from "@/hooks/useApi";
+import Image from "next/image";
+
+interface SearchResult {
+  id: number;
+  poster_path?: string;
+  media_type: string;
+  name?: string;
+  title?: string;
+  first_air_date?: string;
+  release_date?: string;
+  overview?: string;
+}
 
 const containerStyle: CSSProperties = {
   display: "flex",
@@ -66,21 +78,21 @@ const ResultsPage: React.FC = () => {
   const searchParams = useSearchParams();
   const apiService = useApi();
   const query = searchParams.get("query") || "";
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const handleAddToWatchlist = async (record: any) => {
+  const handleAddToWatchlist = async (record: SearchResult) => {
     try {
       await apiService.post("/watchlist", {
         mediaId: record.id,
         mediaType: record.media_type,
       });
       message.success("Added to Watchlist");
-    } catch (error) {
+    } catch {
       message.error("Could not add to Watchlist. Please try again.");
     }
   };
@@ -96,10 +108,12 @@ const ResultsPage: React.FC = () => {
           return <span style={{ color: "#000" }}>No Poster</span>;
         }
         return (
-          <img
+          <Image
             src={`https://image.tmdb.org/t/p/w200${posterPath}`}
             alt="Poster"
-            style={{ width: "60px", height: "auto", borderRadius: "4px" }}
+            style={{ borderRadius: "4px" }}
+            width={60}
+            height={90}
           />
         );
       },
@@ -107,13 +121,15 @@ const ResultsPage: React.FC = () => {
     {
       title: <span style={{ color: "#000" }}>Title</span>,
       key: "title",
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: SearchResult) => {
         const title = record.media_type === "tv" ? record.name : record.title;
         return (
           <a
             style={{ color: "#000", cursor: "pointer" }}
             onClick={() =>
-              router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
+              router.push(
+                `/results/details?id=${record.id}&media_type=${record.media_type}`
+              )
             }
           >
             {title}
@@ -125,10 +141,14 @@ const ResultsPage: React.FC = () => {
       title: <span style={{ color: "#000" }}>Release Date</span>,
       key: "release_date",
       width: 120,
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: SearchResult) => {
         const releaseDate =
           record.media_type === "tv" ? record.first_air_date : record.release_date;
-        return <span style={{ whiteSpace: "nowrap", color: "#000" }}>{releaseDate}</span>;
+        return (
+          <span style={{ whiteSpace: "nowrap", color: "#000" }}>
+            {releaseDate}
+          </span>
+        );
       },
     },
     {
@@ -141,20 +161,18 @@ const ResultsPage: React.FC = () => {
       title: <span style={{ color: "#000" }}>Actions</span>,
       key: "actions",
       width: 150,
-      render: (_: any, record: any) => {
-        return (
-          <Button
-            style={{ backgroundColor: "#007BFF", color: "#fff" }}
-            onClick={() => handleAddToWatchlist(record)}
-          >
-            Add to Watchlist
-          </Button>
-        );
-      },
+      render: (_: unknown, record: SearchResult) => (
+        <Button
+          style={{ backgroundColor: "#007BFF", color: "#fff" }}
+          onClick={() => handleAddToWatchlist(record)}
+        >
+          Add to Watchlist
+        </Button>
+      ),
     },
   ];
 
-  const fetchData = async (page: number, size: number) => {
+  const fetchData = useCallback(async (page: number, size: number) => {
     if (query.trim().length === 0) {
       setResults([]);
       setTotalItems(0);
@@ -165,19 +183,20 @@ const ResultsPage: React.FC = () => {
       const response = await apiService.get(
         `/api/movies/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${size}`
       );
-      const parsedResponse = typeof response === "string" ? JSON.parse(response) : response;
+      const parsedResponse =
+        typeof response === "string" ? JSON.parse(response) : response;
       setResults(parsedResponse.results || []);
       setTotalItems(parsedResponse.totalCount || 0);
-    } catch (error) {
+    } catch {
       message.error("Error fetching search results. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [query, apiService]);
 
   useEffect(() => {
     fetchData(currentPage, pageSize);
-  }, [query, currentPage, pageSize]);
+  }, [fetchData, currentPage, pageSize]);
 
   const handleTableChange = (newPage: number, newPageSize: number) => {
     setCurrentPage(newPage);
@@ -187,7 +206,7 @@ const ResultsPage: React.FC = () => {
   return (
     <div style={containerStyle}>
       <div style={topBarStyle}>
-        <img src="/NiroLogo.png" alt="Logo" style={logoStyle} />
+        <Image src="/NiroLogo.png" alt="Logo" style={logoStyle} width={150} height={75} />
       </div>
       <div style={contentStyle}>
         <div style={boxStyle}>

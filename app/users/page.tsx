@@ -8,6 +8,7 @@ import { User } from "@/types/user";
 import { Button, Card, Table, message, Input, Space, Spin } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
+import Image from "next/image";
 
 const columns: TableProps<User>["columns"] = [
   {
@@ -27,12 +28,20 @@ const columns: TableProps<User>["columns"] = [
   },
 ];
 
+// Minimal interface for movies in the watchlist.
+interface Movie {
+  id: number;
+  poster_path?: string;
+  title?: string;
+  release_date?: string;
+}
+
 const Dashboard: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [users, setUsers] = useState<User[] | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [watchlistMovies, setWatchlistMovies] = useState<any[]>([]);
+  const [watchlistMovies, setWatchlistMovies] = useState<Movie[]>([]);
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
 
   const { clear: clearToken } = useLocalStorage<string>("token", "");
@@ -115,6 +124,46 @@ const Dashboard: React.FC = () => {
       }
     }
   };
+
+  const watchlistColumns = [
+    {
+      title: "Poster",
+      dataIndex: "poster_path",
+      key: "poster",
+      width: 100,
+      render: (posterPath: string) => {
+        if (!posterPath) {
+          return <span>No Poster</span>;
+        }
+        return (
+          <Image
+            src={`https://image.tmdb.org/t/p/w200${posterPath}`}
+            alt="Poster"
+            style={{ width: "60px", height: "auto", borderRadius: "4px" }}
+            width={60}
+            height={90}
+          />
+        );
+      },
+    },
+    {
+      title: "Title",
+      key: "title",
+      render: (_: unknown, record: Movie) => (
+        <a onClick={() => router.push(`/results/details?id=${record.id}&media_type=movie`)}>
+          {record.title}
+        </a>
+      ),
+    },
+    {
+      title: "Release Date",
+      key: "release_date",
+      width: 120,
+      render: (_: unknown, record: Movie) => (
+        <span style={{ whiteSpace: "nowrap" }}>{record.release_date}</span>
+      ),
+    },
+  ];
 
   return (
     <div className="dashboard-wrapper" style={{ padding: "20px" }}>
@@ -210,7 +259,6 @@ const Dashboard: React.FC = () => {
           />
         </Card>
 
-        {}
         <Card
           title="Your Watchlist"
           className="dashboard-container"
@@ -220,43 +268,7 @@ const Dashboard: React.FC = () => {
             <Spin />
           ) : watchlistMovies && watchlistMovies.length > 0 ? (
             <Table
-              columns={[
-                {
-                  title: "Poster",
-                  dataIndex: "poster_path",
-                  key: "poster",
-                  width: 100,
-                  render: (posterPath: string) => {
-                    if (!posterPath) {
-                      return <span>No Poster</span>;
-                    }
-                    return (
-                      <img
-                        src={`https://image.tmdb.org/t/p/w200${posterPath}`}
-                        alt="Poster"
-                        style={{ width: "60px", height: "auto", borderRadius: "4px" }}
-                      />
-                    );
-                  },
-                },
-                {
-                  title: "Title",
-                  key: "title",
-                  render: (_: any, record: any) => (
-                    <a onClick={() => router.push(`/results/details?id=${record.id}&media_type=movie`)}>
-                      {record.title}
-                    </a>
-                  ),
-                },
-                {
-                  title: "Release Date",
-                  key: "release_date",
-                  width: 120,
-                  render: (_: any, record: any) => (
-                    <span style={{ whiteSpace: "nowrap" }}>{record.release_date}</span>
-                  ),
-                },
-              ]}
+              columns={watchlistColumns}
               dataSource={watchlistMovies}
               rowKey="id"
               pagination={false}
