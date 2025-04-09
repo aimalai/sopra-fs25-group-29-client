@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConfigProvider, theme } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { Suspense } from "react";
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <Suspense>
         <ConfigProvider
           theme={{
             algorithm: theme.defaultAlgorithm,
@@ -62,6 +64,7 @@ export default function RootLayout({
         >
           <AntdRegistry>{children}</AntdRegistry>
         </ConfigProvider>
+      </Suspense>
       </body>
     </html>
   );
