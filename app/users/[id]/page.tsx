@@ -116,12 +116,19 @@ const UserProfile: React.FC = () => {
             </p>
           </Card>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {isOwnProfile && (
+            {isOwnProfile ? (
               <Button
                 style={buttonStyle}
                 onClick={() => router.push(`/users/${id}/edit`)}
               >
                 Edit
+              </Button>
+            ) : (
+              <Button
+                style={buttonStyle}
+                onClick={() => message.success("Friend Added!")}
+              >
+                Add friend
               </Button>
             )}
             <Button style={buttonStyle} onClick={() => router.push("/users")}>

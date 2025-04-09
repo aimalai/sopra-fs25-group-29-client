@@ -248,13 +248,13 @@ const Dashboard: React.FC = () => {
         </Card>
 
         <Card
-          title="Friends Overview"
+          title="Search for Users"
           className="dashboard-container"
           style={{ flex: "1 1 300px", maxWidth: "350px" }}
         >
           <div style={{ marginBottom: 10, display: "flex" }}>
             <Input
-              placeholder="Search for friends..."
+              placeholder="Search for new friends ..."
               value={friendQuery}
               onChange={(e) => setFriendQuery(e.target.value)}
               style={{ flex: 1, marginRight: 5 }}
@@ -284,11 +284,46 @@ const Dashboard: React.FC = () => {
               },
             ]}
             pagination={false}
-            locale={{ emptyText: "No friends found" }}
+            locale={{ emptyText: "No users found" }}
             onRow={(record) => ({
               onClick: () => router.push(`/users/${record.id}`),
             })}
           />
+        </Card>
+
+        <Card
+          title="Friendlist"
+          className="dashboard-container"
+          style={{ flex: "1 1 300px", maxWidth: "350px" }}
+        >
+          <div>
+            <Table
+              dataSource={[]}
+              rowKey="id"
+              columns={[
+                {
+                  title: "Username",
+                  dataIndex: "username",
+                  key: "username",
+                },
+                {
+                  title: "Status",
+                  dataIndex: "status",
+                  key: "status",
+                  render: (status: string) =>
+                    status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
+                },
+              ]}
+              pagination={false}
+              locale={{ emptyText: "No friends added yet" }}
+            />
+            <div>
+            <hr style={{ margin: "16px 0" }} />
+
+            <p><strong>Incoming Friend Requests:</strong></p>
+            <p>No incoming requests</p>
+          </div>
+          </div>
         </Card>
 
         <Card
