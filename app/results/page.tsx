@@ -4,6 +4,7 @@ import React, { useEffect, useState, CSSProperties, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Table, Button, message } from "antd";
 import { useApi } from "@/hooks/useApi";
+import useLocalStorage from "@/hooks/useLocalStorage"; 
 import Image from "next/image";
 
 interface SearchResult {
@@ -21,7 +22,6 @@ const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   height: "100vh",
-  /* backgroundColor entfernt */
 };
 
 const topBarStyle: CSSProperties = {
@@ -83,6 +83,9 @@ const ResultsPage: React.FC = () => {
   const searchParams = useSearchParams();
   const apiService = useApi();
   const query = searchParams.get("query") || "";
+
+  const { value: userId } = useLocalStorage<number>("userId", 0);
+
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -92,13 +95,13 @@ const ResultsPage: React.FC = () => {
 
   const handleAddToWatchlist = async (record: SearchResult) => {
     try {
-      await apiService.post("/watchlist", {
-        mediaId: record.id,
-        mediaType: record.media_type,
+      await apiService.post(`/users/${userId}/watchlist`, {
+        movieId: record.id.toString(),
       });
       message.success("Added to Watchlist");
-    } catch {
-      message.error("Could not add to Watchlist. Please try again.");
+    } catch (error) {
+      console.error("Error adding to watchlist:", error);
+      message.error("Could not add to Watchlist. Please check console logs.");
     }
   };
 
