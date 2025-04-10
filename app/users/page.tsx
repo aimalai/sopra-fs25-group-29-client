@@ -6,7 +6,7 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Button, Card, Table, message, Input, Space, Spin } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
 import Image from "next/image";
 
@@ -71,28 +71,30 @@ const Dashboard: React.FC = () => {
     fetchUsers();
   }, [apiService]);
 
-  useEffect(() => {
-    const fetchWatchlistMovies = async () => {
-      if (!userId) return;
-      setLoadingWatchlist(true);
-      try {
-        const items: string[] = await apiService.get(`/users/${userId}/watchlist`);
-        const parsedItems = items.map((item) => {
+  const loadWatchlist = async () => {
+    if (!userId) return;
+    setLoadingWatchlist(true);
+    try {
+      const items: string[] = await apiService.get(`/users/${userId}/watchlist`);
+      const parsedItems = items
+        .map((item) => {
           try {
             return JSON.parse(item);
           } catch {
             return null;
           }
-        }).filter((x) => x && x.movieId);
-        setWatchlistMovies(parsedItems);
-      } catch (error) {
-        console.error("Error fetching watchlist:", error);
-      } finally {
-        setLoadingWatchlist(false);
-      }
-    };
+        })
+        .filter((x) => x && x.movieId);
+      setWatchlistMovies(parsedItems);
+    } catch (error) {
+      console.error("Error fetching watchlist:", error);
+    } finally {
+      setLoadingWatchlist(false);
+    }
+  };
 
-    fetchWatchlistMovies();
+  useEffect(() => {
+    loadWatchlist();
   }, [apiService, userId]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,6 +134,17 @@ const Dashboard: React.FC = () => {
       });
   };
 
+  const handleRemove = async (movieId: string) => {
+    try {
+      await apiService.delete(`/users/${userId}/watchlist/${movieId}`);
+      message.success("Removed from Watchlist");
+      loadWatchlist();
+    } catch (error) {
+      message.error("Could not remove movie from watchlist.");
+      console.error("Remove failed:", error);
+    }
+  };
+
   const watchlistColumns = [
     {
       title: "Poster",
@@ -157,9 +170,18 @@ const Dashboard: React.FC = () => {
       title: "Title",
       key: "title",
       render: (_: unknown, record: Movie) => (
-        <a onClick={() => router.push(`/results/details?id=${record.movieId}&media_type=movie`)}>
-          {record.title}
-        </a>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a
+            onClick={() => router.push(`/results/details?id=${record.movieId}&media_type=movie`)}
+            style={{ marginRight: "10px" }}
+          >
+            {record.title}
+          </a>
+          <DeleteOutlined
+            onClick={() => handleRemove(record.movieId)}
+            style={{ color: "#ff4d4f", cursor: "pointer" }}
+          />
+        </div>
       ),
     },
   ];

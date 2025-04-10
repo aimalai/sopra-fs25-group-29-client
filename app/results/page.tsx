@@ -95,39 +95,61 @@ const ResultsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
   const [totalItems, setTotalItems] = useState<number>(0);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
 
-  const handleSearchClick = () => {
-    if (searchQuery.trim()) {
-      router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`);
+  const fetchWatchlist = async () => {
+    try {
+      if (!userId) return;
+      const res = await apiService.get(`/users/${userId}/watchlist`);
+      if (Array.isArray(res)) {
+        setWatchlist(res);
+      }
+    } catch (e) {
+      console.error("Failed to load watchlist", e);
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  useEffect(() => {
+    fetchWatchlist();
+  }, [userId]);
 
-  const handleSortChange = (value: string) => {
-    setSortOption(value);
-    router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(value)}`);
+  const isInWatchlist = (id: number) => {
+    return watchlist.some((entry) => {
+      try {
+        const parsed = JSON.parse(entry);
+        return parsed.movieId === id.toString();
+      } catch {
+        return false;
+      }
+    });
   };
 
   const handleAddToWatchlist = async (record: SearchResult) => {
     try {
-      if (!userId) {
-        throw new Error("No userId in local storage");
-      }
+      if (!userId) throw new Error("No userId in local storage");
       const body = {
         movieId: record.id.toString(),
         title: record.media_type === "tv" ? record.name : record.title,
-        posterPath: record.poster_path ?? ""
+        posterPath: record.poster_path ?? "",
       };
-      const response = await apiService.post(`/users/${userId}/watchlist`, body);
-      if (response) {
-        message.success("Added to Watchlist");
-      }
+      await apiService.post(`/users/${userId}/watchlist`, body);
+      message.success("Added to Watchlist");
+      fetchWatchlist();
     } catch (error) {
       console.error("Error adding to watchlist:", error);
-      message.error("Could not add to Watchlist. Please check console logs.");
+      message.error("Could not add to Watchlist.");
+    }
+  };
+
+  const handleRemoveFromWatchlist = async (record: SearchResult) => {
+    try {
+      if (!userId) throw new Error("No userId in local storage");
+      await apiService.delete(`/users/${userId}/watchlist/${record.id}`);
+      message.success("Removed from Watchlist");
+      fetchWatchlist();
+    } catch (error) {
+      console.error("Error removing from watchlist:", error);
+      message.error("Could not remove from Watchlist.");
     }
   };
 
@@ -138,9 +160,7 @@ const ResultsPage: React.FC = () => {
       key: "poster",
       width: 100,
       render: (posterPath: string) => {
-        if (!posterPath) {
-          return <span style={{ color: "#000" }}>No Poster</span>;
-        }
+        if (!posterPath) return <span style={{ color: "#000" }}>No Poster</span>;
         return (
           <Image
             src={`https://image.tmdb.org/t/p/w200${posterPath}`}
@@ -187,12 +207,24 @@ const ResultsPage: React.FC = () => {
     {
       title: <span style={{ color: "#000" }}>Actions</span>,
       key: "actions",
-      width: 150,
-      render: (_: unknown, record: SearchResult) => (
-        <Button style={{ backgroundColor: "#007BFF", color: "#fff" }} onClick={() => handleAddToWatchlist(record)}>
-          Add to Watchlist
-        </Button>
-      ),
+      width: 180,
+      render: (_: unknown, record: SearchResult) => {
+        const inList = isInWatchlist(record.id);
+        return (
+          <Button
+            onClick={() =>
+              inList ? handleRemoveFromWatchlist(record) : handleAddToWatchlist(record)
+            }
+            style={{
+              backgroundColor: inList ? "#ff4d4f" : "#007BFF",
+              color: "white",
+              borderColor: inList ? "#ff4d4f" : "#007BFF",
+            }}
+          >
+            {inList ? "Remove from Watchlist" : "Add to Watchlist"}
+          </Button>
+        );
+      },
     },
   ];
 
@@ -231,6 +263,21 @@ const ResultsPage: React.FC = () => {
   useEffect(() => {
     fetchData(currentPage, pageSize);
   }, [fetchData, currentPage, pageSize]);
+
+  const handleSearchClick = () => {
+    if (searchQuery.trim()) {
+      router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortOption(value);
+    router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(value)}`);
+  };
 
   const handleTableChange = (newPage: number, newPageSize: number) => {
     setCurrentPage(newPage);
