@@ -29,10 +29,9 @@ const columns: TableProps<User>["columns"] = [
 ];
 
 interface Movie {
-  id: number;
-  poster_path?: string;
+  movieId: string;
+  posterPath?: string;
   title?: string;
-  release_date?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -77,19 +76,15 @@ const Dashboard: React.FC = () => {
       if (!userId) return;
       setLoadingWatchlist(true);
       try {
-        const movieIds: string[] = await apiService.get(`/users/${userId}/watchlist`);
-        const promises = movieIds.map(async (movieId) => {
+        const items: string[] = await apiService.get(`/users/${userId}/watchlist`);
+        const parsedItems = items.map((item) => {
           try {
-            const response = await apiService.get(`/api/movies/details?id=${movieId}`);
-            const movie = typeof response === "string" ? JSON.parse(response) : response;
-            return movie;
-          } catch (error) {
-            console.error("Error fetching details for movie id", movieId, error);
+            return JSON.parse(item);
+          } catch {
             return null;
           }
-        });
-        const movies = await Promise.all(promises);
-        setWatchlistMovies(movies.filter((m) => m !== null));
+        }).filter((x) => x && x.movieId);
+        setWatchlistMovies(parsedItems);
       } catch (error) {
         console.error("Error fetching watchlist:", error);
       } finally {
@@ -140,7 +135,7 @@ const Dashboard: React.FC = () => {
   const watchlistColumns = [
     {
       title: "Poster",
-      dataIndex: "poster_path",
+      dataIndex: "posterPath",
       key: "poster",
       width: 100,
       render: (posterPath: string) => {
@@ -162,17 +157,9 @@ const Dashboard: React.FC = () => {
       title: "Title",
       key: "title",
       render: (_: unknown, record: Movie) => (
-        <a onClick={() => router.push(`/results/details?id=${record.id}&media_type=movie`)}>
+        <a onClick={() => router.push(`/results/details?id=${record.movieId}&media_type=movie`)}>
           {record.title}
         </a>
-      ),
-    },
-    {
-      title: "Release Date",
-      key: "release_date",
-      width: 120,
-      render: (_: unknown, record: Movie) => (
-        <span style={{ whiteSpace: "nowrap" }}>{record.release_date}</span>
       ),
     },
   ];
@@ -339,7 +326,7 @@ const Dashboard: React.FC = () => {
             <Table
               columns={watchlistColumns}
               dataSource={watchlistMovies}
-              rowKey="id"
+              rowKey="movieId"
               pagination={false}
             />
           ) : (

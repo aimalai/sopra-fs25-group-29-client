@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState, CSSProperties, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Table, Button, message } from "antd";
+import { Table, Button, message, Input, Space, Select } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage"; 
+import useLocalStorage from "@/hooks/useLocalStorage";
 import Image from "next/image";
-//test
+
 interface SearchResult {
   id: number;
   poster_path?: string;
@@ -66,7 +67,6 @@ const headingStyle: CSSProperties = {
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
-  marginBottom: "20px",
 };
 
 const tableStyle: CSSProperties = {
@@ -82,23 +82,48 @@ const ResultsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const apiService = useApi();
-  const query = searchParams.get("query") || "";
 
+  const initialQuery = searchParams.get("query") || "";
+  const initialSort = searchParams.get("sort") || "popularity";
+
+  const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
+  const [sortOption, setSortOption] = useState<string>(initialSort);
   const { value: userId } = useLocalStorage<number>("userId", 0);
-
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  const handleSearchClick = () => {
+    if (searchQuery.trim()) {
+      router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortOption(value);
+    router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(value)}`);
+  };
+
   const handleAddToWatchlist = async (record: SearchResult) => {
     try {
-      await apiService.post(`/users/${userId}/watchlist`, {
+      if (!userId) {
+        throw new Error("No userId in local storage");
+      }
+      const body = {
         movieId: record.id.toString(),
-      });
-      message.success("Added to Watchlist");
+        title: record.media_type === "tv" ? record.name : record.title,
+        posterPath: record.poster_path ?? ""
+      };
+      const response = await apiService.post(`/users/${userId}/watchlist`, body);
+      if (response) {
+        message.success("Added to Watchlist");
+      }
     } catch (error) {
       console.error("Error adding to watchlist:", error);
       message.error("Could not add to Watchlist. Please check console logs.");
@@ -148,13 +173,8 @@ const ResultsPage: React.FC = () => {
       key: "release_date",
       width: 120,
       render: (_: unknown, record: SearchResult) => {
-        const releaseDate =
-          record.media_type === "tv" ? record.first_air_date : record.release_date;
-        return (
-          <span style={{ whiteSpace: "nowrap", color: "#000" }}>
-            {releaseDate}
-          </span>
-        );
+        const releaseDate = record.media_type === "tv" ? record.first_air_date : record.release_date;
+        return <span style={{ whiteSpace: "nowrap", color: "#000" }}>{releaseDate}</span>;
       },
     },
     {
@@ -168,10 +188,7 @@ const ResultsPage: React.FC = () => {
       key: "actions",
       width: 150,
       render: (_: unknown, record: SearchResult) => (
-        <Button
-          style={{ backgroundColor: "#007BFF", color: "#fff" }}
-          onClick={() => handleAddToWatchlist(record)}
-        >
+        <Button style={{ backgroundColor: "#007BFF", color: "#fff" }} onClick={() => handleAddToWatchlist(record)}>
           Add to Watchlist
         </Button>
       ),
@@ -180,16 +197,15 @@ const ResultsPage: React.FC = () => {
 
   const fetchData = useCallback(
     async (page: number, size: number) => {
-      if (query.trim().length === 0) {
+      if (initialQuery.trim().length === 0) {
         setResults([]);
         setTotalItems(0);
         return;
       }
       setLoading(true);
       try {
-        const response = await apiService.get(
-          `/api/movies/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${size}`
-        );
+        const url = `/api/movies/search?query=${encodeURIComponent(initialQuery)}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(sortOption)}`;
+        const response = await apiService.get(url);
         const parsedResponse = typeof response === "string" ? JSON.parse(response) : response;
         const { results: fetchedResults, totalCount } = parsedResponse as ApiResponse;
         setResults(fetchedResults || []);
@@ -200,7 +216,7 @@ const ResultsPage: React.FC = () => {
         setLoading(false);
       }
     },
-    [query, apiService]
+    [initialQuery, sortOption, apiService]
   );
 
   useEffect(() => {
@@ -219,10 +235,26 @@ const ResultsPage: React.FC = () => {
       </div>
       <div style={contentStyle}>
         <div style={boxStyle}>
-          <div style={headingStyle}>Search Results for &quot;{query}&quot;</div>
-          <Button style={buttonStyle} onClick={() => router.push("/users")}>
-            Back to Dashboard
-          </Button>
+          <div style={headingStyle}>Search Results for "{initialQuery}"</div>
+          <Space style={{ display: "flex", marginBottom: 20 }} size="large">
+            <Input
+              placeholder="Search for Movies & TV Shows"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onPressEnter={handleSearchClick}
+              style={{ width: 300 }}
+              suffix={<Button type="primary" icon={<SearchOutlined />} onClick={handleSearchClick} />}
+            />
+            <Select value={sortOption} onChange={handleSortChange} style={{ minWidth: 180 }}>
+              <Select.Option value="popularity">Sort by Popularity</Select.Option>
+              <Select.Option value="rating">Sort by Rating</Select.Option>
+              <Select.Option value="newest">Sort by Newest</Select.Option>
+              <Select.Option value="oldest">Sort by Oldest</Select.Option>
+            </Select>
+            <Button style={buttonStyle} onClick={() => router.push("/users")}>
+              Back to Dashboard
+            </Button>
+          </Space>
           <Table
             columns={columns}
             dataSource={results}

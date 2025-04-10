@@ -36,9 +36,7 @@ const DetailsPage: React.FC = () => {
       }
       setLoading(true);
       try {
-        const endpoint =
-          mediaType === "tv" ? "/api/movies/tv/details" : "/api/movies/details";
-        const response = await apiService.get(`${endpoint}?id=${id}`);
+        const response = await apiService.get(`/api/movies/details?id=${id}&media_type=${mediaType}`);
         const data = typeof response === "string" ? JSON.parse(response) : response;
         setDetails(data);
       } catch (error) {
@@ -48,7 +46,6 @@ const DetailsPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchDetails();
   }, [id, mediaType, apiService]);
 
@@ -79,7 +76,6 @@ const DetailsPage: React.FC = () => {
 
   return (
     <AntdApp>
-      {/* Entfernt: backgrounds, damit globales BG sichtbar wird */}
       <div
         style={{
           minHeight: "100vh",
@@ -167,35 +163,22 @@ const DetailsPage: React.FC = () => {
                     type="primary"
                     onClick={async () => {
                       try {
-                        console.log("Add to Watchlist button clicked");
                         const userId = localStorage.getItem("userId");
-                        console.log("Retrieved userId:", userId);
                         if (!userId) {
-                          console.error("User not logged in");
                           throw new Error("User not logged in");
                         }
-                        console.log("Details object:", details);
-                        const watchlistItem = {
+                        const body = {
                           movieId: details.id.toString(),
                           title: details.title,
-                          posterPath: details.poster_path,
+                          posterPath: details.poster_path ?? ""
                         };
-                        console.log("Constructed watchlist item:", watchlistItem);
-                        const response = await apiService.post(
-                          `/users/${userId}/watchlist`,
-                          watchlistItem
-                        );
-                        await apiService.post(
-                          `/users/${userId}/watchlist`,
-                          watchlistItem
-                        );
-                        console.log(
-                          "Response from add-to-watchlist API:",
-                          response
-                        );
-                        message.success("Added movie to Watchlist!");
-                      } catch {
-                        message.error("Error adding to Watchlist:");
+                        const response = await apiService.post(`/users/${userId}/watchlist`, body);
+                        if (response) {
+                          message.success("Added movie to Watchlist!");
+                        }
+                      } catch (error) {
+                        console.error("Error adding to watchlist:", error);
+                        message.error("Error adding to Watchlist.");
                       }
                     }}
                   >
