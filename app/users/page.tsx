@@ -194,6 +194,7 @@ const Dashboard: React.FC = () => {
               placeholder="Search for Movies & TV Shows"
               value={searchQuery}
               onChange={handleSearchChange}
+              onPressEnter={handleSearchClick}
               style={{ width: "400px" }}
               suffix={
                 <Button
