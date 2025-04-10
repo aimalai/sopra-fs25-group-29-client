@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, CSSProperties, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Table, Button, message, Input, Space, Select } from "antd";
+import { Table, Button, message, Input, Space, Select, Checkbox } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -59,7 +59,6 @@ const boxStyle: CSSProperties = {
 
 const headingStyle: CSSProperties = {
   fontWeight: "bold",
-  marginBottom: "16px",
   fontSize: "1.25rem",
   color: "#000",
 };
@@ -88,6 +87,8 @@ const ResultsPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [sortOption, setSortOption] = useState<string>(initialSort);
+  const [onlyCompleteResults, setOnlyCompleteResults] = useState<boolean>(false);
+
   const { value: userId } = useLocalStorage<number>("userId", 0);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -207,16 +208,24 @@ const ResultsPage: React.FC = () => {
         const url = `/api/movies/search?query=${encodeURIComponent(initialQuery)}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(sortOption)}`;
         const response = await apiService.get(url);
         const parsedResponse = typeof response === "string" ? JSON.parse(response) : response;
-        const { results: fetchedResults, totalCount } = parsedResponse as ApiResponse;
-        setResults(fetchedResults || []);
-        setTotalItems(totalCount || 0);
+        let fetchedResults = (parsedResponse as ApiResponse).results || [];
+        const totalCount = (parsedResponse as ApiResponse).totalCount || 0;
+
+        if (onlyCompleteResults) {
+          fetchedResults = fetchedResults.filter((r) =>
+            r.poster_path && (r.release_date || r.first_air_date) && r.overview
+          );
+        }
+
+        setResults(fetchedResults);
+        setTotalItems(totalCount);
       } catch {
         message.error("Error fetching search results. Please try again.");
       } finally {
         setLoading(false);
       }
     },
-    [initialQuery, sortOption, apiService]
+    [initialQuery, sortOption, onlyCompleteResults, apiService]
   );
 
   useEffect(() => {
@@ -235,8 +244,13 @@ const ResultsPage: React.FC = () => {
       </div>
       <div style={contentStyle}>
         <div style={boxStyle}>
-          <div style={headingStyle}>Search Results for "{initialQuery}"</div>
-          <Space style={{ display: "flex", marginBottom: 20 }} size="large">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div style={headingStyle}>Search Results for "{initialQuery}"</div>
+            <Button style={buttonStyle} onClick={() => router.push("/users")}>
+              Back to Dashboard
+            </Button>
+          </div>
+          <Space style={{ display: "flex", marginBottom: 20, flexWrap: "wrap" }} size="large">
             <Input
               placeholder="Search for Movies & TV Shows"
               value={searchQuery}
@@ -251,9 +265,13 @@ const ResultsPage: React.FC = () => {
               <Select.Option value="newest">Sort by Newest</Select.Option>
               <Select.Option value="oldest">Sort by Oldest</Select.Option>
             </Select>
-            <Button style={buttonStyle} onClick={() => router.push("/users")}>
-              Back to Dashboard
-            </Button>
+            <Checkbox
+              checked={onlyCompleteResults}
+              onChange={(e) => setOnlyCompleteResults(e.target.checked)}
+              style={{ marginTop: "4px" }}
+            >
+              Complete Results Only
+            </Checkbox>
           </Space>
           <Table
             columns={columns}
