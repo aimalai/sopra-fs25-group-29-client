@@ -208,10 +208,10 @@ const Dashboard: React.FC = () => {
         </div>
         <Button
           type="default"
-          onClick={() => router.push("/profile")}
+          onClick={() => router.push(`/users/${userId}`)}
           style={{ position: "absolute", right: "20px", top: "50px" }}
         >
-          Profile
+          👤 Profile
         </Button>
       </div>
       <div
