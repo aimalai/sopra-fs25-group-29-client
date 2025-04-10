@@ -36,7 +36,9 @@ const WatchpartyPage: React.FC = () => {
       const newParty: Watchparty = {
         id: Date.now(),
         partyName: values.title,
-        description: `Date: ${values.date.format("YYYY-MM-DD")}, Time: ${values.time.format("HH:mm")}, Link: ${values.contentLink}`,
+        description: `Date: ${values.date.format("YYYY-MM-DD")}, Time: ${values.time.format(
+          "HH:mm"
+        )}, Link: ${values.contentLink}`,
       };
       setWatchparties((prev) => [...prev, newParty]);
       message.success("Watchparty created!");
@@ -95,7 +97,7 @@ const WatchpartyPage: React.FC = () => {
   return (
     <div
       style={{
-        background: "#000",
+        /* Hintergrund entfernt, um globales BG zu zeigen */
         minHeight: "100vh",
         padding: "20px",
         boxSizing: "border-box",

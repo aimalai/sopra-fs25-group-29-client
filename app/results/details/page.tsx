@@ -62,7 +62,7 @@ const DetailsPage: React.FC = () => {
 
   if (!details) {
     return (
-      <div style={{ padding: "20px", backgroundColor: "#eee", color: "black" }}>
+      <div style={{ padding: "20px", color: "black" }}>
         <p>No details available.</p>
         <Button
           type="primary"
@@ -79,15 +79,15 @@ const DetailsPage: React.FC = () => {
 
   return (
     <AntdApp>
+      {/* Entfernt: backgrounds, damit globales BG sichtbar wird */}
       <div
         style={{
-          backgroundColor: "#eee",
-          color: "black",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           position: "relative",
+          color: "black",
         }}
       >
         <div style={{ position: "absolute", top: 20, left: 20 }}>
@@ -181,9 +181,18 @@ const DetailsPage: React.FC = () => {
                           posterPath: details.poster_path,
                         };
                         console.log("Constructed watchlist item:", watchlistItem);
-                        const response = await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
-                        await apiService.post(`/users/${userId}/watchlist`, watchlistItem);
-                        console.log("Response from add-to-watchlist API:", response);
+                        const response = await apiService.post(
+                          `/users/${userId}/watchlist`,
+                          watchlistItem
+                        );
+                        await apiService.post(
+                          `/users/${userId}/watchlist`,
+                          watchlistItem
+                        );
+                        console.log(
+                          "Response from add-to-watchlist API:",
+                          response
+                        );
                         message.success("Added movie to Watchlist!");
                       } catch {
                         message.error("Error adding to Watchlist:");

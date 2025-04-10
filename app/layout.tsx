@@ -37,7 +37,6 @@ export default function RootLayout({
                 borderRadius: 8,
                 colorText: "#000",
                 fontSize: 16,
-
                 colorBgContainer: "#f2f2f2",
               },
               components: {

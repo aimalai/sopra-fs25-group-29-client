@@ -318,11 +318,12 @@ const Dashboard: React.FC = () => {
               locale={{ emptyText: "No friends added yet" }}
             />
             <div>
-            <hr style={{ margin: "16px 0" }} />
-
-            <p><strong>Incoming Friend Requests:</strong></p>
-            <p>No incoming requests</p>
-          </div>
+              <hr style={{ margin: "16px 0" }} />
+              <p>
+                <strong>Incoming Friend Requests:</strong>
+              </p>
+              <p>No incoming requests</p>
+            </div>
           </div>
         </Card>
 

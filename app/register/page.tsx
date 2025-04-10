@@ -31,11 +31,15 @@ const Register: React.FC = () => {
       if (response.id) {
         setUserId(Number(response.id));
       }
-      message.success("Registration Successful: You have been successfully registered and logged in.");
+      message.success(
+        "Registration Successful: You have been successfully registered and logged in."
+      );
       router.push("/users");
     } catch (error: unknown) {
       if (error instanceof Error) {
-        message.error("Registration Failed: " + (error.message || "An error occurred during registration."));
+        message.error(
+          "Registration Failed: " + (error.message || "An error occurred during registration.")
+        );
       } else {
         message.error("Registration Failed: An unknown error occurred during registration.");
       }

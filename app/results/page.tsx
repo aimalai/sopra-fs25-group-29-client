@@ -21,7 +21,7 @@ const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   height: "100vh",
-  backgroundColor: "#f2f2f2",
+  /* backgroundColor entfernt */
 };
 
 const topBarStyle: CSSProperties = {
@@ -72,6 +72,11 @@ const buttonStyle: CSSProperties = {
 const tableStyle: CSSProperties = {
   backgroundColor: "#e0e0e0",
 };
+
+interface ApiResponse {
+  results: SearchResult[];
+  totalCount: number;
+}
 
 const ResultsPage: React.FC = () => {
   const router = useRouter();
@@ -127,9 +132,7 @@ const ResultsPage: React.FC = () => {
           <a
             style={{ color: "#000", cursor: "pointer" }}
             onClick={() =>
-              router.push(
-                `/results/details?id=${record.id}&media_type=${record.media_type}`
-              )
+              router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
             }
           >
             {title}
@@ -172,27 +175,30 @@ const ResultsPage: React.FC = () => {
     },
   ];
 
-  const fetchData = useCallback(async (page: number, size: number) => {
-    if (query.trim().length === 0) {
-      setResults([]);
-      setTotalItems(0);
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await apiService.get(
-        `/api/movies/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${size}`
-      );
-      const parsedResponse =
-        typeof response === "string" ? JSON.parse(response) : response;
-      setResults(parsedResponse.results || []);
-      setTotalItems(parsedResponse.totalCount || 0);
-    } catch {
-      message.error("Error fetching search results. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [query, apiService]);
+  const fetchData = useCallback(
+    async (page: number, size: number) => {
+      if (query.trim().length === 0) {
+        setResults([]);
+        setTotalItems(0);
+        return;
+      }
+      setLoading(true);
+      try {
+        const response = await apiService.get(
+          `/api/movies/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${size}`
+        );
+        const parsedResponse = typeof response === "string" ? JSON.parse(response) : response;
+        const { results: fetchedResults, totalCount } = parsedResponse as ApiResponse;
+        setResults(fetchedResults || []);
+        setTotalItems(totalCount || 0);
+      } catch {
+        message.error("Error fetching search results. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [query, apiService]
+  );
 
   useEffect(() => {
     fetchData(currentPage, pageSize);

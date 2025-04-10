@@ -12,22 +12,22 @@ interface FormFieldProps {
   value: string;
 }
 
+/* backgroundColor entfernt, damit globales BG sichtbar wird */
 const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
   minHeight: "100vh",
-  backgroundColor: "#f2f2f2"
 };
 
 const logoContainerStyle: CSSProperties = {
-  marginBottom: "24px"
+  marginBottom: "24px",
 };
 
 const logoStyle: CSSProperties = {
   width: "200px",
-  height: "auto"
+  height: "auto",
 };
 
 const formBoxStyle: CSSProperties = {
@@ -35,26 +35,26 @@ const formBoxStyle: CSSProperties = {
   padding: "24px",
   borderRadius: "8px",
   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  width: "320px"
+  width: "320px",
 };
 
 const headingStyle: CSSProperties = {
   color: "#000",
   marginBottom: "16px",
   fontWeight: "bold",
-  fontSize: "1.25rem"
+  fontSize: "1.25rem",
 };
 
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
-  width: "100%"
+  width: "100%",
 };
 
 const inputStyle: CSSProperties = {
   backgroundColor: "#e0e0e0",
   border: "1px solid #ccc",
-  color: "#000"
+  color: "#000",
 };
 
 const Login: React.FC = () => {

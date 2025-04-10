@@ -18,7 +18,8 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  /* Dein globales Hintergrundbild: bitte ggf. deinen Dateinamen anpassen */
+  background: url("/BabaBild2.jpg") center center / cover no-repeat fixed;
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -41,22 +42,18 @@ a {
   }
 }
 
+/* Entfernt: background-color aus .auth-container, damit das globale Background greift */
 .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: rgb(41, 44, 59);
 }
 
-.auth-button {
-  width: 100%;
-}
-
+/* Entfernt: background-color aus .card-container */
 .card-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: rgb(41, 44, 59);
 }

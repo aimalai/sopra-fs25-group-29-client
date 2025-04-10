@@ -12,20 +12,20 @@ const pageContainerStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   minHeight: "100vh",
-  backgroundColor: "#f2f2f2",
-  position: "relative"
+  /* backgroundColor entfernt */
+  position: "relative",
 };
 
 const logoContainerStyle: CSSProperties = {
   marginTop: "16px",
   alignSelf: "flex-start",
   marginLeft: "24px",
-  marginBottom: "24px"
+  marginBottom: "24px",
 };
 
 const logoStyle: CSSProperties = {
   width: "160px",
-  height: "auto"
+  height: "auto",
 };
 
 const contentStyle: CSSProperties = {
@@ -34,7 +34,7 @@ const contentStyle: CSSProperties = {
   padding: "24px",
   borderRadius: "8px",
   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  marginBottom: "20px"
+  marginBottom: "20px",
 };
 
 const headingStyle: CSSProperties = {
@@ -42,13 +42,13 @@ const headingStyle: CSSProperties = {
   fontWeight: "bold",
   fontSize: "1.25rem",
   textAlign: "left",
-  color: "#000"
+  color: "#000",
 };
 
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
-  width: "100%"
+  width: "100%",
 };
 
 const UserProfile: React.FC = () => {
