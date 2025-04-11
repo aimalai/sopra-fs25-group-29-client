@@ -1,7 +1,7 @@
 "use client";
 import React, { CSSProperties, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Card, Button, message } from "antd";
+import { Button, Checkbox, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
@@ -12,8 +12,6 @@ const pageContainerStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   minHeight: "100vh",
-  /* backgroundColor entfernt */
-  position: "relative",
 };
 
 const logoContainerStyle: CSSProperties = {
@@ -29,20 +27,63 @@ const logoStyle: CSSProperties = {
 };
 
 const contentStyle: CSSProperties = {
-  width: "400px",
+  width: "480px",
   backgroundColor: "#e0e0e0",
   padding: "24px",
   borderRadius: "8px",
   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
   marginBottom: "20px",
+  position: "relative",
+};
+
+const topRowStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: "24px",
+  flexDirection: "row-reverse",
 };
 
 const headingStyle: CSSProperties = {
-  marginBottom: "16px",
   fontWeight: "bold",
   fontSize: "1.25rem",
+  color: "#000",
+};
+
+const labelStyle: CSSProperties = {
+  fontWeight: "bold",
+  marginBottom: "4px",
+  color: "#000",
+};
+
+const valueBoxStyle: CSSProperties = {
+  backgroundColor: "#fff",
+  border: "1px solid #ccc",
+  padding: "8px 12px",
+  borderRadius: "4px",
   textAlign: "left",
   color: "#000",
+  whiteSpace: "pre-wrap",
+};
+
+const fieldContainer: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  marginBottom: "12px",
+};
+
+const sectionHeadingStyle: CSSProperties = {
+  fontWeight: "bold",
+  marginTop: "12px",
+  marginBottom: "6px",
+  fontSize: "1rem",
+  color: "#333",
+};
+
+const profilePictureStyle: CSSProperties = {
+  borderRadius: "50%",
+  border: "2px solid #ccc",
+  marginTop: "10px",
 };
 
 const buttonStyle: CSSProperties = {
@@ -82,10 +123,6 @@ const UserProfile: React.FC = () => {
     fetchUser();
   }, [apiService, id]);
 
-  const headingTitle = isOwnProfile
-    ? "View Your Profile"
-    : `View ${user?.username}'s Profile`;
-
   return (
     <div style={pageContainerStyle}>
       <div style={logoContainerStyle}>
@@ -99,23 +136,84 @@ const UserProfile: React.FC = () => {
       </div>
       {user ? (
         <div style={contentStyle}>
-          <div style={headingStyle}>{headingTitle}</div>
-          <Card style={{ backgroundColor: "#e0e0e0", border: "none" }}>
-            <p>
-              <strong>Username:</strong> {user.username}
-            </p>
-            <p>
-              <strong>Online Status:</strong>{" "}
-              {user.status === "ONLINE" ? "🟢 Online" : "🔴 Offline"}
-            </p>
-            <p>
-              <strong>Creation Date:</strong> {user.creationDate}
-            </p>
-            <p>
-              <strong>Birth Date:</strong> {user.birthday ? user.birthday : "N/A"}
-            </p>
-          </Card>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={topRowStyle}>
+            <Image
+              src={user.profilePictureUrl || "/default-avatar.jpg"}
+              alt="Profile Picture"
+              width={80}
+              height={80}
+              style={profilePictureStyle}
+            />
+            <div style={headingStyle}>
+              {isOwnProfile ? "View Your Profile" : `View ${user.username}'s Profile`}
+            </div>
+          </div>
+
+          <div style={fieldContainer}>
+            <div style={labelStyle}>Username:</div>
+            <div style={valueBoxStyle}>{user.username || "N/A"}</div>
+          </div>
+
+          {isOwnProfile ? (
+            <>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Email:</div>
+                <div style={valueBoxStyle}>{user.email || "N/A"}</div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Password:</div>
+                <div style={valueBoxStyle}>**********</div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Birthdate:</div>
+                <div style={valueBoxStyle}>{user.birthday || "N/A"}</div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Biography:</div>
+                <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
+              </div>
+              <div style={sectionHeadingStyle}>Privacy Settings</div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Sharable:</div>
+                <Checkbox checked={user.sharable} disabled>
+                  Enable profile search
+                </Checkbox>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Public Ratings:</div>
+                <Checkbox checked={user.publicRatings} disabled>
+                  Share my ratings
+                </Checkbox>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Online Status:</div>
+                <div style={valueBoxStyle}>
+                  {user.status === "ONLINE" ? "🟢 Online" : "🔴 Offline"}
+                </div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Email:</div>
+                <div style={valueBoxStyle}>{user.email || "N/A"}</div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Birthdate:</div>
+                <div style={valueBoxStyle}>{user.birthday || "N/A"}</div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Joined on:</div>
+                <div style={valueBoxStyle}>{user.creationDate || "N/A"}</div>
+              </div>
+              <div style={fieldContainer}>
+                <div style={labelStyle}>Biography:</div>
+                <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
+              </div>
+            </>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
             {isOwnProfile ? (
               <Button
                 style={buttonStyle}

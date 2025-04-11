@@ -10,7 +10,7 @@ import { Button, Form, Input, message } from "antd";
 interface FormFieldProps {
   username: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword?: string;
 }
 
 const containerStyle: CSSProperties = {
@@ -60,24 +60,23 @@ const inputStyle: CSSProperties = {
 const Register: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<FormFieldProps>();
   const [isLoading, setIsLoading] = useState(false);
 
   const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<number>("userId", 0);
 
-  const handleRegister = async (values: FormFieldProps) => {
+  const handleRegister = async (values: Omit<FormFieldProps, "confirmPassword">) => {
     setIsLoading(true);
     try {
-      const { confirmPassword, ...userData } = values;
-      const response = await apiService.post<User>("/users", userData);
+      const response = await apiService.post<User>("/users", values);
 
       if (response.token) setToken(response.token);
       if (response.id) setUserId(Number(response.id));
 
       message.success("Registration Successful: You have been successfully registered and logged in.");
       router.push("/users");
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         message.error("Registration Failed: " + (error.message || "An error occurred during registration."));
       } else {
@@ -105,7 +104,7 @@ const Register: React.FC = () => {
           form={form}
           name="register"
           size="large"
-          onFinish={handleRegister}
+          onFinish={(values) => handleRegister(values)}
           layout="vertical"
         >
           <Form.Item
@@ -158,15 +157,11 @@ const Register: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/login")}>
-              Already have an account? Login
-            </Button>
+            <Button style={buttonStyle} onClick={() => router.push("/login")}>Already have an account? Login</Button>
           </Form.Item>
 
           <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/")}>
-              Back
-            </Button>
+            <Button style={buttonStyle} onClick={() => router.push("/")}>Back</Button>
           </Form.Item>
         </Form>
       </div>

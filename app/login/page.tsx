@@ -12,7 +12,6 @@ interface FormFieldProps {
   value: string;
 }
 
-/* backgroundColor entfernt, damit globales BG sichtbar wird */
 const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -116,11 +115,7 @@ const Login: React.FC = () => {
             name="password"
             rules={[{ required: true, message: "Please input your password!" }]}
           >
-            <Input
-              type="password"
-              style={inputStyle}
-              placeholder="Enter password"
-            />
+            <Input.Password style={inputStyle} placeholder="Enter password" />
           </Form.Item>
           <Form.Item>
             <Button style={buttonStyle} htmlType="submit">
