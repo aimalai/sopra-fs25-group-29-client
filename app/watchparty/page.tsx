@@ -66,6 +66,7 @@ const WatchpartyPage: React.FC = () => {
     date: Dayjs;
     time: Dayjs;
     contentLink: string;
+    description?: string;
   }) => {
     try {
       const localDateTime = dayjs(
@@ -80,11 +81,13 @@ const WatchpartyPage: React.FC = () => {
       const utcTimeString = utcDateTime.toISOString();
 
       console.log("Creating watchparty with values:", values);
+      const combinedDescription = `Link: ${values.contentLink}` +
+        (values.description ? ` - ${values.description}` : "");
       const newParty: Watchparty = {
         id: Date.now(),
         partyName: values.title,
         utcTime: utcTimeString,
-        description: `Link: ${values.contentLink}`,
+        description: combinedDescription,
       };
 
       setWatchparties((prev) => [...prev, newParty]);
@@ -165,6 +168,9 @@ const WatchpartyPage: React.FC = () => {
             </Form.Item>
             <Form.Item name="contentLink" label="Content Link" rules={[{ required: true, message: "Please enter a content link" }]}>
               <Input placeholder="Enter content link (e.g., YouTube URL)" />
+            </Form.Item>
+            <Form.Item name="description" label="Description (Optional)">
+              <Input.TextArea placeholder="Enter additional details (optional)" />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit">
