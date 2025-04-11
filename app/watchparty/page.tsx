@@ -10,8 +10,8 @@ import type { ColumnsType } from "antd/es/table";
 dayjs.extend(utc);
 interface Watchparty {
   id: number;
-  partyName: string;
-  utcTime: string; 
+  title: string;
+  utcTime: string;
   description: string;
 }
 
@@ -78,19 +78,25 @@ const WatchpartyPage: React.FC = () => {
         return;
       }
       const utcDateTime = localDateTime.utc();
-      const utcTimeString = utcDateTime.toISOString();
+      const utcTimeString = utcDateTime.format("YYYY-MM-DD[T]HH:mm:ss");
 
-      console.log("Creating watchparty with values:", values);
-      const combinedDescription = `Link: ${values.contentLink}` +
-        (values.description ? ` - ${values.description}` : "");
-      const newParty: Watchparty = {
-        id: Date.now(),
-        partyName: values.title,
-        utcTime: utcTimeString,
-        description: combinedDescription,
+      const organizerIdStr = localStorage.getItem("userId");
+      if (!organizerIdStr) {
+        message.error("Organizer ID not found. Please log in.");
+        return;
+      }
+      const organizerId = Number(organizerIdStr);
+      const payload = {
+        organizerId: organizerId,
+        title: values.title,
+        contentLink: values.contentLink,
+        description: values.description || "",
+        scheduledTime: utcTimeString,
       };
 
-      setWatchparties((prev) => [...prev, newParty]);
+      console.log("Sending payload to backend:", payload);
+      const response = await apiService.post<Watchparty>("/api/watchparties", payload);
+      setWatchparties((prev) => [...prev, response]);
       message.success("Watchparty created!");
       form.resetFields();
     } catch (error: unknown) {
@@ -105,13 +111,20 @@ const WatchpartyPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setWatchparties([]);
-        setInvitations([]);
+        const organizerIdStr = localStorage.getItem("userId");
+        if (organizerIdStr) {
+          const organizerId = Number(organizerIdStr);
+          const data = await apiService.get<Watchparty[]>(`/api/watchparties?organizerId=${organizerId}`);
+          setWatchparties(data);
+        } else {
+          setWatchparties([]);
+          setInvitations([]);
+        }
       } catch (error: unknown) {
         if (error instanceof Error) {
-          message.error("Error fetching data: " + error.message);
+          message.error("Error fetching watchparties: " + error.message);
         } else {
-          message.error("Error fetching data");
+          message.error("Error fetching watchparties");
         }
       }
     };
@@ -121,7 +134,7 @@ const WatchpartyPage: React.FC = () => {
   const watchpartyColumns: ColumnsType<Watchparty> = [
     {
       title: "Watchparty Name",
-      dataIndex: "partyName",
+      dataIndex: "title",
       key: "partyName",
     },
     {
