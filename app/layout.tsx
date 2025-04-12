@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConfigProvider, theme } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import Link from "next/link"; // ✅ ADDED: Import for navigation
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -31,35 +32,46 @@ export default function RootLayout({
           theme={{
             algorithm: theme.defaultAlgorithm,
             token: {
-              // general theme options are set in token, meaning all primary elements (button, menu, ...) will have this color
-              colorPrimary: "#22426b", // selected input field boarder will have this color as well
+              colorPrimary: "#22426b",
               borderRadius: 8,
               colorText: "#fff",
               fontSize: 16,
-
-              // Alias Token
               colorBgContainer: "#16181D",
             },
-            // if a component type needs special styling, setting here will override default options set in token
             components: {
               Button: {
-                colorPrimary: "#75bd9d", // this will color all buttons in #75bd9d, overriding the default primaryColor #22426b set in token line 35
-                algorithm: true, // enable algorithm (redundant with line 33 but here for demo purposes)
+                colorPrimary: "#75bd9d",
+                algorithm: true,
                 controlHeight: 38,
               },
               Input: {
-                colorBorder: "gray", // color boarder selected is not overridden but instead is set by primary color in line 35
+                colorBorder: "gray",
                 colorTextPlaceholder: "#888888",
-                algorithm: false, // disable algorithm (line 32)
+                algorithm: false,
               },
               Form: {
                 labelColor: "#fff",
-                algorithm: theme.defaultAlgorithm, // specify a specifc algorithm instead of true/false
+                algorithm: theme.defaultAlgorithm,
               },
               Card: {},
             },
           }}
         >
+          {/* ✅ ADDED: Navigation Bar */}
+          <nav
+            style={{
+              padding: "10px",
+              background: "#16181D",
+              display: "flex",
+              gap: "20px",
+            }}
+          >
+            <Link href="/">🏠 Home</Link>
+            <Link href="/watchparty">🎉 Watch Party</Link>
+            <Link href="/login">🔑 Login</Link>
+            <Link href="/register">📝 Register</Link>
+          </nav>
+
           <AntdRegistry>{children}</AntdRegistry>
         </ConfigProvider>
       </body>

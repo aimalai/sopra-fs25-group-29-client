@@ -31,6 +31,7 @@ const Login: React.FC = () => {
         setIsOtpStage(true); // Move to OTP stage
       } else {
         localStorage.setItem("token", responseMessage);
+        localStorage.setItem("username", values.username); // ✅ Stores username for Watch Party retrieval
         router.push("/dashboard");
       }
     } catch (error) {
@@ -51,6 +52,7 @@ const Login: React.FC = () => {
 
       const token = await response.text();
       localStorage.setItem("token", token);
+      localStorage.setItem("username", username); // ✅ Ensures username is saved after OTP verification
       router.push("/dashboard");
     } catch (error) {
       console.error("OTP Verification Error:", error);
