@@ -11,7 +11,7 @@ dayjs.extend(utc);
 interface Watchparty {
   id: number;
   title: string;
-  utcTime: string;
+  scheduledTime: string;
   description: string;
 }
 
@@ -138,15 +138,10 @@ const WatchpartyPage: React.FC = () => {
       key: "partyName",
     },
     {
-      title: "Local Time",
+      title: "Scheduled Time",
       key: "time",
       render: (_text: unknown, record: Watchparty) =>
-        dayjs.utc(record.utcTime).local().format("DD.MM.YYYY, HH:mm"),
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
+        dayjs.utc(record.scheduledTime).local().format("DD.MM.YYYY, HH:mm"),
     },
   ];
 
@@ -165,7 +160,7 @@ const WatchpartyPage: React.FC = () => {
 
   return (
     <div style={{ minHeight: "100vh", padding: "20px", boxSizing: "border-box" }}>
-      <h1 style={{ color: "#fff", marginBottom: "20px" }}>Watchparty Page</h1>
+      <h1 style={{ color: "#fff", marginBottom: "20px" }}>Watchparty Manager</h1>
       <div style={{ display: "flex", gap: "20px", width: "100%", flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 300px", border: "1px solid #444", padding: "20px", borderRadius: "8px", background: "#2f2f2f", color: "#fff", minWidth: "280px" }}>
           <h2>Create Watchparty</h2>
