@@ -292,7 +292,7 @@ const ResultsPage: React.FC = () => {
       <div style={contentStyle}>
         <div style={boxStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div style={headingStyle}>Search Results for &quot{initialQuery}&quot</div>
+            <div style={headingStyle}>Search Results for &quot;{initialQuery}&quot;</div>
             <Button style={buttonStyle} onClick={() => router.push("/users")}>
               Back to Dashboard
             </Button>

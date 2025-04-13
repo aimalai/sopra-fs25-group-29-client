@@ -19,6 +19,14 @@ interface MediaDetails {
   poster_path: string;
 }
 
+interface UserRatingResponse {
+  rating: number;
+}
+
+interface AggregatedRatingResponse {
+  averageRating: number;
+}
+
 const DetailsPage: React.FC = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -28,6 +36,8 @@ const DetailsPage: React.FC = () => {
   const [details, setDetails] = useState<MediaDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [inWatchlist, setInWatchlist] = useState(false);
+  const [userRating, setUserRating] = useState<number>(0);
+  const [aggregatedUserRating, setAggregatedUserRating] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -38,7 +48,7 @@ const DetailsPage: React.FC = () => {
       setLoading(true);
       try {
         const response = await apiService.get(`/api/movies/details?id=${id}&media_type=${mediaType}`);
-        const data = typeof response === "string" ? JSON.parse(response) : response;
+        const data = typeof response === "string" ? JSON.parse(response) : (response as MediaDetails);
         setDetails(data);
       } catch (error) {
         console.error("Error loading details:", error);
@@ -69,8 +79,32 @@ const DetailsPage: React.FC = () => {
       }
     };
 
+    const fetchUserRating = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId || !id) return;
+        const response = await apiService.get(`/api/users/${userId}/ratings?movieId=${id}`) as UserRatingResponse;
+        setUserRating(response.rating);
+      } catch (error) {
+        void error;
+        console.log("User rating not found, initializing with 0");
+      }
+    };
+    
+    
+    const fetchAggregatedUserRating = async () => {
+      try {
+        const response = await apiService.get(`/api/movies/${id}/userRatings`) as AggregatedRatingResponse;
+        setAggregatedUserRating(response.averageRating);
+      } catch (error) {
+        void error;
+        console.log("Aggregated user rating not available");
+      }
+    };
     fetchDetails();
     checkWatchlist();
+    fetchUserRating();
+    fetchAggregatedUserRating();
   }, [id, mediaType, apiService]);
 
   if (loading) {
@@ -129,6 +163,22 @@ const DetailsPage: React.FC = () => {
     }
   };
 
+  const handleUserRatingChange = async (value: number) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !id) throw new Error("User not logged in or movie ID missing");
+      setUserRating(value);
+      await apiService.post(`/api/users/${userId}/ratings`, { movieId: id, rating: value });
+      message.success("Your rating has been updated.");
+      const aggResponse = await apiService.get(`/api/movies/${id}/userRatings`) as AggregatedRatingResponse;
+      setAggregatedUserRating(aggResponse.averageRating);
+    } catch (error) {
+      void error;
+      message.error("Error updating your rating.");
+      console.error("Error updating user rating:", error);
+    }
+  };
+  
   return (
     <AntdApp>
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", color: "black" }}>
@@ -163,21 +213,35 @@ const DetailsPage: React.FC = () => {
                   <p><strong>Description:</strong></p>
                   <p>{details.description}</p>
                 </div>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <Button
-                    type="primary"
-                    onClick={inWatchlist ? handleRemove : handleAdd}
-                    style={{
-                      backgroundColor: inWatchlist ? "#ff4d4f" : "#1890ff",
-                      borderColor: inWatchlist ? "#ff4d4f" : "#1890ff",
-                      color: "white",
-                    }}
-                  >
-                    {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-                  </Button>
-                  <div style={{ marginLeft: "20px", display: "flex", alignItems: "center", gap: "5px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span>TMDB Rating:</span>
                     <Rate disabled allowHalf defaultValue={Number(ratingOutOfFive)} style={{ fontSize: "16px", color: "#faad14" }} />
                     <span>({ratingOutOfFive}/5)</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span>Your Rating:</span>
+                    <Rate allowHalf value={userRating} onChange={handleUserRatingChange} style={{ fontSize: "16px", color: "#faad14" }} />
+                    <span>({userRating}/5)</span>
+                  </div>
+                  {aggregatedUserRating !== null && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                      <span>Average User Rating:</span>
+                      <span>{aggregatedUserRating.toFixed(1)}/5</span>
+                    </div>
+                  )}
+                  <div style={{ marginTop: "10px" }}>
+                    <Button
+                      type="primary"
+                      onClick={inWatchlist ? handleRemove : handleAdd}
+                      style={{
+                        backgroundColor: inWatchlist ? "#ff4d4f" : "#1890ff",
+                        borderColor: inWatchlist ? "#ff4d4f" : "#1890ff",
+                        color: "white",
+                      }}
+                    >
+                      {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+                    </Button>
                   </div>
                 </div>
               </div>
