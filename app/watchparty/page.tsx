@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 import { Form, Input, Button, Card, Table, message, DatePicker, TimePicker } from "antd";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
@@ -8,6 +8,13 @@ import utc from "dayjs/plugin/utc";
 import type { ColumnsType } from "antd/es/table";
 
 dayjs.extend(utc);
+
+const buttonStyle: CSSProperties = {
+  backgroundColor: "#007BFF",
+  color: "#ffffff",
+  width: "100%",
+};
+
 interface Watchparty {
   id: number;
   title: string;
@@ -133,7 +140,7 @@ const WatchpartyPage: React.FC = () => {
 
   const watchpartyColumns: ColumnsType<Watchparty> = [
     {
-      title: "Watchparty Name",
+      title: "Title",
       dataIndex: "title",
       key: "partyName",
     },
@@ -142,6 +149,15 @@ const WatchpartyPage: React.FC = () => {
       key: "time",
       render: (_text: unknown, record: Watchparty) =>
         dayjs.utc(record.scheduledTime).local().format("DD.MM.YYYY, HH:mm"),
+    },
+    {
+      title: "",
+      key: "action",
+      render: (_text: unknown, record: Watchparty) => (
+        <Button style={buttonStyle} onClick={() => router.push(`/watchparty/${record.id}`)}>
+          Details
+        </Button>
+      ),
     },
   ];
 
@@ -181,14 +197,14 @@ const WatchpartyPage: React.FC = () => {
               <Input.TextArea placeholder="Enter additional details (optional)" />
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit">
+              <Button style={buttonStyle} htmlType="submit">
                 Create
               </Button>
             </Form.Item>
           </Form>
         </div>
         <div style={{ flex: "2 1 400px", border: "1px solid #444", padding: "20px", borderRadius: "8px", background: "#2f2f2f", color: "#fff", minWidth: "300px" }}>
-          <h2>Joined Watchparties</h2>
+          <h2>Watchparties</h2>
           <Card style={{ background: "#2f2f2f", border: "none" }}>
             <Table dataSource={watchparties} columns={watchpartyColumns} rowKey="id" pagination={false} />
           </Card>
@@ -201,7 +217,7 @@ const WatchpartyPage: React.FC = () => {
         </div>
       </div>
       <div style={{ marginTop: "20px", textAlign: "center" }}>
-        <Button type="primary" onClick={() => router.push("/users")} style={{ marginRight: "10px" }}>
+        <Button style={buttonStyle} onClick={() => router.push("/users")}>
           Home
         </Button>
       </div>
