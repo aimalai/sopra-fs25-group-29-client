@@ -79,9 +79,18 @@ reason).
 
 ---
 
-## Contributions Week 3 - [Begin Date] to [End Date]
+## Contributions Week 3 - [07.04.2025] to [13.04.2025]
 
-_Continue with the same table format as above._
+| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
+| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
+| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@Admir17]** | [10.04]   | [https://github.com/aimalai/sopra-fs25-group-29-client/commit/401086d572aa5fc0e3e81fd0ecad8b5b005cfd13] | [Implemented backend functionality for friend requests. This update extends the user entity to include properties for incoming friend requests and friends, and enhances the UserService with methods to send, accept, decline, retrieve incoming friend requests, and fetch the friend list.] | [The dummy "Add Friend" button and Friendlist Card prepare the UI for seamless social integration, ensuring that users can access these features once the backend is fully integrated.] |
+|                    | [11.04]   | [https://github.com/aimalai/sopra-fs25-group-29-server/commit/2832da7b2ae95818d7bfa9065b1e88e265916a8b] | [Added placeholder "Add Friend" button on profile page and a dummy Friendlist card on the Dashboard. This prepares the frontend for upcoming backend integration. (Issue: #26)] | [The friend request functionality is essential for our project as it allows users to connect, coordinate watch parties, and share movie recommendations easily.] |
 
 ---
 
