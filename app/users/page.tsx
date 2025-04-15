@@ -276,11 +276,6 @@ const Dashboard: React.FC = () => {
                 key: "username",
               },
               {
-                title: "Birth Date",
-                dataIndex: "birthday",
-                key: "birthday",
-              },
-              {
                 title: "Status",
                 dataIndex: "status",
                 key: "status",
