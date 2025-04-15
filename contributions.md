@@ -108,7 +108,7 @@ reason).
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@Admir17]** | [15.04]   | [https://github.com/aimalai/sopra-fs25-group-29-client/commit/8ba800691cab3de3b7307329018f0ed9ddd75689] | [This contribution implements the functionality for navigating from search results to a potential friend's profile. It enables users to view detailed profiles and interact directly by sending or canceling friend requests, seamlessly linking the frontend with the backend API.] | [This enhancement improves user engagement by streamlining the process of connecting with other users. By making it easier to access profile information and manage friend requests, the feature fosters stronger community interactions and a smoother user experience on the platform.] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
 ## Contributions Week 5 - [Begin Date] to [End Date]
