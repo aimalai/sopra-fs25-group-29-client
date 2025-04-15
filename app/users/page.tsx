@@ -45,6 +45,8 @@ const Dashboard: React.FC = () => {
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
   const [friendQuery, setFriendQuery] = useState("");
   const [friendResults, setFriendResults] = useState<User[]>([]);
+  const [friends, setFriends] = useState<User[]>([]);
+  const [friendRequests, setFriendRequests] = useState<User[]>([]);
 
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
@@ -72,6 +74,14 @@ const Dashboard: React.FC = () => {
 
     fetchUsers();
   }, [apiService]);
+
+  useEffect(() => {
+    if (userId) {
+      loadWatchlist();
+      loadFriends();
+      loadFriendRequests();
+    }
+  }, [apiService, userId]);
 
   const loadWatchlist = async () => {
     if (!userId) return;
@@ -144,6 +154,52 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       message.error("Could not remove movie from watchlist.");
       console.error("Remove failed:", error);
+    }
+  };
+
+  const loadFriends = async () => {
+    try {
+      const friendsData = await apiService.get<User[]>(`/users/${userId}/friends`);
+      setFriends(friendsData);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      message.error("Could not load your friend list");
+    }
+  };
+
+  const loadFriendRequests = async () => {
+    try {
+      const requestIds = await apiService.get<(number | string)[]>(`/users/${userId}/friendrequests`);
+      const requestsData = await Promise.all(
+        requestIds.map((id: number | string) => apiService.get<User>(`/users/${id}`))
+      );
+      setFriendRequests(requestsData);
+    } catch (error) {
+      console.error("Error fetching friend requests:", error);
+      message.error("Could not load friend requests");
+    }
+  };
+
+  const acceptRequest = async (fromUserId: number | string) => {
+    try {
+      await apiService.put(`/users/${userId}/friendrequests/${fromUserId}/accept`, {});
+      message.success("Friend request accepted");
+      loadFriendRequests();
+      loadFriends();
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      message.error("Could not accept friend request");
+    }
+  };
+
+  const declineRequest = async (fromUserId: number | string) => {
+    try {
+      await apiService.delete(`/users/${userId}/friendrequests/${fromUserId}`);
+      message.success("Friend request declined");
+      loadFriendRequests();
+    } catch (error) {
+      console.error("Error declining friend request:", error);
+      message.error("Could not decline friend request");
     }
   };
 
@@ -309,9 +365,8 @@ const Dashboard: React.FC = () => {
           style={{ flex: "1 1 300px", maxWidth: "350px" }}
         >
           <div>
-            <Table
-              dataSource={[]}
-              rowKey="id"
+            { }
+            <Table<User>
               columns={[
                 {
                   title: "Username",
@@ -326,15 +381,62 @@ const Dashboard: React.FC = () => {
                     status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
                 },
               ]}
+              dataSource={friends}
+              rowKey="id"
               pagination={false}
               locale={{ emptyText: "No friends added yet" }}
+              onRow={(record) => ({
+                onClick: () => router.push(`/users/${record.id}`),
+                style: { cursor: "pointer" },
+              })}
             />
+
+            { }
             <div>
               <hr style={{ margin: "16px 0" }} />
               <p>
                 <strong>Incoming Friend Requests:</strong>
               </p>
-              <p>No incoming requests</p>
+              {friendRequests && friendRequests.length > 0 ? (
+                friendRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <a
+                      onClick={() => router.push(`/users/${request.id}`)}
+                      style={{ cursor: "pointer", color: "blue", textDecoration: "underline", marginRight: "8px" }}
+                    >
+                      {request.username}
+                    </a>
+                    <div>
+                      <Button
+                        type="primary"
+                        onClick={() => acceptRequest(request.id!)}
+                        style={{ marginRight: 8 }}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        type="primary"
+                        danger
+                        onClick={() => declineRequest(request.id!)}
+                      >
+                        Decline
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No incoming requests</p>
+              )}
+
+
             </div>
           </div>
         </Card>

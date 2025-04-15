@@ -224,7 +224,18 @@ const UserProfile: React.FC = () => {
             ) : (
               <Button
                 style={buttonStyle}
-                onClick={() => message.success("Friend Added!")}
+                onClick={async () => {
+                  try {
+                    const currentUserId = Number(localStorage.getItem("userId"));
+                    await apiService.post(`/users/${user.id}/friendrequests`, {
+                      fromUserId: currentUserId,
+                    });
+                    message.success("Friend request sent!");
+                  } catch (error) {
+                    console.error("Error sending friend request:", error);
+                    message.error("Error sending friend request");
+                  }
+                }}
               >
                 Add friend
               </Button>
