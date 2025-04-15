@@ -7,26 +7,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Button, Card, Table, message, Input, Space, Spin } from "antd";
 import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
-import type { TableProps } from "antd";
 import Image from "next/image";
-
-const columns: TableProps<User>["columns"] = [
-  {
-    title: "Username",
-    dataIndex: "username",
-    key: "username",
-  },
-  {
-    title: "Creation Date",
-    dataIndex: "creationDate",
-    key: "creationDate",
-  },
-  {
-    title: "Id",
-    dataIndex: "id",
-    key: "id",
-  },
-];
 
 interface Movie {
   movieId: string;
@@ -37,7 +18,6 @@ interface Movie {
 const Dashboard: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const [users, setUsers] = useState<User[] | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [watchlistMovies, setWatchlistMovies] = useState<Movie[]>([]);
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
@@ -55,23 +35,6 @@ const Dashboard: React.FC = () => {
       router.replace("/login");
     }
   }, [router]);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const fetchedUsers: User[] = await apiService.get<User[]>("/users");
-        setUsers(fetchedUsers);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          message.error("Error fetching users: " + error.message);
-        } else {
-          message.error("Error fetching users: An unknown error occurred.");
-        }
-      }
-    };
-
-    fetchUsers();
-  }, [apiService]);
 
   useEffect(() => {
     if (userId) {
@@ -289,7 +252,6 @@ const Dashboard: React.FC = () => {
           marginTop: "60px",
         }}
       >
-        {}
         <Card
           title="Search for Users"
           className="dashboard-container"
@@ -436,7 +398,6 @@ const Dashboard: React.FC = () => {
           )}
         </Card>
       </div>
-      {}
       <Button
         type="primary"
         onClick={handleLogout}
