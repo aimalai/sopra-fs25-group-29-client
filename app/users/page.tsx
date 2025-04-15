@@ -10,8 +10,6 @@ import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
 import Image from "next/image";
 
-// I am very tired
-
 const columns: TableProps<User>["columns"] = [
   {
     title: "Username",
@@ -291,30 +289,7 @@ const Dashboard: React.FC = () => {
           marginTop: "60px",
         }}
       >
-        <Card
-          title="Get all users from secure endpoint:"
-          loading={!users}
-          className="dashboard-container"
-          style={{ flex: "1 1 300px", maxWidth: "350px" }}
-        >
-          {users && (
-            <>
-              <Table<User>
-                columns={columns}
-                dataSource={users}
-                rowKey="id"
-                onRow={(row) => ({
-                  onClick: () => router.push(`/users/${row.id}`),
-                  style: { cursor: "pointer" },
-                })}
-              />
-              <Button onClick={handleLogout} type="primary" style={{ marginTop: "20px" }}>
-                Logout
-              </Button>
-            </>
-          )}
-        </Card>
-
+        {}
         <Card
           title="Search for Users"
           className="dashboard-container"
@@ -365,7 +340,6 @@ const Dashboard: React.FC = () => {
           style={{ flex: "1 1 300px", maxWidth: "350px" }}
         >
           <div>
-            { }
             <Table<User>
               columns={[
                 {
@@ -391,7 +365,6 @@ const Dashboard: React.FC = () => {
               })}
             />
 
-            { }
             <div>
               <hr style={{ margin: "16px 0" }} />
               <p>
@@ -410,7 +383,12 @@ const Dashboard: React.FC = () => {
                   >
                     <a
                       onClick={() => router.push(`/users/${request.id}`)}
-                      style={{ cursor: "pointer", color: "blue", textDecoration: "underline", marginRight: "8px" }}
+                      style={{
+                        cursor: "pointer",
+                        color: "blue",
+                        textDecoration: "underline",
+                        marginRight: "8px",
+                      }}
                     >
                       {request.username}
                     </a>
@@ -435,8 +413,6 @@ const Dashboard: React.FC = () => {
               ) : (
                 <p>No incoming requests</p>
               )}
-
-
             </div>
           </div>
         </Card>
@@ -460,6 +436,19 @@ const Dashboard: React.FC = () => {
           )}
         </Card>
       </div>
+      {}
+      <Button
+        type="primary"
+        onClick={handleLogout}
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          left: "20px",
+          zIndex: 1000,
+        }}
+      >
+        Logout
+      </Button>
       <Button
         type="primary"
         onClick={() => router.push("/watchparty")}
