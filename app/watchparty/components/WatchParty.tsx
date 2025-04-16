@@ -21,6 +21,9 @@ const WatchParty: React.FC = () => {
   const [watchParties, setWatchParties] = useState<WatchParty[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartyId, setSelectedPartyId] = useState<number | null>(null);
+  const [inviteResponses, setInviteResponses] = useState<
+    Record<number, string[]>
+  >({}); // ✅ Stores invite responses
 
   // Fetch User ID from backend
   useEffect(() => {
@@ -67,6 +70,27 @@ const WatchParty: React.FC = () => {
     fetchWatchParties();
   }, [watchPartyUserId]); // ✅ Ensures API call only happens when user ID is available
 
+  // ✅ Polling Logic: Fetch latest invite responses every 5 seconds
+  useEffect(() => {
+    const fetchInviteResponses = async () => {
+      try {
+        const updatedResponses: Record<number, string[]> = {};
+        for (const party of watchParties) {
+          const responses = await apiService.get<string[]>(
+            `/watchparty/${party.id}/latest-invite-status`
+          );
+          updatedResponses[party.id] = responses;
+        }
+        setInviteResponses(updatedResponses);
+      } catch (error) {
+        console.error("Error fetching invite responses:", error);
+      }
+    };
+
+    const pollingInterval = setInterval(fetchInviteResponses, 5000); // ✅ Poll every 5 seconds
+    return () => clearInterval(pollingInterval); // ✅ Cleanup polling on unmount
+  }, [watchParties]); // ✅ Ensures polling is tied to watch party changes
+
   return (
     <div className="watch-party-list">
       <h2>Your Watch Parties</h2>
@@ -91,6 +115,18 @@ const WatchParty: React.FC = () => {
             <Button type="default" onClick={() => setSelectedPartyId(party.id)}>
               Invite Friends
             </Button>
+
+            {/* ✅ Display invite responses dynamically below each watch party */}
+            {inviteResponses[party.id] && (
+              <div className="invite-status">
+                <strong>Invite Responses:</strong>
+                <ul>
+                  {inviteResponses[party.id].map((response, index) => (
+                    <li key={index}>{response}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </Card>
         )}
       />
