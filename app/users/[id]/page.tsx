@@ -6,6 +6,7 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import Image from "next/image";
+import ChatBox from "@/components/ChatBox";
 
 const pageContainerStyle: CSSProperties = {
   display: "flex",
@@ -135,59 +136,80 @@ const UserProfile: React.FC = () => {
         />
       </div>
       {user ? (
-        <div style={contentStyle}>
-          <div style={topRowStyle}>
-            <Image
-              src={user.profilePictureUrl || "/default-avatar.jpg"}
-              alt="Profile Picture"
-              width={80}
-              height={80}
-              style={profilePictureStyle}
-            />
-            <div style={headingStyle}>
-              {isOwnProfile ? "View Your Profile" : `View ${user.username}'s Profile`}
+        isOwnProfile ? (
+          <div style={contentStyle}>
+            <div style={topRowStyle}>
+              <Image
+                src={user.profilePictureUrl || "/default-avatar.jpg"}
+                alt="Profile Picture"
+                width={80}
+                height={80}
+                style={profilePictureStyle}
+              />
+              <div style={headingStyle}>View Your Profile</div>
+            </div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Username:</div>
+              <div style={valueBoxStyle}>{user.username || "N/A"}</div>
+            </div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Email:</div>
+              <div style={valueBoxStyle}>{user.email || "N/A"}</div>
+            </div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Password:</div>
+              <div style={valueBoxStyle}>**********</div>
+            </div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Birthdate:</div>
+              <div style={valueBoxStyle}>{user.birthday || "N/A"}</div>
+            </div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Biography:</div>
+              <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
+            </div>
+            <div style={sectionHeadingStyle}>Privacy Settings</div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Sharable:</div>
+              <Checkbox checked={user.sharable} disabled>
+                Enable profile search
+              </Checkbox>
+            </div>
+            <div style={fieldContainer}>
+              <div style={labelStyle}>Public Ratings:</div>
+              <Checkbox checked={user.publicRatings} disabled>
+                Share my ratings
+              </Checkbox>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
+              <Button
+                style={buttonStyle}
+                onClick={() => router.push(`/users/${id}/edit`)}
+              >
+                Edit
+              </Button>
+              <Button style={buttonStyle} onClick={() => router.push("/users")}>
+                Back
+              </Button>
             </div>
           </div>
-
-          <div style={fieldContainer}>
-            <div style={labelStyle}>Username:</div>
-            <div style={valueBoxStyle}>{user.username || "N/A"}</div>
-          </div>
-
-          {isOwnProfile ? (
-            <>
-              <div style={fieldContainer}>
-                <div style={labelStyle}>Email:</div>
-                <div style={valueBoxStyle}>{user.email || "N/A"}</div>
+        ) : (
+          <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
+            <div style={contentStyle}>
+              <div style={topRowStyle}>
+                <Image
+                  src={user.profilePictureUrl || "/default-avatar.jpg"}
+                  alt="Profile Picture"
+                  width={80}
+                  height={80}
+                  style={profilePictureStyle}
+                />
+                <div style={headingStyle}>View {user.username}&apos;s Profile</div>
               </div>
               <div style={fieldContainer}>
-                <div style={labelStyle}>Password:</div>
-                <div style={valueBoxStyle}>**********</div>
+                <div style={labelStyle}>Username:</div>
+                <div style={valueBoxStyle}>{user.username || "N/A"}</div>
               </div>
-              <div style={fieldContainer}>
-                <div style={labelStyle}>Birthdate:</div>
-                <div style={valueBoxStyle}>{user.birthday || "N/A"}</div>
-              </div>
-              <div style={fieldContainer}>
-                <div style={labelStyle}>Biography:</div>
-                <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
-              </div>
-              <div style={sectionHeadingStyle}>Privacy Settings</div>
-              <div style={fieldContainer}>
-                <div style={labelStyle}>Sharable:</div>
-                <Checkbox checked={user.sharable} disabled>
-                  Enable profile search
-                </Checkbox>
-              </div>
-              <div style={fieldContainer}>
-                <div style={labelStyle}>Public Ratings:</div>
-                <Checkbox checked={user.publicRatings} disabled>
-                  Share my ratings
-                </Checkbox>
-              </div>
-            </>
-          ) : (
-            <>
               <div style={fieldContainer}>
                 <div style={labelStyle}>Online Status:</div>
                 <div style={valueBoxStyle}>
@@ -210,41 +232,34 @@ const UserProfile: React.FC = () => {
                 <div style={labelStyle}>Biography:</div>
                 <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
               </div>
-            </>
-          )}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
-            {isOwnProfile ? (
-              <Button
-                style={buttonStyle}
-                onClick={() => router.push(`/users/${id}/edit`)}
-              >
-                Edit
-              </Button>
-            ) : (
-              <Button
-                style={buttonStyle}
-                onClick={async () => {
-                  try {
-                    const currentUserId = Number(localStorage.getItem("userId"));
-                    await apiService.post(`/users/${user.id}/friendrequests`, {
-                      fromUserId: currentUserId,
-                    });
-                    message.success("Friend request sent!");
-                  } catch (error) {
-                    console.error("Error sending friend request:", error);
-                    message.error("Error sending friend request");
-                  }
-                }}
-              >
-                Add friend
-              </Button>
-            )}
-            <Button style={buttonStyle} onClick={() => router.push("/users")}>
-              Back
-            </Button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
+                <Button
+                  style={buttonStyle}
+                  onClick={async () => {
+                    try {
+                      const currentUserId = Number(localStorage.getItem("userId"));
+                      await apiService.post(`/users/${user.id}/friendrequests`, {
+                        fromUserId: currentUserId,
+                      });
+                      message.success("Friend request sent!");
+                    } catch (error) {
+                      console.error("Error sending friend request:", error);
+                      message.error("Error sending friend request");
+                    }
+                  }}
+                >
+                  Add friend
+                </Button>
+                <Button style={buttonStyle} onClick={() => router.push("/users")}>
+                  Back
+                </Button>
+              </div>
+            </div>
+            <div style={{ flex: "1", maxWidth: "480px" }}>
+              <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
+            </div>
           </div>
-        </div>
+        )
       ) : (
         <p>Loading user data...</p>
       )}

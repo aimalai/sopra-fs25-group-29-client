@@ -19,7 +19,10 @@
     "process": "^0.11.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sopra-fs25-template-client": "file:"
+    "sopra-fs25-template-client": "file:",
+    "sockjs-client": "^1.5.2",
+    "@stomp/stompjs": "^6.1.0",
+    "axios": "^1.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
