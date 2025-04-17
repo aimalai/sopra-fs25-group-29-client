@@ -70,3 +70,27 @@ a {
     0.8
   ); /* Slight opacity for card containers */
 }
+
+/* ✅ Added spinner for login processing */
+.spinner {
+  width: 80px;
+  height: 80px;
+  border: 4px solid #ccc;
+  border-top: 4px solid #4caf50; /* ✅ Green for progress */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative; /* Keeps spinner inside the login container */
+  margin: 40px auto; /* Centers the spinner with spacing */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

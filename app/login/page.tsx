@@ -18,8 +18,10 @@ const Login: React.FC = () => {
   const [otpForm] = Form.useForm();
   const [isOtpStage, setIsOtpStage] = useState(false);
   const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false); // ✅ Added loading state
 
   const handleLogin = async (values: LoginFormProps) => {
+    setLoading(true); // ✅ Show spinner before login request starts
     try {
       const response: Response = await apiService.post("/users/login", values);
       const responseMessage = await response.text();
@@ -41,9 +43,11 @@ const Login: React.FC = () => {
         { name: "password", errors: ["Invalid username or password"] },
       ]);
     }
+    setLoading(false); // ✅ Hide spinner after request completes
   };
 
   const handleOtpVerification = async (values: { otp: string }) => {
+    setLoading(true); // ✅ Show spinner for OTP verification
     try {
       const response: Response = await apiService.post("/users/verify-otp", {
         username,
@@ -58,10 +62,13 @@ const Login: React.FC = () => {
       console.error("OTP Verification Error:", error);
       otpForm.setFields([{ name: "otp", errors: ["Invalid or expired OTP"] }]);
     }
+    setLoading(false); // ✅ Hide spinner
   };
 
   return (
     <div className="login-container">
+      {loading && <div className="spinner"></div>}{" "}
+      {/* ✅ Show spinner when loading */}
       {!isOtpStage ? (
         <Form
           form={form}
@@ -85,7 +92,12 @@ const Login: React.FC = () => {
             <Input.Password placeholder="Enter your password" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" className="login-button">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="login-button"
+              disabled={loading} // ✅ Disable button while loading
+            >
               Login
             </Button>
           </Form.Item>
@@ -100,7 +112,11 @@ const Login: React.FC = () => {
         >
           <Form.Item
             name="otp"
-            label="Enter OTP"
+            label={
+              <>
+                OTP sent to your Email. <br /> Please enter that OTP below:
+              </>
+            }
             rules={[
               {
                 required: true,
@@ -111,7 +127,12 @@ const Login: React.FC = () => {
             <Input placeholder="Enter your OTP" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" className="otp-button">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="otp-button"
+              disabled={loading} // ✅ Disable button while loading
+            >
               Verify OTP
             </Button>
           </Form.Item>
