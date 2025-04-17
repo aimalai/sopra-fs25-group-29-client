@@ -63,9 +63,16 @@ const headingStyle: CSSProperties = {
   color: "#000",
 };
 
-const buttonStyle: CSSProperties = {
+const buttonPrimaryStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
+  borderColor: "#007BFF",
+};
+
+const buttonDangerStyle: CSSProperties = {
+  backgroundColor: "#ff4d4f",
+  color: "#ffffff",
+  borderColor: "#ff4d4f",
 };
 
 const tableStyle: CSSProperties = {
@@ -87,7 +94,7 @@ const ResultsPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [sortOption, setSortOption] = useState<string>(initialSort);
-  const [onlyCompleteResults, setOnlyCompleteResults] = useState<boolean>(false);
+  const [onlyCompleteResults, setOnlyCompleteResults] = useState<boolean>(true);
 
   const { value: userId } = useLocalStorage<number>("userId", 0);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -135,8 +142,7 @@ const ResultsPage: React.FC = () => {
       await apiService.post(`/users/${userId}/watchlist`, body);
       message.success("Added to Watchlist");
       fetchWatchlist();
-    } catch (error) {
-      console.error("Error adding to watchlist:", error);
+    } catch {
       message.error("Could not add to Watchlist.");
     }
   };
@@ -147,8 +153,7 @@ const ResultsPage: React.FC = () => {
       await apiService.delete(`/users/${userId}/watchlist/${record.id}`);
       message.success("Removed from Watchlist");
       fetchWatchlist();
-    } catch (error) {
-      console.error("Error removing from watchlist:", error);
+    } catch {
       message.error("Could not remove from Watchlist.");
     }
   };
@@ -179,7 +184,7 @@ const ResultsPage: React.FC = () => {
         const title = record.media_type === "tv" ? record.name : record.title;
         return (
           <a
-            style={{ color: "#000", cursor: "pointer" }}
+            style={{ color: "#000", cursor: "pointer", textDecoration: "underline" }}
             onClick={() =>
               router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
             }
@@ -194,7 +199,8 @@ const ResultsPage: React.FC = () => {
       key: "release_date",
       width: 120,
       render: (_: unknown, record: SearchResult) => {
-        const releaseDate = record.media_type === "tv" ? record.first_air_date : record.release_date;
+        const releaseDate =
+          record.media_type === "tv" ? record.first_air_date : record.release_date;
         return <span style={{ whiteSpace: "nowrap", color: "#000" }}>{releaseDate}</span>;
       },
     },
@@ -207,22 +213,28 @@ const ResultsPage: React.FC = () => {
     {
       title: <span style={{ color: "#000" }}>Actions</span>,
       key: "actions",
-      width: 180,
+      width: 240,
       render: (_: unknown, record: SearchResult) => {
         const inList = isInWatchlist(record.id);
         return (
-          <Button
-            onClick={() =>
-              inList ? handleRemoveFromWatchlist(record) : handleAddToWatchlist(record)
-            }
-            style={{
-              backgroundColor: inList ? "#ff4d4f" : "#007BFF",
-              color: "white",
-              borderColor: inList ? "#ff4d4f" : "#007BFF",
-            }}
-          >
-            {inList ? "Remove from Watchlist" : "Add to Watchlist"}
-          </Button>
+          <Space size="small">
+            <Button
+              onClick={() =>
+                router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
+              }
+              style={buttonPrimaryStyle}
+            >
+              View Details
+            </Button>
+            <Button
+              onClick={() =>
+                inList ? handleRemoveFromWatchlist(record) : handleAddToWatchlist(record)
+              }
+              style={inList ? buttonDangerStyle : buttonPrimaryStyle}
+            >
+              {inList ? "Remove from Watchlist" : "Add to Watchlist"}
+            </Button>
+          </Space>
         );
       },
     },
@@ -239,18 +251,14 @@ const ResultsPage: React.FC = () => {
       try {
         const url = `/api/movies/search?query=${encodeURIComponent(initialQuery)}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(sortOption)}`;
         const response = await apiService.get(url);
-        const parsedResponse = typeof response === "string" ? JSON.parse(response) : response;
-        let fetchedResults = (parsedResponse as ApiResponse).results || [];
-        const totalCount = (parsedResponse as ApiResponse).totalCount || 0;
-
+        const parsed = typeof response === "string" ? JSON.parse(response) : response;
+        let fetched = (parsed as ApiResponse).results || [];
+        const total = (parsed as ApiResponse).totalCount || 0;
         if (onlyCompleteResults) {
-          fetchedResults = fetchedResults.filter((r) =>
-            r.poster_path && (r.release_date || r.first_air_date) && r.overview
-          );
+          fetched = fetched.filter((r) => r.poster_path && (r.release_date || r.first_air_date) && r.overview);
         }
-
-        setResults(fetchedResults);
-        setTotalItems(totalCount);
+        setResults(fetched);
+        setTotalItems(total);
       } catch {
         message.error("Error fetching search results. Please try again.");
       } finally {
@@ -293,9 +301,7 @@ const ResultsPage: React.FC = () => {
         <div style={boxStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div style={headingStyle}>Search Results for &quot;{initialQuery}&quot;</div>
-            <Button style={buttonStyle} onClick={() => router.push("/users")}>
-              Back to Dashboard
-            </Button>
+            <Button style={buttonPrimaryStyle} onClick={() => router.push("/users")}>Back to Dashboard</Button>
           </div>
           <Space style={{ display: "flex", marginBottom: 20, flexWrap: "wrap" }} size="large">
             <Input
