@@ -8,7 +8,9 @@ import { getApiDomain } from '@/utils/domain';
 
 declare global {
   interface Window {
-    YT: { Player: new (elementId: string, options: any) => PlayerAPI };
+    YT: {
+      Player: new (elementId: string, options: YouTubePlayerOptions) => PlayerAPI;
+    };
     onYouTubeIframeAPIReady: () => void;
   }
 }
@@ -16,6 +18,12 @@ declare global {
 interface PlayerAPI {
   playVideo(): void;
   pauseVideo(): void;
+}
+
+interface YouTubePlayerOptions {
+  videoId: string;
+  playerVars?: Record<string, unknown>;
+  events?: { onReady?: () => void };
 }
 
 export default function LobbyPage() {
@@ -70,8 +78,8 @@ export default function LobbyPage() {
     client.activate();
     stompClientRef.current = client;
 
-    return () => {
-      client.deactivate();
+    return () => { 
+      client.deactivate(); 
     };
   }, []);
 
@@ -85,14 +93,14 @@ export default function LobbyPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#000' }}>
       <div id="yt-player" style={{ width: 800, height: 450 }} />
-      <Button
-        onClick={toggleReady}
-        style={{
-          marginTop: 20,
-          backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
-          borderColor: isReady ? '#ff4d4f' : '#52c41a',
+      <Button 
+      onClick={toggleReady} 
+      style={{ 
+        marginTop: 20, 
+        backgroundColor: isReady ? '#ff4d4f' : '#52c41a', 
+        borderColor: isReady ? '#ff4d4f' : '#52c41a',
         }}
-      >
+        >
         {isReady ? 'I am not ready' : 'I am ready'}
       </Button>
     </div>
