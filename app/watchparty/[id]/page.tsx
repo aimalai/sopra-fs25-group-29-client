@@ -92,6 +92,14 @@ const WatchpartyDetail: React.FC = () => {
         </Descriptions>
       </Card>
       <div style={{ margin: "20px" }}>
+        <Button style={buttonStyle}
+          type="default"
+          onClick={() => router.push('/watchparty/lobby')}
+        >
+          Join Lobby
+        </Button>
+        <br />
+        <br />
         <Button style={buttonStyle} onClick={() => router.back()}>
           Back
         </Button>
