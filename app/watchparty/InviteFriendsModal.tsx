@@ -25,6 +25,12 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
 
   // ✅ Fetch previously invited users when modal opens
   useEffect(() => {
+    // Debugging logs to check local storage
+    if (visible) {
+      console.log("Local storage content on modal open:", localStorage);
+      console.log("Retrieved watchPartyUserId:", localStorage.getItem("id"));
+    }
+
     const fetchInvites = async () => {
       try {
         if (!watchPartyId) return; // ✅ Prevents unnecessary API call
