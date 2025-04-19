@@ -13,6 +13,7 @@ interface Movie {
   movieId: string;
   posterPath?: string;
   title?: string;
+  addedOn?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -30,8 +31,7 @@ const Dashboard: React.FC = () => {
   const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
 
   useEffect(() => {
-    const directToken = localStorage.getItem("token");
-    if (!directToken) {
+    if (!localStorage.getItem("token")) {
       router.replace("/login");
     }
   }, [router]);
@@ -45,18 +45,23 @@ const Dashboard: React.FC = () => {
   }, [apiService, userId]);
 
   useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      searchFriends();
-    }, 300);
-    return () => clearTimeout(delayDebounce);
+    const timeout = setTimeout(searchFriends, 300);
+    return () => clearTimeout(timeout);
   }, [friendQuery]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      searchFriends();
-    }, 5000);
+    const interval = setInterval(searchFriends, 5000);
     return () => clearInterval(interval);
   }, [friendQuery]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const interval = setInterval(() => {
+      loadFriends();
+      loadFriendRequests();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [apiService, userId]);
 
   const loadWatchlist = async () => {
     if (!userId) return;
@@ -72,9 +77,7 @@ const Dashboard: React.FC = () => {
           }
         })
         .filter((x) => x && x.movieId);
-      setWatchlistMovies(parsedItems);
-    } catch (error) {
-      console.error("Error fetching watchlist:", error);
+      setWatchlistMovies(parsedItems as Movie[]);
     } finally {
       setLoadingWatchlist(false);
     }
@@ -93,25 +96,28 @@ const Dashboard: React.FC = () => {
   const handleLogout = async (): Promise<void> => {
     try {
       await apiService.put(`/users/${userId}/logout`, {});
-      message.success("Logout Successful: You have been logged out successfully.");
       clearToken();
       clearUserId();
       router.push("/login");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        message.error("Logout Failed: " + error.message);
-      } else {
-        message.error("Logout Failed: An unknown error occurred during logout.");
-      }
+    } catch {
+      message.error("Logout Failed");
     }
   };
 
   const searchFriends = async () => {
-    const query = friendQuery.trim();
-    const url = query.length > 0 ? `/users?username=${encodeURIComponent(query)}` : `/users`;
+    const q = friendQuery.trim().toLowerCase();
     try {
-      const results = await apiService.get<User[]>(url);
-      setFriendResults(results);
+      const all = await apiService.get<User[]>("/users");
+      if (!q) {
+        setFriendResults(all);
+      } else {
+        setFriendResults(
+          all.filter((u) =>
+            (u.username?.toLowerCase().includes(q) ?? false) ||
+            (u.email?.toLowerCase().includes(q) ?? false)
+          )
+        );
+      }
     } catch {
       message.error("Error searching for friends. Please try again.");
     }
@@ -120,11 +126,9 @@ const Dashboard: React.FC = () => {
   const handleRemove = async (movieId: string) => {
     try {
       await apiService.delete(`/users/${userId}/watchlist/${movieId}`);
-      message.success("Removed from Watchlist");
       loadWatchlist();
-    } catch (error) {
+    } catch {
       message.error("Could not remove movie from watchlist.");
-      console.error("Remove failed:", error);
     }
   };
 
@@ -132,8 +136,7 @@ const Dashboard: React.FC = () => {
     try {
       const friendsData = await apiService.get<User[]>(`/users/${userId}/friends`);
       setFriends(friendsData);
-    } catch (error) {
-      console.error("Error fetching friends:", error);
+    } catch {
       message.error("Could not load your friend list");
     }
   };
@@ -142,11 +145,10 @@ const Dashboard: React.FC = () => {
     try {
       const requestIds = await apiService.get<(number | string)[]>(`/users/${userId}/friendrequests`);
       const requestsData = await Promise.all(
-        requestIds.map((id: number | string) => apiService.get<User>(`/users/${id}`))
+        requestIds.map((id) => apiService.get<User>(`/users/${id}`))
       );
       setFriendRequests(requestsData);
-    } catch (error) {
-      console.error("Error fetching friend requests:", error);
+    } catch {
       message.error("Could not load friend requests");
     }
   };
@@ -154,11 +156,9 @@ const Dashboard: React.FC = () => {
   const acceptRequest = async (fromUserId: number | string) => {
     try {
       await apiService.put(`/users/${userId}/friendrequests/${fromUserId}/accept`, {});
-      message.success("Friend request accepted");
       loadFriendRequests();
       loadFriends();
-    } catch (error) {
-      console.error("Error accepting friend request:", error);
+    } catch {
       message.error("Could not accept friend request");
     }
   };
@@ -166,10 +166,8 @@ const Dashboard: React.FC = () => {
   const declineRequest = async (fromUserId: number | string) => {
     try {
       await apiService.delete(`/users/${userId}/friendrequests/${fromUserId}`);
-      message.success("Friend request declined");
       loadFriendRequests();
-    } catch (error) {
-      console.error("Error declining friend request:", error);
+    } catch {
       message.error("Could not decline friend request");
     }
   };
@@ -180,17 +178,15 @@ const Dashboard: React.FC = () => {
       dataIndex: "posterPath",
       key: "poster",
       width: 100,
-      render: (posterPath: string) => {
-        if (!posterPath) {
-          return <span>No Poster</span>;
-        }
+      render: (posterPath?: string) => {
+        if (!posterPath) return <span>No Poster</span>;
         return (
           <Image
             src={`https://image.tmdb.org/t/p/w200${posterPath}`}
             alt="Poster"
-            style={{ width: "60px", height: "auto", borderRadius: "4px" }}
             width={60}
             height={90}
+            style={{ borderRadius: "4px" }}
           />
         );
       },
@@ -199,13 +195,32 @@ const Dashboard: React.FC = () => {
       title: "Title",
       key: "title",
       render: (_: unknown, record: Movie) => (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a
+        <a
+          onClick={() => router.push(`/results/details?id=${record.movieId}&media_type=movie`)}
+          style={{ textDecoration: "underline", cursor: "pointer" }}
+        >
+          {record.title ?? ""}
+        </a>
+      ),
+    },
+    {
+      title: "Added On",
+      dataIndex: "addedOn",
+      key: "addedOn",
+      render: (addedOn?: string) => addedOn ? new Date(addedOn).toLocaleDateString() : "",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, record: Movie) => (
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <Button
+            type="primary"
+            size="small"
             onClick={() => router.push(`/results/details?id=${record.movieId}&media_type=movie`)}
-            style={{ marginRight: "10px" }}
           >
-            {record.title}
-          </a>
+            Details
+          </Button>
           <DeleteOutlined
             onClick={() => handleRemove(record.movieId)}
             style={{ color: "#ff4d4f", cursor: "pointer" }}
@@ -216,10 +231,9 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="dashboard-wrapper" style={{ padding: "20px" }}>
+    <div style={{ padding: "20px" }}>
       <div style={{ position: "relative" }}>
         <div
-          className="search-container"
           style={{
             display: "flex",
             justifyContent: "center",
@@ -253,90 +267,120 @@ const Dashboard: React.FC = () => {
           👤 Profile
         </Button>
       </div>
+
       <div
         style={{
           display: "flex",
-          flexWrap: "wrap",
+          gap: "32px",
           justifyContent: "center",
-          gap: "20px",
           marginTop: "60px",
+          maxWidth: "1600px",
+          marginLeft: "auto",
+          marginRight: "auto",
         }}
       >
-        <Card
-          title="Search for Users"
-          className="dashboard-container"
-          style={{ flex: "1 1 300px", maxWidth: "350px" }}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flex: "1 1 calc((100% - 32px)/2)",
+            minWidth: "300px",
+            gap: "32px",
+          }}
         >
-          <div style={{ marginBottom: 10, display: "flex" }}>
-            <Input
-              placeholder="Search for new friends ..."
-              value={friendQuery}
-              onChange={(e) => setFriendQuery(e.target.value)}
-              style={{ flex: 1, marginRight: 5 }}
-            />
-          </div>
-          <Table
-            dataSource={friendResults}
-            rowKey="id"
-            columns={[
-              {
-                title: "Username",
-                dataIndex: "username",
-                key: "username",
-              },
-              {
-                title: "Status",
-                dataIndex: "status",
-                key: "status",
-                render: (status: string) =>
-                  status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
-              },
-            ]}
-            pagination={false}
-            locale={{ emptyText: "No users found" }}
-            onRow={(record) => ({
-              onClick: () => router.push(`/users/${record.id}`),
-            })}
-          />
-        </Card>
-
-        <Card
-          title="Friendlist"
-          className="dashboard-container"
-          style={{ flex: "1 1 300px", maxWidth: "350px" }}
-        >
-          <div>
-            <Table<User>
+          <Card title="Search for Users">
+            <div style={{ marginBottom: 10, display: "flex" }}>
+              <Input
+                placeholder="Search for new friends ..."
+                value={friendQuery}
+                onChange={(e) => setFriendQuery(e.target.value)}
+                style={{ flex: 1, marginRight: 5 }}
+              />
+            </div>
+            <Table
+              dataSource={friendResults}
+              rowKey="id"
               columns={[
                 {
                   title: "Username",
-                  dataIndex: "username",
                   key: "username",
+                  render: (_, record) => (
+                    <a
+                      onClick={() => router.push(`/users/${record.id}`)}
+                      style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
+                    >
+                      {record.username ?? ""}
+                    </a>
+                  ),
+                },
+                {
+                  title: "Email",
+                  dataIndex: "email",
+                  key: "email",
+                  render: (email) => email ?? "",
                 },
                 {
                   title: "Status",
                   dataIndex: "status",
                   key: "status",
-                  render: (status: string) =>
-                    status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
+                  render: (status: string) => (status === "ONLINE" ? "🟢 Online" : "🔴 Offline"),
+                },
+                {
+                  title: "Actions",
+                  key: "details",
+                  render: (_, record) => (
+                    <Button type="primary" onClick={() => router.push(`/users/${record.id}`)}>
+                      Details
+                    </Button>
+                  ),
                 },
               ]}
+            />
+          </Card>
+
+          <Card title="Friendlist">
+            <Table<User>
               dataSource={friends}
               rowKey="id"
-              pagination={false}
-              locale={{ emptyText: "No friends added yet" }}
-              onRow={(record) => ({
-                onClick: () => router.push(`/users/${record.id}`),
-                style: { cursor: "pointer" },
-              })}
+              columns={[
+                {
+                  title: "Username",
+                  key: "username",
+                  render: (_, record) => (
+                    <a
+                      onClick={() => router.push(`/users/${record.id}`)}
+                      style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
+                    >
+                      {record.username ?? ""}
+                    </a>
+                  ),
+                },
+                {
+                  title: "Email",
+                  dataIndex: "email",
+                  key: "email",
+                  render: (email) => email ?? "",
+                },
+                {
+                  title: "Status",
+                  dataIndex: "status",
+                  key: "status",
+                  render: (status: string) => (status === "ONLINE" ? "🟢 Online" : "🔴 Offline"),
+                },
+                {
+                  title: "Actions",
+                  key: "details",
+                  render: (_, record) => (
+                    <Button type="primary" onClick={() => router.push(`/users/${record.id}`)}>
+                      Details
+                    </Button>
+                  ),
+                },
+              ]}
             />
-
             <div>
               <hr style={{ margin: "16px 0" }} />
-              <p>
-                <strong>Incoming Friend Requests:</strong>
-              </p>
-              {friendRequests && friendRequests.length > 0 ? (
+              {friendRequests.length > 0 ? (
                 friendRequests.map((request) => (
                   <div
                     key={request.id}
@@ -356,7 +400,7 @@ const Dashboard: React.FC = () => {
                         marginRight: "8px",
                       }}
                     >
-                      {request.username}
+                      {request.username ?? ""}
                     </a>
                     <div>
                       <Button
@@ -380,17 +424,19 @@ const Dashboard: React.FC = () => {
                 <p>No incoming requests</p>
               )}
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         <Card
           title="Your Watchlist"
-          className="dashboard-container"
-          style={{ flex: "1 1 300px", maxWidth: "350px" }}
+          style={{
+            flex: "1 1 calc((100% - 32px)/2)",
+            minWidth: "300px",
+          }}
         >
           {loadingWatchlist ? (
             <Spin />
-          ) : watchlistMovies && watchlistMovies.length > 0 ? (
+          ) : watchlistMovies.length > 0 ? (
             <Table
               columns={watchlistColumns}
               dataSource={watchlistMovies}
@@ -402,6 +448,7 @@ const Dashboard: React.FC = () => {
           )}
         </Card>
       </div>
+
       <Button
         type="primary"
         onClick={handleLogout}
