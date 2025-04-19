@@ -11,6 +11,7 @@ interface FormFieldProps {
   username: string;
   password: string;
   confirmPassword?: string;
+  email: string; // Added email field
 }
 
 const containerStyle: CSSProperties = {
@@ -66,7 +67,9 @@ const Register: React.FC = () => {
   const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<number>("userId", 0);
 
-  const handleRegister = async (values: Omit<FormFieldProps, "confirmPassword">) => {
+  const handleRegister = async (
+    values: Omit<FormFieldProps, "confirmPassword">
+  ) => {
     setIsLoading(true);
     try {
       const response = await apiService.post<User>("/users", values);
@@ -74,13 +77,20 @@ const Register: React.FC = () => {
       if (response.token) setToken(response.token);
       if (response.id) setUserId(Number(response.id));
 
-      message.success("Registration Successful: You have been successfully registered and logged in.");
+      message.success(
+        "Registration Successful: You have been successfully registered and logged in."
+      );
       router.push("/users");
     } catch (error) {
       if (error instanceof Error) {
-        message.error("Registration Failed: " + (error.message || "An error occurred during registration."));
+        message.error(
+          "Registration Failed: " +
+            (error.message || "An error occurred during registration.")
+        );
       } else {
-        message.error("Registration Failed: An unknown error occurred during registration.");
+        message.error(
+          "Registration Failed: An unknown error occurred during registration."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -121,8 +131,10 @@ const Register: React.FC = () => {
             rules={[
               { required: true, message: "Please input your password!" },
               {
-                pattern: /^(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
-                message: "Password must be at least 8 characters and contain letters and special characters.",
+                pattern:
+                  /^(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+                message:
+                  "Password must be at least 8 characters and contain letters and special characters.",
               },
             ]}
             hasFeedback
@@ -142,12 +154,32 @@ const Register: React.FC = () => {
                   if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error("The two passwords do not match!"));
+                  return Promise.reject(
+                    new Error("The two passwords do not match!")
+                  );
                 },
               }),
             ]}
           >
-            <Input.Password style={inputStyle} placeholder="Re-enter your password" />
+            <Input.Password
+              style={inputStyle}
+              placeholder="Re-enter your password"
+            />
+          </Form.Item>
+
+          {/* Added Email Field */}
+          <Form.Item
+            label={<span style={{ color: "#000" }}>Enter Your Email</span>}
+            name="email"
+            rules={[
+              {
+                required: true,
+                type: "email",
+                message: "Please input a valid email address!",
+              },
+            ]}
+          >
+            <Input style={inputStyle} placeholder="Enter email address" />
           </Form.Item>
 
           <Form.Item>
@@ -157,11 +189,15 @@ const Register: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/login")}>Already have an account? Login</Button>
+            <Button style={buttonStyle} onClick={() => router.push("/login")}>
+              Already have an account? Login
+            </Button>
           </Form.Item>
 
           <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/")}>Back</Button>
+            <Button style={buttonStyle} onClick={() => router.push("/")}>
+              Back
+            </Button>
           </Form.Item>
         </Form>
       </div>
