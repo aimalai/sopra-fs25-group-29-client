@@ -27,7 +27,7 @@ export default function useWatchPartyLocalStorage<T>(
   useEffect(() => {
     if (typeof window === "undefined") return; // SSR safeguard
     try {
-      const stored = globalThis.localStorage.getItem(`watchParty_${key}`); // ✅ Unique namespace for Watch Party
+      const stored = globalThis.localStorage.getItem(`watchParty_${key}`); // ✅ Ensure key uses "watchParty_" prefix
       if (stored) {
         console.log(`Found Watch Party storage value for "${key}":`, stored);
         setValue(JSON.parse(stored) as T);
@@ -44,30 +44,37 @@ export default function useWatchPartyLocalStorage<T>(
 
   // Function to update both state and local storage
   const set = (newVal: T) => {
-    console.log(`Saving Watch Party data - Key: "${key}", Value: "${newVal}"`);
+    console.log(
+      `Saving Watch Party data - Key: "watchParty_${key}", Value: "${newVal}"`
+    );
     setValue(newVal);
     if (typeof window !== "undefined") {
       try {
         globalThis.localStorage.setItem(
-          `watchParty_${key}`,
+          `watchParty_${key}`, // ✅ Prefix added here
           JSON.stringify(newVal)
-        ); // ✅ Ensures isolation
+        );
       } catch (error) {
-        console.error(`Error saving Watch Party data for key "${key}":`, error);
+        console.error(
+          `Error saving Watch Party data for key "watchParty_${key}":`,
+          error
+        );
       }
     }
   };
 
   // Function to clear Watch Party storage
   const clear = () => {
-    console.log(`Clearing Watch Party localStorage for key "${key}"`);
+    console.log(
+      `Clearing Watch Party localStorage for key "watchParty_${key}"`
+    );
     setValue(defaultValue);
     if (typeof window !== "undefined") {
       try {
-        globalThis.localStorage.removeItem(`watchParty_${key}`);
+        globalThis.localStorage.removeItem(`watchParty_${key}`); // ✅ Prefix added here
       } catch (error) {
         console.error(
-          `Error clearing Watch Party data for key "${key}":`,
+          `Error clearing Watch Party data for key "watchParty_${key}":`,
           error
         );
       }
