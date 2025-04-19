@@ -44,6 +44,20 @@ const Dashboard: React.FC = () => {
     }
   }, [apiService, userId]);
 
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      searchFriends();
+    }, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [friendQuery]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      searchFriends();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [friendQuery]);
+
   const loadWatchlist = async () => {
     if (!userId) return;
     setLoadingWatchlist(true);
@@ -65,10 +79,6 @@ const Dashboard: React.FC = () => {
       setLoadingWatchlist(false);
     }
   };
-
-  useEffect(() => {
-    loadWatchlist();
-  }, [apiService, userId]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -97,14 +107,14 @@ const Dashboard: React.FC = () => {
   };
 
   const searchFriends = async () => {
-    await apiService
-      .get<User[]>(`/users?username=${encodeURIComponent(friendQuery)}`)
-      .then((results) => {
-        setFriendResults(results);
-      })
-      .catch(() => {
-        message.error("Error searching for friends. Please try again.");
-      });
+    const query = friendQuery.trim();
+    const url = query.length > 0 ? `/users?username=${encodeURIComponent(query)}` : `/users`;
+    try {
+      const results = await apiService.get<User[]>(url);
+      setFriendResults(results);
+    } catch {
+      message.error("Error searching for friends. Please try again.");
+    }
   };
 
   const handleRemove = async (movieId: string) => {
@@ -264,7 +274,6 @@ const Dashboard: React.FC = () => {
               onChange={(e) => setFriendQuery(e.target.value)}
               style={{ flex: 1, marginRight: 5 }}
             />
-            <Button onClick={searchFriends}>Search</Button>
           </div>
           <Table
             dataSource={friendResults}
