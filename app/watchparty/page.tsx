@@ -44,7 +44,8 @@ const WatchpartyPage: React.FC = () => {
   const apiService = useApi();
 
   const [watchparties, setWatchparties] = useState<Watchparty[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  //const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [, setInvitations] = useState<Invitation[]>([]);
   const [form] = Form.useForm();
   const [inviteModalVisible, setInviteModalVisible] = useState(false); // Modal visibility state
   const [selectedWatchPartyId, setSelectedWatchPartyId] = useState<
@@ -201,6 +202,7 @@ const WatchpartyPage: React.FC = () => {
       ),
     },
   ];
+  /*
   const invitationColumns: ColumnsType<Invitation> = [
     {
       title: "Sender",
@@ -213,6 +215,7 @@ const WatchpartyPage: React.FC = () => {
       key: "watchpartyName",
     },
   ];
+  */
 
   return (
     <div
