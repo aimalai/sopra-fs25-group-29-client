@@ -27,7 +27,12 @@ export default function useWatchPartyLocalStorage<T>(
   useEffect(() => {
     if (typeof window === "undefined") return; // SSR safeguard
     try {
-      const stored = globalThis.localStorage.getItem(`watchParty_${key}`); // ✅ Unique namespace for Watch Party
+      let stored = globalThis.localStorage.getItem(key); // Check for the key directly
+      if (!stored && key === "id") {
+        // Fallback: check for 'userId' if 'id' is missing
+        stored = globalThis.localStorage.getItem("userId");
+        console.log(`Fallback triggered: Retrieved "userId" for key "id".`);
+      }
       if (stored) {
         console.log(`Found Watch Party storage value for "${key}":`, stored);
         setValue(JSON.parse(stored) as T);
@@ -48,10 +53,7 @@ export default function useWatchPartyLocalStorage<T>(
     setValue(newVal);
     if (typeof window !== "undefined") {
       try {
-        globalThis.localStorage.setItem(
-          `watchParty_${key}`,
-          JSON.stringify(newVal)
-        ); // ✅ Ensures isolation
+        globalThis.localStorage.setItem(key, JSON.stringify(newVal));
       } catch (error) {
         console.error(`Error saving Watch Party data for key "${key}":`, error);
       }
@@ -64,7 +66,7 @@ export default function useWatchPartyLocalStorage<T>(
     setValue(defaultValue);
     if (typeof window !== "undefined") {
       try {
-        globalThis.localStorage.removeItem(`watchParty_${key}`);
+        globalThis.localStorage.removeItem(key);
       } catch (error) {
         console.error(
           `Error clearing Watch Party data for key "${key}":`,
