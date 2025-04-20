@@ -101,6 +101,7 @@ const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const { value: loggedInUserId } = useLocalStorage<number>("userId", 0);
   const isOwnProfile = Number(id) === loggedInUserId;
+  const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -124,6 +125,19 @@ const UserProfile: React.FC = () => {
     };
     fetchUser();
   }, [apiService, id]);
+
+  useEffect(() => {
+    if (!isOwnProfile && user) {
+      apiService
+        .get<User[]>(`/users/${loggedInUserId}/friends`)
+        .then((friends) => {
+          setIsFriend(friends.some((f) => f.id === user.id));
+        })
+        .catch(() => {
+          setIsFriend(false);
+        });
+    }
+  }, [apiService, loggedInUserId, user, isOwnProfile]);
 
   return (
     <div style={pageContainerStyle}>
@@ -189,9 +203,7 @@ const UserProfile: React.FC = () => {
               >
                 Edit
               </Button>
-              <Button style={buttonStyle} onClick={() => router.push("/users")}>
-                Back
-              </Button>
+              <Button style={buttonStyle} onClick={() => router.push("/users")}>Back</Button>
             </div>
           </div>
         ) : (
@@ -249,15 +261,43 @@ const UserProfile: React.FC = () => {
                     }
                   }}
                 >
-                  Add friend
+                  Send Friend Request
                 </Button>
-                <Button style={buttonStyle} onClick={() => router.push("/users")}>
-                  Back
-                </Button>
+                <Button style={buttonStyle} onClick={() => router.push("/users")}>Back</Button>
               </div>
             </div>
+
             <div style={{ flex: "1", maxWidth: "480px" }}>
-              <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
+              {isFriend ? (
+                <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
+              ) : (
+                <div
+                  style={{
+                    padding: 16,
+                    backgroundColor: "#fff3cd",
+                    border: "1px solid #ffeeba",
+                    borderRadius: 4,
+                    color: "#856404",
+                    textAlign: "center",
+                  }}
+                >
+                  Messaging unavailable. You can only chat with people on your friends list. <br /> <br />
+                  <Button
+                    type="primary"
+                    style={buttonStyle}
+                    onClick={async () => {
+                      try {
+                        await apiService.post(`/users/${user.id}/friendrequests`, { fromUserId: loggedInUserId });
+                        message.success("Friend request sent!");
+                      } catch {
+                        message.error("Error sending friend request");
+                      }
+                    }}
+                  >
+                    Send Friend Request
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )

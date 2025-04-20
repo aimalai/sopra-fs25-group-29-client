@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
   const [friends, setFriends] = useState<User[]>([]);
   const [friendRequests, setFriendRequests] = useState<User[]>([]);
 
-   const { value: userId} = useLocalStorage<number>("userId", 0);
+  const { value: userId } = useLocalStorage<number>("userId", 0);
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
@@ -361,6 +361,7 @@ const Dashboard: React.FC = () => {
             />
             <div>
               <hr style={{ margin: "16px 0" }} />
+              <p style={{ fontWeight: 'bold' }}>Incoming Friend Requests:</p>
               {friendRequests.length > 0 ? (
                 friendRequests.map((request) => (
                   <div
@@ -395,8 +396,16 @@ const Dashboard: React.FC = () => {
                         type="primary"
                         danger
                         onClick={() => declineRequest(request.id!)}
+                        style={{ marginRight: 8 }}
                       >
                         Decline
+                      </Button>
+                      <Button
+                        type="default"
+                        onClick={() => router.push(`/users/${request.id}`)
+                      }
+                      >
+                        View Profile
                       </Button>
                     </div>
                   </div>
