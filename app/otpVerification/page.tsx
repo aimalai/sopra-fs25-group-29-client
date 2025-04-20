@@ -1,16 +1,9 @@
 "use client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
-import { User } from "@/types/user";
 import { Button, Form, Input, message } from "antd";
 import { CSSProperties } from "react";
-
-interface FormFieldProps {
-  label: string;
-  value: string;
-}
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 const containerStyle: CSSProperties = {
   display: "flex",
@@ -18,15 +11,6 @@ const containerStyle: CSSProperties = {
   justifyContent: "center",
   alignItems: "center",
   minHeight: "100vh",
-};
-
-const logoContainerStyle: CSSProperties = {
-  marginBottom: "24px",
-};
-
-const logoStyle: CSSProperties = {
-  width: "200px",
-  height: "auto",
 };
 
 const formBoxStyle: CSSProperties = {
@@ -56,53 +40,59 @@ const inputStyle: CSSProperties = {
   color: "#000",
 };
 
-const Login: React.FC = () => {
+const OTPVerification: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
   const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<number>("userId", 0);
 
-  const handleLogin = async (values: FormFieldProps) => {
+  const handleVerifyOTP = async (values: { username: string; otp: string }) => {
     try {
-      const response = await apiService.post<User>("/users/login", values);
-      if (response.token) {
-        setToken(response.token);
+      const response = await apiService.post("/users/otp/verify", values);
+      console.log("Response from /users/otp/verify:", response);
+
+      if (
+        response &&
+        typeof response === "object" &&
+        "token" in response &&
+        "userId" in response
+      ) {
+        const token = response.token as string; // Extract token
+        const userId = response.userId as string; // Extract userId
+
+        // Store both token and userId in localStorage
+        setToken(token); // Use useLocalStorage for token
+        setUserId(Number(userId)); // Use useLocalStorage for userId
+
+        message.success("OTP Verified Successfully.");
+        router.push("/users"); // Navigate to the main user page
+      } else {
+        throw new Error(
+          "Unexpected response format: " + JSON.stringify(response)
+        );
       }
-      if (response.id) {
-        setUserId(Number(response.id));
-      }
-      message.success("You can now proceed to OTP Verification.");
-      router.push("/otpVerification"); // Redirect to OTP page
     } catch (error: unknown) {
       if (error instanceof Error) {
+        console.error("Error during OTP Verification:", error); // Debugging
         message.error(
-          "Login Failed: " + (error.message || "An error occurred.")
+          "OTP Verification Failed: " + (error.message || "An error occurred.")
         );
       } else {
-        message.error("Login Failed: An unknown error occurred.");
+        message.error("OTP Verification Failed: An unknown error occurred.");
       }
     }
   };
 
   return (
     <div style={containerStyle}>
-      <div style={logoContainerStyle}>
-        <Image
-          src="/NiroLogo.png"
-          alt="App Logo"
-          style={logoStyle}
-          width={200}
-          height={200}
-        />
-      </div>
       <div style={formBoxStyle}>
-        <div style={headingStyle}>Login below!</div>
+        <div style={headingStyle}>Verify OTP</div>
         <Form
           form={form}
-          name="login"
+          name="verifyOTP"
           size="large"
-          onFinish={handleLogin}
+          onFinish={handleVerifyOTP}
           layout="vertical"
         >
           <Form.Item
@@ -113,28 +103,15 @@ const Login: React.FC = () => {
             <Input style={inputStyle} placeholder="Enter username" />
           </Form.Item>
           <Form.Item
-            label={<span style={{ color: "#000" }}>Enter your Password</span>}
-            name="password"
-            rules={[{ required: true, message: "Please input your password!" }]}
+            label={<span style={{ color: "#000" }}>Enter your OTP</span>}
+            name="otp"
+            rules={[{ required: true, message: "Please input your OTP!" }]}
           >
-            <Input.Password style={inputStyle} placeholder="Enter password" />
+            <Input style={inputStyle} placeholder="Enter OTP" />
           </Form.Item>
           <Form.Item>
             <Button style={buttonStyle} htmlType="submit">
-              Login
-            </Button>
-          </Form.Item>
-          <Form.Item>
-            <Button
-              style={buttonStyle}
-              onClick={() => router.push("/register")}
-            >
-              Not registered yet? Register now!
-            </Button>
-          </Form.Item>
-          <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/")}>
-              Back
+              Verify OTP
             </Button>
           </Form.Item>
         </Form>
@@ -143,4 +120,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default OTPVerification;
