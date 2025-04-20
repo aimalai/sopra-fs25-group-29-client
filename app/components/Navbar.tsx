@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   const api = useApi();
 
   const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
-  const { value: token, clear: clearToken } = useLocalStorage<string>("token", "");
+  const { clear: clearToken } = useLocalStorage<string>("token", "");
   const [username, setUsername] = useState("");
 
   useEffect(() => {

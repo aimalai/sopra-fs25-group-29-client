@@ -26,11 +26,6 @@ const containerStyle: CSSProperties = {
   paddingTop: "100px",
 };
 
-const logoStyle: CSSProperties = {
-  width: "150px",
-  height: "auto",
-};
-
 const contentStyle: CSSProperties = {
   flex: 1,
   display: "flex",

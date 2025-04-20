@@ -27,8 +27,7 @@ const Dashboard: React.FC = () => {
   const [friends, setFriends] = useState<User[]>([]);
   const [friendRequests, setFriendRequests] = useState<User[]>([]);
 
-  const { clear: clearToken } = useLocalStorage<string>("token", "");
-  const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
+   const { value: userId} = useLocalStorage<number>("userId", 0);
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
@@ -90,17 +89,6 @@ const Dashboard: React.FC = () => {
   const handleSearchClick = () => {
     if (searchQuery.trim()) {
       router.push(`/results?query=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  const handleLogout = async (): Promise<void> => {
-    try {
-      await apiService.put(`/users/${userId}/logout`, {});
-      clearToken();
-      clearUserId();
-      router.push("/login");
-    } catch {
-      message.error("Logout Failed");
     }
   };
 
