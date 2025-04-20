@@ -13,7 +13,7 @@ const pageContainerStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   minHeight: "100vh",
-  paddingTop: "20px",
+  paddingTop: "130px",
 };
 
 const logoContainerStyle: CSSProperties = {
@@ -29,13 +29,14 @@ const logoStyle: CSSProperties = {
 };
 
 const contentStyle: CSSProperties = {
-  width: "480px",
+  width: "450px",
   backgroundColor: "#e0e0e0",
-  padding: "24px",
+  padding: "16px",
   borderRadius: "8px",
   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  marginBottom: "20px",
   position: "relative",
+  maxHeight: "calc(100vh - 200px)",
+  overflowY: "auto",
 };
 
 const topRowStyle: CSSProperties = {
@@ -141,15 +142,6 @@ const UserProfile: React.FC = () => {
 
   return (
     <div style={pageContainerStyle}>
-      <div style={logoContainerStyle}>
-        <Image
-          src="/NiroLogo.png"
-          alt="App Logo"
-          style={logoStyle}
-          width={160}
-          height={100}
-        />
-      </div>
       {user ? (
         isOwnProfile ? (
           <div style={contentStyle}>
@@ -207,7 +199,7 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "stretch", gap: "20px", flexWrap: "wrap" }}>
             <div style={contentStyle}>
               <div style={topRowStyle}>
                 <Image
@@ -267,10 +259,11 @@ const UserProfile: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ flex: "1", maxWidth: "480px" }}>
+            <div style={{ flex: 1, maxWidth: "480px", display: "flex", flexDirection: "column" }}>
               {isFriend ? (
                 <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
-              ) : (
+              ) : 
+              (
                 <div
                   style={{
                     padding: 16,
