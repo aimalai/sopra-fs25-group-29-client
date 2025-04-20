@@ -231,7 +231,7 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", paddingTop: "100px" }}>
       <div style={{ position: "relative" }}>
         <div
           style={{
@@ -259,13 +259,6 @@ const Dashboard: React.FC = () => {
             />
           </Space>
         </div>
-        <Button
-          type="default"
-          onClick={() => router.push(`/users/${userId}`)}
-          style={{ position: "absolute", right: "20px", top: "50px" }}
-        >
-          👤 Profile
-        </Button>
       </div>
 
       <div
@@ -448,19 +441,6 @@ const Dashboard: React.FC = () => {
           )}
         </Card>
       </div>
-
-      <Button
-        type="primary"
-        onClick={handleLogout}
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          left: "20px",
-          zIndex: 1000,
-        }}
-      >
-        Logout
-      </Button>
       <Button
         type="primary"
         onClick={() => router.push("/watchparty")}

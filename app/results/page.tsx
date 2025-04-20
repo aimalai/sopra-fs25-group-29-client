@@ -23,16 +23,7 @@ const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   height: "100vh",
-};
-
-const topBarStyle: CSSProperties = {
-  position: "sticky",
-  top: 0,
-  zIndex: 999,
-  display: "flex",
-  alignItems: "center",
-  padding: "16px",
-  backgroundColor: "#e0e0e0",
+  paddingTop: "100px",
 };
 
 const logoStyle: CSSProperties = {
@@ -294,9 +285,6 @@ const ResultsPage: React.FC = () => {
 
   return (
     <div style={containerStyle}>
-      <div style={topBarStyle}>
-        <Image src="/NiroLogo.png" alt="Logo" style={logoStyle} width={150} height={75} />
-      </div>
       <div style={contentStyle}>
         <div style={boxStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>

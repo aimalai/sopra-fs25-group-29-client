@@ -219,7 +219,7 @@ const WatchpartyPage: React.FC = () => {
 
   return (
     <div
-      style={{ minHeight: "100vh", padding: "20px", boxSizing: "border-box" }}
+      style={{ minHeight: "100vh", padding: "20px", paddingTop: "100px", boxSizing: "border-box" }}
     >
       <h1 style={{ color: "#fff", marginBottom: "20px" }}>
         Watchparty Manager
@@ -337,9 +337,6 @@ const WatchpartyPage: React.FC = () => {
         </div>
       </div>
       <div style={{ marginTop: "20px", textAlign: "center" }}>
-        <Button style={buttonStyle} onClick={() => router.push("/users")}>
-          Home
-        </Button>
       </div>
 
       {/* InviteFriendsModal */}

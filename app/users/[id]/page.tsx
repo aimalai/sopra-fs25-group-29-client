@@ -13,6 +13,7 @@ const pageContainerStyle: CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   minHeight: "100vh",
+  paddingTop: "20px",
 };
 
 const logoContainerStyle: CSSProperties = {

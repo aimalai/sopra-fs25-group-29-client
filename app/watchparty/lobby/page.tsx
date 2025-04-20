@@ -91,7 +91,7 @@ export default function LobbyPage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#000' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', paddingTop: "100px", backgroundColor: '#000' }}>
       <div id="yt-player" style={{ width: 800, height: 450 }} />
       <Button 
       onClick={toggleReady} 

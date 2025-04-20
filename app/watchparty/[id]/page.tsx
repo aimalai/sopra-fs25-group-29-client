@@ -52,7 +52,7 @@ const WatchpartyDetail: React.FC = () => {
   if (!watchparty) return <div>Loading details...</div>;
 
   return (
-    <div style={{ minHeight: "100vh", padding: "20px", boxSizing: "border-box" }}>
+    <div style={{ minHeight: "100vh", padding: "20px", paddingTop: "100px", boxSizing: "border-box" }}>
       <Card
         title={watchparty.title}
         headStyle={{ color: "#fff", fontSize: "18px" }}

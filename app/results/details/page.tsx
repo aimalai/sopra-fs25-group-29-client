@@ -262,7 +262,7 @@ const DetailsPage: React.FC = () => {
 
   return (
     <AntdApp>
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", color: "black" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", color: "black", paddingTop: "100px", }}>
         <div style={{ position: "absolute", top: 20, left: 20 }}>
           <Image alt="Logo" src="/NiroLogo.png" style={{ width: "120px", height: "auto" }} width={120} height={120} />
         </div>

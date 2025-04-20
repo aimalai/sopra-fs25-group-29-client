@@ -4,6 +4,7 @@ import { ConfigProvider, theme } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { Suspense } from "react";
 import "@/styles/globals.css";
+import Navbar from "@/components/Navbar"; // NEU
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,7 +62,10 @@ export default function RootLayout({
               },
             }}
           >
-            <AntdRegistry>{children}</AntdRegistry>
+            <AntdRegistry>
+              <Navbar /> {/* NEU */}
+              {children}
+            </AntdRegistry>
           </ConfigProvider>
         </Suspense>
       </body>
