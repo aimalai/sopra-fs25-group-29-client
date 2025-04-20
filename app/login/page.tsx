@@ -5,7 +5,7 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Button, Form, Input, message } from "antd";
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react"; // ✅ Added useState to manage loading spinner state
 
 interface FormFieldProps {
   label: string;
@@ -62,8 +62,10 @@ const Login: React.FC = () => {
   const [form] = Form.useForm();
   const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<number>("userId", 0);
+  const [loading, setLoading] = useState(false); // ✅ Added loading state
 
   const handleLogin = async (values: FormFieldProps) => {
+    setLoading(true); // ✅ Show spinner before login request starts
     try {
       const response = await apiService.post<User>("/users/login", values);
       if (response.token) {
@@ -83,6 +85,7 @@ const Login: React.FC = () => {
         message.error("Login Failed: An unknown error occurred.");
       }
     }
+    setLoading(false); // ✅ Hide spinner after request completes
   };
 
   return (
@@ -98,6 +101,7 @@ const Login: React.FC = () => {
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Login below!</div>
+        {loading && <div className="spinner"></div>} {/* ✅ Added spinner */}
         <Form
           form={form}
           name="login"
@@ -120,7 +124,11 @@ const Login: React.FC = () => {
             <Input.Password style={inputStyle} placeholder="Enter password" />
           </Form.Item>
           <Form.Item>
-            <Button style={buttonStyle} htmlType="submit">
+            <Button
+              style={buttonStyle}
+              htmlType="submit"
+              disabled={loading} // ✅ Disable button while loading
+            >
               Login
             </Button>
           </Form.Item>
@@ -128,12 +136,17 @@ const Login: React.FC = () => {
             <Button
               style={buttonStyle}
               onClick={() => router.push("/register")}
+              disabled={loading} // ✅ Disable button while loading
             >
               Not registered yet? Register now!
             </Button>
           </Form.Item>
           <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/")}>
+            <Button
+              style={buttonStyle}
+              onClick={() => router.push("/")}
+              disabled={loading} // ✅ Disable button while loading
+            >
               Back
             </Button>
           </Form.Item>
