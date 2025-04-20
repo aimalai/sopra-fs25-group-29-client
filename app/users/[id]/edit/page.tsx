@@ -1,6 +1,6 @@
 "use client";
 
-import React, { CSSProperties, useEffect, useState } from "react";
+import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Form, Input, Checkbox, message } from "antd";
 import { useApi } from "@/hooks/useApi";
@@ -90,7 +90,29 @@ const sectionHeadingStyle: CSSProperties = {
 const profilePictureStyle: CSSProperties = {
   borderRadius: "50%",
   border: "2px solid #ccc",
-  marginTop: "4px",
+};
+
+const profilePictureWrapper: CSSProperties = {
+  position: "relative",
+  width: "80px",
+  height: "80px",
+  cursor: "pointer",
+};
+
+const overlayStyle: CSSProperties = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "80px",
+  height: "80px",
+  borderRadius: "50%",
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
+  color: "#fff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "0.85rem",
+  fontWeight: "bold",
 };
 
 const buttonStyle: CSSProperties = {
@@ -105,6 +127,8 @@ const EditUser: React.FC = () => {
   const apiService = useApi();
   const [form] = Form.useForm<FormValues>();
   const [user, setUser] = useState<User | null>(null);
+  const [hover, setHover] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loggedInUserId = localStorage.getItem("userId");
   const isOwnProfile = id === loggedInUserId;
@@ -142,6 +166,21 @@ const EditUser: React.FC = () => {
     fetchUser();
   }, [apiService, id, form]);
 
+  const handlePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      await apiService.post(`/users/${id}/upload-picture`, formData);
+      const updatedUser = await apiService.get<User>(`/users/${id}`);
+      setUser(updatedUser);
+      message.success("Profile picture updated!");
+    } catch {
+      message.error("Upload failed.");
+    }
+  };
+
   const onFinish = async (values: FormValues) => {
     try {
       const payload: Partial<FormValues> = {
@@ -152,11 +191,9 @@ const EditUser: React.FC = () => {
         sharable: values.sharable,
         publicRatings: values.publicRatings,
       };
-
       if (values.password && values.password.trim().length > 0) {
         payload.password = values.password;
       }
-
       await apiService.put(`/users/${id}`, payload);
       message.success("Profile updated successfully.");
       router.push(`/users/${id}`);
@@ -189,25 +226,47 @@ const EditUser: React.FC = () => {
       {user && (
         <div style={contentStyle}>
           <div style={topRowStyle}>
-            <Image
-              src={user.profilePictureUrl || "/default-avatar.jpg"}
-              alt="Profile Picture"
-              width={80}
-              height={80}
-              style={profilePictureStyle}
-            />
+            <div
+              style={profilePictureWrapper}
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Image
+                src={user.profilePictureUrl || "/default-avatar.jpg"}
+                alt="Profile Picture"
+                width={80}
+                height={80}
+                style={profilePictureStyle}
+              />
+              {hover && <div style={overlayStyle}>Edit</div>}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePictureUpload}
+                accept="image/*"
+                style={{ display: "none" }}
+              />
+            </div>
             <div style={headingStyle}>Edit Your Profile</div>
           </div>
 
           <Form layout="vertical" form={form} onFinish={onFinish}>
             <div style={fieldContainer}>
-              <Form.Item name="username" label={<span style={labelStyle}>Username:</span>} rules={[{ required: true }]}>
+              <Form.Item
+                name="username"
+                label={<span style={labelStyle}>Username:</span>}
+                rules={[{ required: true }]}
+              >
                 <Input style={inputBoxStyle} />
               </Form.Item>
             </div>
 
             <div style={fieldContainer}>
-              <Form.Item name="email" label={<span style={labelStyle}>Email:</span>}>
+              <Form.Item
+                name="email"
+                label={<span style={labelStyle}>Email:</span>}
+              >
                 <Input style={inputBoxStyle} />
               </Form.Item>
             </div>
@@ -216,22 +275,28 @@ const EditUser: React.FC = () => {
               <Form.Item
                 name="birthday"
                 label={<span style={labelStyle}>Birthday:</span>}
-                rules={[{
-                  validator: (_, value) => {
-                    if (!value) return Promise.resolve();
-                    const regex = /^\d{4}-\d{2}-\d{2}$/;
-                    if (!regex.test(value)) {
-                      return Promise.reject(new Error("Please use the format YYYY-MM-DD"));
-                    }
-                    const inputDate = new Date(value);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    if (inputDate > today) {
-                      return Promise.reject(new Error("Birthday cannot be in the future."));
-                    }
-                    return Promise.resolve();
-                  }
-                }]}
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      const regex = /^\d{4}-\d{2}-\d{2}$/;
+                      if (!regex.test(value)) {
+                        return Promise.reject(
+                          new Error("Please use the format YYYY-MM-DD")
+                        );
+                      }
+                      const inputDate = new Date(value);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      if (inputDate > today) {
+                        return Promise.reject(
+                          new Error("Birthday cannot be in the future.")
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
               >
                 <Input style={inputBoxStyle} placeholder="YYYY-MM-DD" />
               </Form.Item>
@@ -239,7 +304,12 @@ const EditUser: React.FC = () => {
 
             <div style={fieldContainer}>
               <Form.Item label={<span style={labelStyle}>Current Password:</span>}>
-                <Input type="password" style={inputBoxStyle} value="**********" readOnly />
+                <Input
+                  type="password"
+                  style={inputBoxStyle}
+                  value="**********"
+                  readOnly
+                />
               </Form.Item>
             </div>
 
@@ -247,25 +317,32 @@ const EditUser: React.FC = () => {
               <Form.Item
                 name="password"
                 label={<span style={labelStyle}>New Password (optional):</span>}
-                rules={[{
-                  validator: (_, value) => {
-                    if (!value || value.trim().length === 0) {
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      if (!value || value.trim().length === 0) {
+                        return Promise.resolve();
+                      }
+                      const valid =
+                        value.length >= 8 &&
+                        /[A-Za-z]/.test(value) &&
+                        /[^A-Za-z0-9]/.test(value);
+                      if (!valid) {
+                        return Promise.reject(
+                          new Error(
+                            "Password must be at least 8 characters and include letters and special characters."
+                          )
+                        );
+                      }
                       return Promise.resolve();
-                    }
-                    const valid =
-                      value.length >= 8 &&
-                      /[A-Za-z]/.test(value) &&
-                      /[^A-Za-z0-9]/.test(value);
-                    if (!valid) {
-                      return Promise.reject(
-                        new Error("Password must be at least 8 characters and include letters and special characters.")
-                      );
-                    }
-                    return Promise.resolve();
-                  }
-                }]}
+                    },
+                  },
+                ]}
               >
-                <Input.Password style={inputBoxStyle} placeholder="Leave empty to keep current" />
+                <Input.Password
+                  style={inputBoxStyle}
+                  placeholder="Leave empty to keep current"
+                />
               </Form.Item>
             </div>
 
@@ -273,16 +350,20 @@ const EditUser: React.FC = () => {
               <Form.Item
                 name="biography"
                 label={<span style={labelStyle}>Biography:</span>}
-                rules={[{
-                  validator: (_, value) => {
-                    if (!value) return Promise.resolve();
-                    const lines = value.split("\n");
-                    if (lines.length > 3) {
-                      return Promise.reject(new Error("Maximum of 3 lines allowed."));
-                    }
-                    return Promise.resolve();
-                  }
-                }]}
+                rules={[
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      const lines = value.split("\n");
+                      if (lines.length > 3) {
+                        return Promise.reject(
+                          new Error("Maximum of 3 lines allowed.")
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
               >
                 <Input.TextArea
                   rows={3}

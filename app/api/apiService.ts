@@ -16,10 +16,6 @@ export class ApiService {
   /**
    * Helper function to check the response, parse JSON,
    * and throw an error if the response is not OK.
-   *
-   * @param res - The response from fetch.
-   * @returns Parsed JSON data.
-   * @throws ApplicationError if res.ok is false.
    */
   private async processResponse<T>(res: Response): Promise<T> {
     if (!res.ok) {
@@ -31,8 +27,7 @@ export class ApiService {
         } else {
           errorDetail = JSON.stringify(errorInfo);
         }
-      } catch {
-      }
+      } catch {}
       const detailedMessage = `${res.status}: ${errorDetail}`;
       const error: ApplicationError = new Error(detailedMessage) as ApplicationError;
       error.info = JSON.stringify(
@@ -53,8 +48,6 @@ export class ApiService {
 
   /**
    * GET request.
-   * @param endpoint - The API endpoint (e.g. "/users").
-   * @returns JSON data of type T.
    */
   public async get<T>(endpoint: string): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
@@ -66,26 +59,35 @@ export class ApiService {
   }
 
   /**
-   * POST request.
-   * @param endpoint - The API endpoint (e.g. "/users").
-   * @param data - The payload to post.
-   * @returns JSON data of type T.
+   * POST request, unterstützt jetzt automatisch auch FormData.
    */
   public async post<T>(endpoint: string, data: unknown): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+
+    // Erkenne FormData
+    const isFormData =
+      typeof FormData !== "undefined" && data instanceof FormData;
+
+    // Clone defaultHeaders und entferne Content-Type, falls FormData
+    const headers: HeadersInit = { ...this.defaultHeaders };
+    if (isFormData) {
+      // @ts-expect-error: wir löschen hier bewusst den Content-Type, damit der Browser boundary selbst setzt
+      delete headers["Content-Type"];
+    }
+
+    // Body entweder JSON-String oder FormData
+    const body = isFormData ? (data as FormData) : JSON.stringify(data);
+
     const res = await fetch(url, {
       method: "POST",
-      headers: this.defaultHeaders,
-      body: JSON.stringify(data),
+      headers,
+      body,
     });
     return this.processResponse<T>(res);
   }
 
   /**
    * PUT request.
-   * @param endpoint - The API endpoint (e.g. "/users/123").
-   * @param data - The payload to update.
-   * @returns JSON data of type T.
    */
   public async put<T>(endpoint: string, data: unknown): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
@@ -99,8 +101,6 @@ export class ApiService {
 
   /**
    * DELETE request.
-   * @param endpoint - The API endpoint (e.g. "/users/123").
-   * @returns JSON data of type T.
    */
   public async delete<T>(endpoint: string): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
@@ -111,5 +111,3 @@ export class ApiService {
     return this.processResponse<T>(res);
   }
 }
-
-// API CHANGED
