@@ -16,18 +16,6 @@ const pageContainerStyle: CSSProperties = {
   paddingTop: "130px",
 };
 
-const logoContainerStyle: CSSProperties = {
-  marginTop: "16px",
-  alignSelf: "flex-start",
-  marginLeft: "24px",
-  marginBottom: "24px",
-};
-
-const logoStyle: CSSProperties = {
-  width: "160px",
-  height: "auto",
-};
-
 const contentStyle: CSSProperties = {
   width: "450px",
   backgroundColor: "#e0e0e0",
