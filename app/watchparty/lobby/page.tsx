@@ -41,7 +41,9 @@ export default function LobbyPage() {
     if (storedId) {
       fetch(`${getApiDomain()}/users/${storedId}`)
         .then((res) => res.json())
-        .then((user) => user.username && setUsername(user.username))
+        .then((user) => {
+          if (user.username) setUsername(user.username);
+        })
         .catch(() => console.warn('Could not fetch username'));
     }
   }, []);
@@ -54,7 +56,6 @@ export default function LobbyPage() {
         events: { onReady: () => console.log('YT player ready') },
       });
     };
-
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -75,7 +76,11 @@ export default function LobbyPage() {
           const states: Record<string, boolean> = JSON.parse(msg.body);
           const p = playerRef.current;
           if (p) {
-            Object.values(states).every((v) => v) ? p.playVideo() : p.pauseVideo();
+            if (Object.values(states).every((v) => v)) {
+              p.playVideo();
+            } else {
+              p.pauseVideo();
+            }
           }
         });
         client.subscribe(`/topic/chat/${roomId}`, (msg) => {
@@ -86,7 +91,9 @@ export default function LobbyPage() {
     });
     client.activate();
     stompClientRef.current = client;
-    return () => { client.deactivate(); };
+    return () => {
+      client.deactivate();
+    };
   }, []);
 
   const toggleReady = () => {
@@ -112,22 +119,18 @@ export default function LobbyPage() {
       style={{
         marginTop: '120px',
         width: '60vw',
-        height: 'calc(100vh - 128px)',                      
+        height: 'calc(100vh - 128px)',
         marginLeft: 'auto',
         marginRight: 'auto',
         display: 'grid',
-        gridTemplateColumns: '1fr 300px',   
-        gridTemplateRows: '1fr auto',        
-        gridTemplateAreas: `
-          "video chat"
-          "button button"
-        `,
+        gridTemplateColumns: '1fr 300px',
+        gridTemplateRows: '1fr auto',
+        gridTemplateAreas: '"video chat" "button button"',
         gap: 20,
         backgroundColor: '#000',
         boxSizing: 'border-box',
       }}
     >
-      {}
       <div
         id="yt-player"
         style={{
@@ -138,8 +141,6 @@ export default function LobbyPage() {
           backgroundColor: '#000',
         }}
       />
-
-      {}
       <div
         style={{
           gridArea: 'chat',
@@ -180,7 +181,6 @@ export default function LobbyPage() {
         </div>
       </div>
 
-      {}
       <div style={{ gridArea: 'button', width: '100%' }}>
         <Button
           onClick={toggleReady}
