@@ -252,7 +252,7 @@ const DetailsPage: React.FC = () => {
           onClick={() => router.back()}
           style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
         >
-          Back to Results
+          Back
         </Button>
       </div>
     );
@@ -276,7 +276,7 @@ const DetailsPage: React.FC = () => {
                 onClick={() => router.back()}
                 style={{ backgroundColor: "#1890ff", borderColor: "#1890ff", color: "white" }}
               >
-                Back to Results
+                Back
               </Button>
             }
             style={{ backgroundColor: "#ddd", border: "1px solid #bbb" }}

@@ -8,6 +8,7 @@ import { User } from "@/types/user";
 import { Button, Card, Table, message, Input, Space, Spin } from "antd";
 import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import Image from "next/image";
+import type { SortOrder } from 'antd/es/table/interface';
 
 interface Movie {
   movieId: string;
@@ -195,8 +196,13 @@ const Dashboard: React.FC = () => {
       title: "Added On",
       dataIndex: "addedOn",
       key: "addedOn",
-      render: (addedOn?: string) => addedOn ? new Date(addedOn).toLocaleDateString() : "",
+      sorter: (a: Movie, b: Movie) =>
+        new Date(a.addedOn!).getTime() - new Date(b.addedOn!).getTime(),
+      sortDirections: ['descend', 'ascend'] as SortOrder[],
+      render: (addedOn?: string) =>
+        addedOn ? new Date(addedOn).toLocaleDateString() : "",
     },
+
     {
       title: "Actions",
       key: "actions",
@@ -432,6 +438,7 @@ const Dashboard: React.FC = () => {
               dataSource={watchlistMovies}
               rowKey="movieId"
               pagination={false}
+              scroll={{ y: 600 }}
             />
           ) : (
             <p>No movies in watchlist</p>
