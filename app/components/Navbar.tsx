@@ -7,21 +7,27 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import Image from "next/image";
 import { User } from "@/types/user";
+import { message } from "antd";
 
 const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const api = useApi();
 
-  const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
+  const { value: userId, clear: clearUserId } = useLocalStorage<number>(
+    "userId",
+    0
+  );
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const [username, setUsername] = useState("");
 
   useEffect(() => {
     const fetchUsername = async () => {
-      if (!userId) return;
+      // Fallback mechanism to ensure userId is retrieved properly
+      const validUserId = userId || Number(localStorage.getItem("userId"));
+      if (!validUserId) return;
       try {
-        const user = await api.get<User>(`/users/${userId}`);
+        const user = await api.get<User>(`/users/${validUserId}`);
         setUsername(user.username || "Profile");
       } catch {
         setUsername("Profile");
@@ -31,10 +37,26 @@ const Navbar: React.FC = () => {
   }, [userId]);
 
   const handleLogout = async () => {
+    // Double-check and use fallback to get userId
+    const validUserId = userId || Number(localStorage.getItem("userId"));
+    if (!validUserId) {
+      message.error("User ID is missing. Logout cannot proceed.");
+      return;
+    }
+
     try {
-      await api.put(`/users/${userId}/logout`, {});
-    } catch {
-      // optional: Fehler ignorieren
+      await api.put(`/users/${validUserId}/logout`, {});
+      message.success(
+        "Logout Successful: You have been logged out successfully."
+      );
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        message.error("Logout Failed: " + error.message);
+      } else {
+        message.error(
+          "Logout Failed: An unknown error occurred during logout."
+        );
+      }
     } finally {
       clearToken();
       clearUserId();
@@ -42,7 +64,8 @@ const Navbar: React.FC = () => {
     }
   };
 
-  if (["/", "/login", "/register"].includes(pathname)) return null;
+  if (["/", "/login", "/register", "/otpVerification"].includes(pathname))
+    return null;
 
   return (
     <div
