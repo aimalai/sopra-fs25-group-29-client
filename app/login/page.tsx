@@ -76,16 +76,22 @@ const Login: React.FC = () => {
       }
       message.success("You can now proceed to OTP Verification.");
       router.push("/otpVerification");
-    } catch (error: any) {
-      // Ensure clean extraction of error message
+    } catch (error: unknown) {
+      // Safely handle errors with type refinement
       if (
-        error.response &&
-        error.response.data &&
-        typeof error.response.data.error === "string"
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as any).response?.data?.error === "string"
       ) {
-        // Display only the backend-defined error message
-        message.error(error.response.data.error);
-      } else if (error.response && error.response.status === 500) {
+        // Display clean backend-provided error message
+        message.error((error as any).response.data.error);
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        (error as any).response?.status === 500
+      ) {
         message.error("An internal server error occurred. Please try again.");
       } else if (error instanceof Error) {
         message.error(error.message || "An error occurred.");
