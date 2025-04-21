@@ -65,7 +65,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false); // ✅ Added loading state
 
   const handleLogin = async (values: FormFieldProps) => {
-    setLoading(true); // ✅ Show spinner before login request starts
+    setLoading(true);
     try {
       const response = await apiService.post<User>("/users/login", values);
       if (response.token) {
@@ -75,17 +75,25 @@ const Login: React.FC = () => {
         setUserId(Number(response.id));
       }
       message.success("You can now proceed to OTP Verification.");
-      router.push("/otpVerification"); // Redirect to OTP page
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        message.error(
-          "Login Failed: " + (error.message || "An error occurred.")
-        );
+      router.push("/otpVerification");
+    } catch (error: any) {
+      // Ensure clean extraction of error message
+      if (
+        error.response &&
+        error.response.data &&
+        typeof error.response.data.error === "string"
+      ) {
+        // Display only the backend-defined error message
+        message.error(error.response.data.error);
+      } else if (error.response && error.response.status === 500) {
+        message.error("An internal server error occurred. Please try again.");
+      } else if (error instanceof Error) {
+        message.error(error.message || "An error occurred.");
       } else {
-        message.error("Login Failed: An unknown error occurred.");
+        message.error("An unknown error occurred.");
       }
     }
-    setLoading(false); // ✅ Hide spinner after request completes
+    setLoading(false);
   };
 
   return (
