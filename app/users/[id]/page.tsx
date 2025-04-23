@@ -167,7 +167,7 @@ const UserProfile: React.FC = () => {
             <div style={fieldContainer}>
               <div style={labelStyle}>Sharable:</div>
               <Checkbox checked={user.sharable} disabled>
-                Enable profile search
+                Enable profile search (Hint: If this is not enabled, your friends cannot see your Watchlist.)
               </Checkbox>
             </div>
             <div style={fieldContainer}>

@@ -9,6 +9,7 @@ import { Button, Card, Table, message, Input, Space, Spin } from "antd";
 import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import type { SortOrder } from 'antd/es/table/interface';
+import { Select, List } from "antd";
 
 interface Movie {
   movieId: string;
@@ -27,6 +28,9 @@ const Dashboard: React.FC = () => {
   const [friendResults, setFriendResults] = useState<User[]>([]);
   const [friends, setFriends] = useState<User[]>([]);
   const [friendRequests, setFriendRequests] = useState<User[]>([]);
+  const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
+  const [friendWatchlist, setFriendWatchlist] = useState<Movie[]>([]);
+
 
   const { value: userId } = useLocalStorage<number>("userId", 0);
 
@@ -158,6 +162,31 @@ const Dashboard: React.FC = () => {
       loadFriendRequests();
     } catch {
       message.error("Could not decline friend request");
+    }
+  };
+
+  const loadFriendWatchlist = async (friendId: number) => {
+    try {
+      const all = await apiService.get<{
+        friendId: number;
+        username: string;
+        watchlist: string[];
+      }[]>(`/users/${userId}/friends/watchlists`);
+      const dto = all.find((f) => f.friendId === friendId);
+      if (dto) {
+        const movies = dto.watchlist
+          .map((item) => {
+            try { return JSON.parse(item); }
+            catch { return null; }
+          })
+          .filter((m): m is Movie => m !== null);
+        setFriendWatchlist(movies);
+      } else {
+        setFriendWatchlist([]);
+      }
+    } catch {
+      message.error("Could not load friend's watchlist.");
+      setFriendWatchlist([]);
     }
   };
 
@@ -409,7 +438,7 @@ const Dashboard: React.FC = () => {
                       <Button
                         type="default"
                         onClick={() => router.push(`/users/${request.id}`)
-                      }
+                        }
                       >
                         View Profile
                       </Button>
@@ -430,19 +459,51 @@ const Dashboard: React.FC = () => {
             minWidth: "300px",
           }}
         >
+          { }
+
+          { }
           {loadingWatchlist ? (
             <Spin />
-          ) : watchlistMovies.length > 0 ? (
+          ) : (
             <Table
               columns={watchlistColumns}
-              dataSource={watchlistMovies}
+              dataSource={selectedFriendId ? friendWatchlist : watchlistMovies}
               rowKey="movieId"
               pagination={false}
               scroll={{ y: 600 }}
+              locale={{
+                emptyText: selectedFriendId
+                  ? "No movies or series in friend's watchlist"
+                  : "No movies or series in your watchlist",
+              }}
             />
-          ) : (
-            <p>No movies in watchlist</p>
           )}
+          <br />
+          <strong style={{ marginRight: 8 }}>
+            {"Want to view your Friend's Watchlist? 👀"}
+          </strong>
+          <div style={{ marginBottom: 16, marginTop: 16, display: "flex", alignItems: "center" }}>
+            <strong style={{ marginRight: 8 }}>
+              {"Friend’s Watchlist:"}
+            </strong>
+            <Select<number | null>
+              style={{ width: 200 }}
+              placeholder="Select friend…"
+              value={selectedFriendId}
+              onChange={(id) => {
+                setSelectedFriendId(id);
+                if (id) loadFriendWatchlist(id);
+              }}
+              allowClear
+            >
+              {friends.map((f) => (
+                <Select.Option key={f.id} value={f.id}>
+                  {f.username}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
+
         </Card>
       </div>
       <Button
