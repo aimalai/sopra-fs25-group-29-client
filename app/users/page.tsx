@@ -9,7 +9,7 @@ import { Button, Card, Table, message, Input, Space, Spin } from "antd";
 import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import type { SortOrder } from 'antd/es/table/interface';
-import { Select, List } from "antd";
+import { Select } from "antd";
 
 interface Movie {
   movieId: string;
