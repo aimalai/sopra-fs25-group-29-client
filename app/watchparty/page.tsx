@@ -50,7 +50,7 @@ const WatchpartyPage: React.FC = () => {
   const [inviteModalVisible, setInviteModalVisible] = useState(false); // Modal visibility state
   const [selectedWatchPartyId, setSelectedWatchPartyId] = useState<
     number | null
-  >(null); // Selected watch party for inviting friends
+  >(null);
 
   const disabledDate = (current: Dayjs) => {
     return current && current.isBefore(dayjs().startOf("day"));
@@ -219,7 +219,12 @@ const WatchpartyPage: React.FC = () => {
 
   return (
     <div
-      style={{ minHeight: "100vh", padding: "20px", paddingTop: "100px", boxSizing: "border-box" }}
+      style={{
+        minHeight: "100vh",
+        padding: "20px",
+        paddingTop: "100px",
+        boxSizing: "border-box",
+      }}
     >
       <h1 style={{ color: "#fff", marginBottom: "20px" }}>
         Watchparty Manager
@@ -336,8 +341,7 @@ const WatchpartyPage: React.FC = () => {
           </Card>
         </div>
       </div>
-      <div style={{ marginTop: "20px", textAlign: "center" }}>
-      </div>
+      <div style={{ marginTop: "20px", textAlign: "center" }}></div>
 
       {/* InviteFriendsModal */}
       {selectedWatchPartyId && (

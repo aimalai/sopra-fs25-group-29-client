@@ -5,7 +5,7 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import { Button, Form, Input, message } from "antd";
-import { CSSProperties, useState } from "react"; // ✅ Added useState to manage loading spinner state
+import { CSSProperties, useState } from "react";
 
 interface FormFieldProps {
   label: string;
@@ -62,7 +62,7 @@ const Login: React.FC = () => {
   const [form] = Form.useForm();
   const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<number>("userId", 0);
-  const [loading, setLoading] = useState(false); // ✅ Added loading state
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (values: FormFieldProps) => {
     setLoading(true);
@@ -110,7 +110,7 @@ const Login: React.FC = () => {
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Login below!</div>
-        {loading && <div className="spinner"></div>} {/* ✅ Added spinner */}
+        {loading && <div className="spinner"></div>} {/* spinner */}
         <Form
           form={form}
           name="login"
@@ -136,7 +136,7 @@ const Login: React.FC = () => {
             <Button
               style={buttonStyle}
               htmlType="submit"
-              disabled={loading} // ✅ Disable button while loading
+              disabled={loading} // Disable button while loading
             >
               Login
             </Button>
@@ -145,7 +145,7 @@ const Login: React.FC = () => {
             <Button
               style={buttonStyle}
               onClick={() => router.push("/register")}
-              disabled={loading} // ✅ Disable button while loading
+              disabled={loading}
             >
               Not registered yet? Register now!
             </Button>
@@ -154,7 +154,7 @@ const Login: React.FC = () => {
             <Button
               style={buttonStyle}
               onClick={() => router.push("/")}
-              disabled={loading} // ✅ Disable button while loading
+              disabled={loading}
             >
               Back
             </Button>

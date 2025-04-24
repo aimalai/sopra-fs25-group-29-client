@@ -11,7 +11,7 @@ interface FormFieldProps {
   username: string;
   password: string;
   confirmPassword?: string;
-  email: string; // Added email field
+  email: string; // email field
 }
 
 const containerStyle: CSSProperties = {
@@ -167,7 +167,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
 
-          {/* Added Email Field */}
+          {/* email Field */}
           <Form.Item
             label={<span style={{ color: "#000" }}>Enter Your Email</span>}
             name="email"

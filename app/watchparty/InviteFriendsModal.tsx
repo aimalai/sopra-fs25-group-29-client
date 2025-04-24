@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { Modal, Button, Form, Input, List } from "antd";
-import useWatchPartyLocalStorage from "../hooks/useWatchPartyLocalStorage"; // ✅ Using modular storage
+import useWatchPartyLocalStorage from "../hooks/useWatchPartyLocalStorage"; // modular storage
 
 interface InviteFriendsProps {
   watchPartyId: number;
@@ -17,13 +17,13 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
   onClose,
 }) => {
   const apiService = useApi();
-  const { value: watchPartyUserId } = useWatchPartyLocalStorage("id", ""); // ✅ Correct reference using modular storage
+  const { value: watchPartyUserId } = useWatchPartyLocalStorage("id", ""); // reference using modular storage
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState(""); // ✅ Success message state
+  const [successMessage, setSuccessMessage] = useState(""); // Success message state
 
-  // ✅ Fetch previously invited users when modal opens
+  // Fetch previously invited users when modal opens
   useEffect(() => {
     // Debugging logs to check local storage
     if (visible) {
@@ -33,25 +33,25 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
 
     const fetchInvites = async () => {
       try {
-        if (!watchPartyId) return; // ✅ Prevents unnecessary API call
+        if (!watchPartyId) return; // Prevents unnecessary API call
 
         const response = await apiService.get<string[]>(
-          `/api/watchparties/${watchPartyId}/invites` // Updated base path to match backend
+          `/api/watchparties/${watchPartyId}/invites`
         );
-        setInvitedUsers(response); // ✅ Populate the invite list
+        setInvitedUsers(response); // Populate the invite list
       } catch (error) {
         console.error("Error fetching invites:", error);
       }
     };
 
     if (visible) {
-      fetchInvites(); // ✅ Only fetch invites when modal is open
+      fetchInvites(); // Only fetch invites when modal is open
     }
   }, [watchPartyId, visible]);
 
   const handleInvite = async (values: { username: string }) => {
     setLoading(true);
-    setSuccessMessage(""); // ✅ Clear any previous success message
+    setSuccessMessage(""); // Clear any previous success message
     try {
       if (!watchPartyUserId) {
         throw new Error("User ID not found.");
@@ -78,7 +78,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
       } else {
         setInvitedUsers([...invitedUsers, values.username]);
         setSuccessMessage(`🎉 Invite sent successfully to ${values.username}!`);
-        form.resetFields(["username"]); // ✅ Clears only the username field
+        form.resetFields(["username"]); // Clears only the username field
       }
     } catch (error) {
       console.error("Invitation Error:", error);
@@ -95,7 +95,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
 
   return (
     <Modal open={visible} onCancel={onClose} footer={null}>
-      {/* 🔥 Improved Title Visibility */}
+      {/* Title Visibility */}
       <div
         style={{
           backgroundColor: "#f5f5f5",
