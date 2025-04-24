@@ -18,6 +18,14 @@ interface Movie {
   addedOn?: string;
 }
 
+interface TrendingItem {
+  id: number;
+  poster_path?: string;
+  title?: string;
+  name?: string;
+  overview?: string;
+}
+
 const Dashboard: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
@@ -33,6 +41,31 @@ const Dashboard: React.FC = () => {
 
 
   const { value: userId } = useLocalStorage<number>("userId", 0);
+
+  const [trending, setTrending] = useState<TrendingItem[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState<boolean>(false);
+  const [trendingError, setTrendingError] = useState<string | null>(null);
+
+  const fetchTrending = async () => {
+    setTrendingLoading(true);
+    setTrendingError(null);
+    try {
+      const res = await apiService.get("/api/movies/trending");
+      const data = typeof res === "string" ? JSON.parse(res) : res;
+      setTrending(data.results || []);
+    } catch (error) {
+      console.error("Error fetching trending", error);
+      setTrendingError("Failed to load trending content.");
+    } finally {
+      setTrendingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrending();
+    const interval = setInterval(fetchTrending, 3600000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
@@ -74,10 +107,10 @@ const Dashboard: React.FC = () => {
       const items: string[] = await apiService.get(`/users/${userId}/watchlist`);
       const parsedItems = items
         .map((item) => {
-          try {
-            return JSON.parse(item);
-          } catch {
-            return null;
+          try { 
+            return JSON.parse(item); 
+          } catch { 
+            return null; 
           }
         })
         .filter((x) => x && x.movieId);
@@ -176,7 +209,7 @@ const Dashboard: React.FC = () => {
       if (dto) {
         const movies = dto.watchlist
           .map((item) => {
-            try { return JSON.parse(item); }
+            try { return JSON.parse(item); } 
             catch { return null; }
           })
           .filter((m): m is Movie => m !== null);
@@ -304,6 +337,70 @@ const Dashboard: React.FC = () => {
             gap: "32px",
           }}
         >
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Card
+              title="Trending Now"
+              style={{
+                width: '100%',
+                maxWidth: '1200px',
+                maxHeight: '600px',
+                overflow: 'hidden'
+              }}
+            >
+              {trendingLoading ? (
+                <Spin />
+              ) : trendingError ? (
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ color: 'red' }}>{trendingError}</p>
+                  <Button onClick={fetchTrending}>Retry</Button>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: "column",
+                    maxHeight: '250px',
+                    overflowY: 'auto',
+                    padding: '8px',
+                    gap: '24px'
+                  }}
+                >
+                  {trending.map(item => (
+                    <div
+                      key={item.id}
+                      style={{
+                        flex: '0 0 auto',
+                        display: 'flex',
+                        marginRight: '16px',
+                        minWidth: '300px',
+                        background: '#fff',
+                        borderRadius: '4px',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {item.poster_path && (
+                        <Image
+                          src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                          alt=""
+                          width={100}
+                          height={150}
+                          style={{ objectFit: 'cover', flexShrink: 0 }}
+                        />
+                      )}
+                      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <h4 style={{ margin: 0, fontSize: '1rem' }}>{item.title || item.name}</h4>
+                        <p style={{ marginTop: '4px', fontSize: '0.9rem', color: '#555', whiteSpace: 'normal' }}>
+                          {item.overview || 'No description'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+
           <Card title="Search for Users">
             <div style={{ marginBottom: 10, display: "flex" }}>
               <Input
@@ -438,7 +535,7 @@ const Dashboard: React.FC = () => {
                       <Button
                         type="default"
                         onClick={() => router.push(`/users/${request.id}`)
-                        }
+                      }
                       >
                         View Profile
                       </Button>
@@ -473,17 +570,17 @@ const Dashboard: React.FC = () => {
               scroll={{ y: 600 }}
               locale={{
                 emptyText: selectedFriendId
-                  ? "No movies or series in friend's watchlist"
+                  ? "No movies or series in friend&apos;s watchlist"
                   : "No movies or series in your watchlist",
               }}
             />
           )}
           <br />
           <strong style={{ marginRight: 8 }}>
-            {"Want to view your Friend's Watchlist? 👀"}
+           {"Want to view your Friend's Watchlist? 👀"}
           </strong>
           <div style={{ marginBottom: 16, marginTop: 16, display: "flex", alignItems: "center" }}>
-            <strong style={{ marginRight: 8 }}>
+          <strong style={{ marginRight: 8 }}>
               {"Friend’s Watchlist:"}
             </strong>
             <Select<number | null>
