@@ -86,17 +86,17 @@ const Dashboard: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [friendQuery]);
 
-  useEffect(() => {
-    const interval = setInterval(searchFriends, 5000);
-    return () => clearInterval(interval);
-  }, [friendQuery]);
+  // useEffect(() => {
+  //   const interval = setInterval(searchFriends, 5000);
+  //   return () => clearInterval(interval);
+  // }, [friendQuery]);
 
   useEffect(() => {
     if (!userId) return;
     const interval = setInterval(() => {
       loadFriends();
       loadFriendRequests();
-    }, 5000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [apiService, userId]);
 
