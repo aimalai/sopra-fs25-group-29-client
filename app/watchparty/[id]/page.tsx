@@ -94,7 +94,7 @@ const WatchpartyDetail: React.FC = () => {
       <div style={{ margin: "20px" }}>
         <Button style={buttonStyle}
           type="default"
-          onClick={() => router.push('/watchparty/lobby')}
+          onClick={() => router.push(`/watchparty/${id}/lobby`)}
         >
           Join Lobby
         </Button>
