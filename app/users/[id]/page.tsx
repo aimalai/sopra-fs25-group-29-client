@@ -245,8 +245,32 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
           <div style={{ flex: 1, maxWidth: "480px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            {isFriend ? (
+          {isFriend ? (
+            <>
+              <Button
+                type="primary"
+                danger
+                block
+                style={{ marginBottom: 16 }}
+                onClick={async () => {
+                  try {
+                    await apiService.delete(
+                      `/users/${loggedInUserId}/friends/${user.id}`
+                    );
+                    await apiService.delete(
+                      `/chat/conversation/${loggedInUserId}/${user.id}`
+                    );
+                    message.success("User has been unfriended");
+                    setIsFriend(false);
+                  } catch {
+                    message.error("Error unfriending user");
+                  }
+                }}
+              >
+                Unfriend
+              </Button>
               <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
+            </>
             ) : (
               <div style={placeholderStyle}>
                 <p><strong>Messaging unavailable.</strong></p>
