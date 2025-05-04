@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Button, Card, Table, message, Input, Space, Spin } from "antd";
+import { Button, Card, Table, message, Input, Space, Spin, Select } from "antd";
 import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import type { SortOrder } from 'antd/es/table/interface';
-import { Select } from "antd";
 
 interface Movie {
   movieId: string;
@@ -30,6 +29,7 @@ const Dashboard: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [watchlistMovies, setWatchlistMovies] = useState<Movie[]>([]);
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
   const [friendQuery, setFriendQuery] = useState("");
@@ -38,10 +38,7 @@ const Dashboard: React.FC = () => {
   const [friendRequests, setFriendRequests] = useState<User[]>([]);
   const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
   const [friendWatchlist, setFriendWatchlist] = useState<Movie[]>([]);
-
-
   const { value: userId } = useLocalStorage<number>("userId", 0);
-
   const [trending, setTrending] = useState<TrendingItem[]>([]);
   const [trendingLoading, setTrendingLoading] = useState<boolean>(false);
   const [trendingError, setTrendingError] = useState<string | null>(null);
@@ -107,10 +104,10 @@ const Dashboard: React.FC = () => {
       const items: string[] = await apiService.get(`/users/${userId}/watchlist`);
       const parsedItems = items
         .map((item) => {
-          try { 
-            return JSON.parse(item); 
-          } catch { 
-            return null; 
+          try {
+            return JSON.parse(item);
+          } catch {
+            return null;
           }
         })
         .filter((x) => x && x.movieId);
@@ -126,6 +123,7 @@ const Dashboard: React.FC = () => {
 
   const handleSearchClick = () => {
     if (searchQuery.trim()) {
+      setSearchLoading(true);
       router.push(`/results?query=${encodeURIComponent(searchQuery)}`);
     }
   };
@@ -209,7 +207,7 @@ const Dashboard: React.FC = () => {
       if (dto) {
         const movies = dto.watchlist
           .map((item) => {
-            try { return JSON.parse(item); } 
+            try { return JSON.parse(item); }
             catch { return null; }
           })
           .filter((m): m is Movie => m !== null);
@@ -218,7 +216,7 @@ const Dashboard: React.FC = () => {
         setFriendWatchlist([]);
       }
     } catch {
-      message.error("Could not load friend's watchlist.");
+      message.error("Could not load friend&apos;s watchlist.");
       setFriendWatchlist([]);
     }
   };
@@ -264,7 +262,6 @@ const Dashboard: React.FC = () => {
       render: (addedOn?: string) =>
         addedOn ? new Date(addedOn).toLocaleDateString() : "",
     },
-
     {
       title: "Actions",
       key: "actions",
@@ -308,6 +305,7 @@ const Dashboard: React.FC = () => {
                 <Button
                   type="primary"
                   icon={<SearchOutlined />}
+                  loading={searchLoading}
                   onClick={handleSearchClick}
                   style={{ marginLeft: 10 }}
                 />
@@ -534,8 +532,7 @@ const Dashboard: React.FC = () => {
                       </Button>
                       <Button
                         type="default"
-                        onClick={() => router.push(`/users/${request.id}`)
-                      }
+                        onClick={() => router.push(`/users/${request.id}`)}
                       >
                         View Profile
                       </Button>
@@ -556,9 +553,6 @@ const Dashboard: React.FC = () => {
             minWidth: "300px",
           }}
         >
-          { }
-
-          { }
           {loadingWatchlist ? (
             <Spin />
           ) : (
@@ -577,11 +571,11 @@ const Dashboard: React.FC = () => {
           )}
           <br />
           <strong style={{ marginRight: 8 }}>
-           {"Want to view your Friend's Watchlist? 👀"}
+            Want to view your Friend&apos;s Watchlist? 👀
           </strong>
           <div style={{ marginBottom: 16, marginTop: 16, display: "flex", alignItems: "center" }}>
-          <strong style={{ marginRight: 8 }}>
-              {"Friend’s Watchlist:"}
+            <strong style={{ marginRight: 8 }}>
+              Friend&apos;s Watchlist:
             </strong>
             <Select<number | null>
               style={{ width: 200 }}
@@ -600,7 +594,6 @@ const Dashboard: React.FC = () => {
               ))}
             </Select>
           </div>
-
         </Card>
       </div>
       <Button

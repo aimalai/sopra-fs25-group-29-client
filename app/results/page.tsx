@@ -293,7 +293,14 @@ const ResultsPage: React.FC = () => {
               onChange={handleSearchChange}
               onPressEnter={handleSearchClick}
               style={{ width: 300 }}
-              suffix={<Button type="primary" icon={<SearchOutlined />} onClick={handleSearchClick} />}
+              suffix={
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  loading={loading}
+                  onClick={handleSearchClick}
+                />
+              }
             />
             <Select value={sortOption} onChange={handleSortChange} style={{ minWidth: 180 }}>
               <Select.Option value="popularity">Sort by Popularity</Select.Option>
