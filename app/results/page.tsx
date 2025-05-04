@@ -170,7 +170,7 @@ const ResultsPage: React.FC = () => {
         const title = record.media_type === "tv" ? record.name : record.title;
         return (
           <a
-            style={{ color: "#000", cursor: "pointer", textDecoration: "underline" }}
+            style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
             onClick={() =>
               router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
             }
