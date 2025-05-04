@@ -8,6 +8,7 @@ import { User } from "@/types/user";
 import { Button, Card, Table, message, Input, Space, Spin, Select } from "antd";
 import { SearchOutlined, DeleteOutlined } from "@ant-design/icons";
 import Image from "next/image";
+import { avatars } from "@/constants/avatars";
 import type { SortOrder } from 'antd/es/table/interface';
 
 interface Movie {
@@ -110,8 +111,8 @@ const Dashboard: React.FC = () => {
             return null;
           }
         })
-        .filter((x) => x && x.movieId);
-      setWatchlistMovies(parsedItems as Movie[]);
+        .filter((x): x is Movie => x !== null && !!x.movieId);
+      setWatchlistMovies(parsedItems);
     } finally {
       setLoadingWatchlist(false);
     }
@@ -136,9 +137,10 @@ const Dashboard: React.FC = () => {
         setFriendResults(all);
       } else {
         setFriendResults(
-          all.filter((u) =>
-            (u.username?.toLowerCase().includes(q) ?? false) ||
-            (u.email?.toLowerCase().includes(q) ?? false)
+          all.filter(
+            (u) =>
+              (u.username?.toLowerCase().includes(q) ?? false) ||
+              (u.email?.toLowerCase().includes(q) ?? false)
           )
         );
       }
@@ -198,17 +200,14 @@ const Dashboard: React.FC = () => {
 
   const loadFriendWatchlist = async (friendId: number) => {
     try {
-      const all = await apiService.get<{
-        friendId: number;
-        username: string;
-        watchlist: string[];
-      }[]>(`/users/${userId}/friends/watchlists`);
+      const all = await apiService.get<{ friendId: number; username: string; watchlist: string[] }[]>(
+        `/users/${userId}/friends/watchlists`
+      );
       const dto = all.find((f) => f.friendId === friendId);
       if (dto) {
         const movies = dto.watchlist
           .map((item) => {
-            try { return JSON.parse(item); }
-            catch { return null; }
+            try { return JSON.parse(item); } catch { return null; }
           })
           .filter((m): m is Movie => m !== null);
         setFriendWatchlist(movies);
@@ -216,7 +215,7 @@ const Dashboard: React.FC = () => {
         setFriendWatchlist([]);
       }
     } catch {
-      message.error("Could not load friend&apos;s watchlist.");
+      message.error("Could not load friend's watchlist.");
       setFriendWatchlist([]);
     }
   };
@@ -258,7 +257,7 @@ const Dashboard: React.FC = () => {
       key: "addedOn",
       sorter: (a: Movie, b: Movie) =>
         new Date(a.addedOn!).getTime() - new Date(b.addedOn!).getTime(),
-      sortDirections: ['descend', 'ascend'] as SortOrder[],
+      sortDirections: ["descend", "ascend"] as SortOrder[],
       render: (addedOn?: string) =>
         addedOn ? new Date(addedOn).toLocaleDateString() : "",
     },
@@ -335,46 +334,46 @@ const Dashboard: React.FC = () => {
             gap: "32px",
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
             <Card
               title="Trending Now"
               style={{
-                width: '100%',
-                maxWidth: '1200px',
-                maxHeight: '600px',
-                overflow: 'hidden'
+                width: "100%",
+                maxWidth: "1200px",
+                maxHeight: "600px",
+                overflow: "hidden",
               }}
             >
               {trendingLoading ? (
                 <Spin />
               ) : trendingError ? (
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ color: 'red' }}>{trendingError}</p>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ color: "red" }}>{trendingError}</p>
                   <Button onClick={fetchTrending}>Retry</Button>
                 </div>
               ) : (
                 <div
                   style={{
-                    display: 'flex',
+                    display: "flex",
                     flexDirection: "column",
-                    maxHeight: '250px',
-                    overflowY: 'auto',
-                    padding: '8px',
-                    gap: '24px'
+                    maxHeight: "250px",
+                    overflowY: "auto",
+                    padding: "8px",
+                    gap: "24px",
                   }}
                 >
-                  {trending.map(item => (
+                  {trending.map((item) => (
                     <div
                       key={item.id}
                       style={{
-                        flex: '0 0 auto',
-                        display: 'flex',
-                        marginRight: '16px',
-                        minWidth: '300px',
-                        background: '#fff',
-                        borderRadius: '4px',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-                        overflow: 'hidden',
+                        flex: "0 0 auto",
+                        display: "flex",
+                        marginRight: "16px",
+                        minWidth: "300px",
+                        background: "#fff",
+                        borderRadius: "4px",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                        overflow: "hidden",
                       }}
                     >
                       {item.poster_path && (
@@ -383,13 +382,29 @@ const Dashboard: React.FC = () => {
                           alt=""
                           width={100}
                           height={150}
-                          style={{ objectFit: 'cover', flexShrink: 0 }}
+                          style={{ objectFit: "cover", flexShrink: 0 }}
                         />
                       )}
-                      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <h4 style={{ margin: 0, fontSize: '1rem' }}>{item.title || item.name}</h4>
-                        <p style={{ marginTop: '4px', fontSize: '0.9rem', color: '#555', whiteSpace: 'normal' }}>
-                          {item.overview || 'No description'}
+                      <div
+                        style={{
+                          padding: "8px",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <h4 style={{ margin: 0, fontSize: "1rem" }}>
+                          {item.title || item.name}
+                        </h4>
+                        <p
+                          style={{
+                            marginTop: "4px",
+                            fontSize: "0.9rem",
+                            color: "#555",
+                            whiteSpace: "normal",
+                          }}
+                        >
+                          {item.overview || "No description"}
                         </p>
                       </div>
                     </div>
@@ -416,12 +431,29 @@ const Dashboard: React.FC = () => {
                   title: "Username",
                   key: "username",
                   render: (_, record) => (
-                    <a
-                      onClick={() => router.push(`/users/${record.id}`)}
-                      style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
-                    >
-                      {record.username ?? ""}
-                    </a>
+                    <Space align="center">
+                      <Image
+                        src={
+                          avatars.find((a) => a.key === record.avatarKey)?.url ||
+                          record.profilePictureUrl ||
+                          "/default-avatar.jpg"
+                        }
+                        alt="avatar"
+                        width={32}
+                        height={32}
+                        style={{ borderRadius: "50%" }}
+                      />
+                      <a
+                        onClick={() => router.push(`/users/${record.id}`)}
+                        style={{
+                          textDecoration: "underline",
+                          color: "blue",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {record.username}
+                      </a>
+                    </Space>
                   ),
                 },
                 {
@@ -434,13 +466,17 @@ const Dashboard: React.FC = () => {
                   title: "Status",
                   dataIndex: "status",
                   key: "status",
-                  render: (status: string) => (status === "ONLINE" ? "🟢 Online" : "🔴 Offline"),
+                  render: (status: string) =>
+                    status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
                 },
                 {
                   title: "Actions",
                   key: "details",
                   render: (_, record) => (
-                    <Button type="primary" onClick={() => router.push(`/users/${record.id}`)}>
+                    <Button
+                      type="primary"
+                      onClick={() => router.push(`/users/${record.id}`)}
+                    >
                       Details
                     </Button>
                   ),
@@ -458,12 +494,29 @@ const Dashboard: React.FC = () => {
                   title: "Username",
                   key: "username",
                   render: (_, record) => (
-                    <a
-                      onClick={() => router.push(`/users/${record.id}`)}
-                      style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
-                    >
-                      {record.username ?? ""}
-                    </a>
+                    <Space align="center">
+                      <Image
+                        src={
+                          avatars.find((a) => a.key === record.avatarKey)?.url ||
+                          record.profilePictureUrl ||
+                          "/default-avatar.jpg"
+                        }
+                        alt="avatar"
+                        width={32}
+                        height={32}
+                        style={{ borderRadius: "50%" }}
+                      />
+                      <a
+                        onClick={() => router.push(`/users/${record.id}`)}
+                        style={{
+                          textDecoration: "underline",
+                          color: "blue",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {record.username}
+                      </a>
+                    </Space>
                   ),
                 },
                 {
@@ -476,13 +529,17 @@ const Dashboard: React.FC = () => {
                   title: "Status",
                   dataIndex: "status",
                   key: "status",
-                  render: (status: string) => (status === "ONLINE" ? "🟢 Online" : "🔴 Offline"),
+                  render: (status: string) =>
+                    status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
                 },
                 {
                   title: "Actions",
                   key: "details",
                   render: (_, record) => (
-                    <Button type="primary" onClick={() => router.push(`/users/${record.id}`)}>
+                    <Button
+                      type="primary"
+                      onClick={() => router.push(`/users/${record.id}`)}
+                    >
                       Details
                     </Button>
                   ),
@@ -491,7 +548,7 @@ const Dashboard: React.FC = () => {
             />
             <div>
               <hr style={{ margin: "16px 0" }} />
-              <p style={{ fontWeight: 'bold' }}>Incoming Friend Requests:</p>
+              <p style={{ fontWeight: "bold" }}>Incoming Friend Requests:</p>
               {friendRequests.length > 0 ? (
                 friendRequests.map((request) => (
                   <div
@@ -503,17 +560,30 @@ const Dashboard: React.FC = () => {
                       marginBottom: "8px",
                     }}
                   >
-                    <a
-                      onClick={() => router.push(`/users/${request.id}`)}
-                      style={{
-                        cursor: "pointer",
-                        color: "blue",
-                        textDecoration: "underline",
-                        marginRight: "8px",
-                      }}
-                    >
-                      {request.username ?? ""}
-                    </a>
+                    <Space align="center">
+                      <Image
+                        src={
+                          avatars.find((a) => a.key === request.avatarKey)?.url ||
+                          request.profilePictureUrl ||
+                          "/default-avatar.jpg"
+                        }
+                        alt="avatar"
+                        width={32}
+                        height={32}
+                        style={{ borderRadius: "50%" }}
+                      />
+                      <a
+                        onClick={() => router.push(`/users/${request.id}`)}
+                        style={{
+                          cursor: "pointer",
+                          color: "blue",
+                          textDecoration: "underline",
+                          marginRight: "8px",
+                        }}
+                      >
+                        {request.username}
+                      </a>
+                    </Space>
                     <div>
                       <Button
                         type="primary"
@@ -564,19 +634,24 @@ const Dashboard: React.FC = () => {
               scroll={{ y: 600 }}
               locale={{
                 emptyText: selectedFriendId
-                  ? "No movies or series in friend&apos;s watchlist"
+                  ? "No movies or series in friend's watchlist"
                   : "No movies or series in your watchlist",
               }}
             />
           )}
           <br />
           <strong style={{ marginRight: 8 }}>
-            Want to view your Friend&apos;s Watchlist? 👀
+            Want to view your Friend's Watchlist? 👀
           </strong>
-          <div style={{ marginBottom: 16, marginTop: 16, display: "flex", alignItems: "center" }}>
-            <strong style={{ marginRight: 8 }}>
-              Friend&apos;s Watchlist:
-            </strong>
+          <div
+            style={{
+              marginBottom: 16,
+              marginTop: 16,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <strong style={{ marginRight: 8 }}>Friend's Watchlist:</strong>
             <Select<number | null>
               style={{ width: 200 }}
               placeholder="Select friend…"
