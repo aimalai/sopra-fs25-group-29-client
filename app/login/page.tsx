@@ -77,21 +77,11 @@ const Login: React.FC = () => {
       message.success("You can now proceed to OTP Verification.");
       router.push("/otpVerification");
     } catch (error: unknown) {
-      // Safely handle errors with type refinement
-      const backendErrorMessage = (
-        error as { response?: { data?: { error?: string } } }
-      )?.response?.data?.error;
-
-      if (backendErrorMessage) {
-        message.error(backendErrorMessage); // Display clean backend-provided error message
-      } else if (
-        (error as { response?: { status?: number } })?.response?.status === 500
-      ) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 500) {
         message.error("An internal server error occurred. Please try again.");
-      } else if (error instanceof Error) {
-        message.error(error.message || "An error occurred.");
       } else {
-        message.error("An unknown error occurred.");
+        message.error("Invalid username or password.");
       }
     }
     setLoading(false);
@@ -110,7 +100,7 @@ const Login: React.FC = () => {
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Login below!</div>
-        {loading && <div className="spinner"></div>} {/* spinner */}
+        {loading && <div className="spinner"></div>}
         <Form
           form={form}
           name="login"
@@ -136,7 +126,7 @@ const Login: React.FC = () => {
             <Button
               style={buttonStyle}
               htmlType="submit"
-              disabled={loading} // Disable button while loading
+              disabled={loading}
             >
               Login
             </Button>
