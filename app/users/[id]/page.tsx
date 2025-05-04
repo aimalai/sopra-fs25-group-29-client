@@ -200,7 +200,7 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       ) : (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "stretch", gap: "20px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "stretch", gap: "20px", flexWrap: "wrap" }}>
           <div style={contentStyle}>
             <div style={topRowStyle}>
               <Image
@@ -251,25 +251,47 @@ const UserProfile: React.FC = () => {
               <div style={placeholderStyle}>
                 <p><strong>Messaging unavailable.</strong></p>
                 <p>You can only chat with people on your friends list.</p>
-                <Button
-                  type="primary"
-                  style={{ ...buttonStyle, marginTop: "16px" }}
-                  disabled={isPending}
-                  onClick={async () => {
-                    try {
-                      await apiService.post(
-                        `/users/${user.id}/friendrequests`,
-                        { fromUserId: loggedInUserId }
-                      );
-                      message.success("Friend request sent!");
-                      setIsPending(true);
-                    } catch {
-                      message.error("Error sending friend request");
-                    }
-                  }}
-                >
-                  {isPending ? "Request Pending" : "Send Friend Request"}
-                </Button>
+
+                {isPending ? (
+                  <Button
+                    type="primary"
+                    danger
+                    block
+                    style={{ marginTop: "16px" }}
+                    onClick={async () => {
+                      try {
+                        await apiService.delete(
+                          `/users/${user.id}/friendrequests/${loggedInUserId}`
+                        );
+                        message.success("Friend request canceled");
+                        setIsPending(false);
+                      } catch {
+                        message.error("Error canceling friend request");
+                      }
+                    }}
+                  >
+                    Cancel Friend Request
+                  </Button>
+                ) : (
+                  <Button
+                    type="primary"
+                    style={{ ...buttonStyle, marginTop: "16px" }}
+                    onClick={async () => {
+                      try {
+                        await apiService.post(
+                          `/users/${user.id}/friendrequests`,
+                          { fromUserId: loggedInUserId }
+                        );
+                        message.success("Friend request sent!");
+                        setIsPending(true);
+                      } catch {
+                        message.error("Error sending friend request");
+                      }
+                    }}
+                  >
+                    Send Friend Request
+                  </Button>
+                )}
               </div>
             )}
           </div>
