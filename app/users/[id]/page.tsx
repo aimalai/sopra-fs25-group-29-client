@@ -1,4 +1,5 @@
 "use client";
+
 import React, { CSSProperties, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Checkbox, message } from "antd";
@@ -7,6 +8,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import Image from "next/image";
 import ChatBox from "@/components/ChatBox";
+import { avatars } from "@/constants/avatars";
 
 const pageContainerStyle: CSSProperties = {
   display: "flex",
@@ -148,7 +150,11 @@ const UserProfile: React.FC = () => {
         <div style={contentStyle}>
           <div style={topRowStyle}>
             <Image
-              src={user.profilePictureUrl || "/default-avatar.jpg"}
+              src={
+                avatars.find(a => a.key === user.avatarKey)?.url ||
+                user.profilePictureUrl ||
+                "/default-avatar.jpg"
+              }
               alt="Profile Picture"
               width={80}
               height={80}
@@ -178,25 +184,22 @@ const UserProfile: React.FC = () => {
           </div>
           <div style={sectionHeadingStyle}>Privacy Settings</div>
           <div style={fieldContainer}>
-              <div style={labelStyle}>Sharable:</div>
             <Checkbox checked={user.sharable} disabled>
-                Enable profile search (Hint: If this is not enabled, your friends cannot see your Watchlist.)
+              Enable profile search (Hint: If this is not enabled, your friends cannot see your Watchlist.)
             </Checkbox>
           </div>
           <div style={fieldContainer}>
-              <div style={labelStyle}>Public Ratings:</div>
             <Checkbox checked={user.publicRatings} disabled>
               Share my ratings
             </Checkbox>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
-              <Button
-                style={buttonStyle}
-                onClick={() => router.push(`/users/${id}/edit`)}
-              >
+            <Button style={buttonStyle} onClick={() => router.push(`/users/${id}/edit`)}>
               Edit
             </Button>
-              <Button style={buttonStyle} onClick={() => router.push("/users")}>Back</Button>
+            <Button style={buttonStyle} onClick={() => router.push("/users")}>
+              Back
+            </Button>
           </div>
         </div>
       ) : (
@@ -204,7 +207,11 @@ const UserProfile: React.FC = () => {
           <div style={contentStyle}>
             <div style={topRowStyle}>
               <Image
-                src={user.profilePictureUrl || "/default-avatar.jpg"}
+                src={
+                  avatars.find(a => a.key === user.avatarKey)?.url ||
+                  user.profilePictureUrl ||
+                  "/default-avatar.jpg"
+                }
                 alt="Profile Picture"
                 width={80}
                 height={80}
@@ -245,37 +252,32 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
           <div style={{ flex: 1, maxWidth: "480px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          {isFriend ? (
-            <>
-              <Button
-                type="primary"
-                danger
-                block
-                style={{ marginBottom: 16 }}
-                onClick={async () => {
-                  try {
-                    await apiService.delete(
-                      `/users/${loggedInUserId}/friends/${user.id}`
-                    );
-                    await apiService.delete(
-                      `/chat/conversation/${loggedInUserId}/${user.id}`
-                    );
-                    message.success("User has been unfriended");
-                    setIsFriend(false);
-                  } catch {
-                    message.error("Error unfriending user");
-                  }
-                }}
-              >
-                Unfriend
-              </Button>
-              <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
-            </>
+            {isFriend ? (
+              <>
+                <Button
+                  type="primary"
+                  danger
+                  block
+                  style={{ marginBottom: 16 }}
+                  onClick={async () => {
+                    try {
+                      await apiService.delete(`/users/${loggedInUserId}/friends/${user.id}`);
+                      await apiService.delete(`/chat/conversation/${loggedInUserId}/${user.id}`);
+                      message.success("User has been unfriended");
+                      setIsFriend(false);
+                    } catch {
+                      message.error("Error unfriending user");
+                    }
+                  }}
+                >
+                  Unfriend
+                </Button>
+                <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
+              </>
             ) : (
               <div style={placeholderStyle}>
                 <p><strong>Messaging unavailable.</strong></p>
                 <p>You can only chat with people on your friends list.</p>
-
                 {isPending ? (
                   <Button
                     type="primary"
@@ -284,9 +286,7 @@ const UserProfile: React.FC = () => {
                     style={{ marginTop: "16px" }}
                     onClick={async () => {
                       try {
-                        await apiService.delete(
-                          `/users/${user.id}/friendrequests/${loggedInUserId}`
-                        );
+                        await apiService.delete(`/users/${user.id}/friendrequests/${loggedInUserId}`);
                         message.success("Friend request canceled");
                         setIsPending(false);
                       } catch {
@@ -302,10 +302,7 @@ const UserProfile: React.FC = () => {
                     style={{ ...buttonStyle, marginTop: "16px" }}
                     onClick={async () => {
                       try {
-                        await apiService.post(
-                          `/users/${user.id}/friendrequests`,
-                          { fromUserId: loggedInUserId }
-                        );
+                        await apiService.post(`/users/${user.id}/friendrequests`, { fromUserId: loggedInUserId });
                         message.success("Friend request sent!");
                         setIsPending(true);
                       } catch {

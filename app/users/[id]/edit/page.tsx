@@ -1,11 +1,12 @@
 "use client";
 
-import React, { CSSProperties, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Input, Checkbox, message } from "antd";
+import { Button, Form, Input, Checkbox, Modal, message } from "antd";
 import { useApi } from "@/hooks/useApi";
 import { User } from "@/types/user";
 import Image from "next/image";
+import { avatars } from "@/constants/avatars";
 
 type FormValues = {
   username: string;
@@ -15,6 +16,7 @@ type FormValues = {
   sharable: boolean;
   publicRatings: boolean;
   password?: string;
+  avatarKey?: string;
 };
 
 const containerStyle: CSSProperties = {
@@ -60,43 +62,16 @@ const headingStyle: CSSProperties = {
   color: "#000",
 };
 
-const labelStyle: CSSProperties = {
-  fontWeight: "bold",
-  marginBottom: "4px",
-  color: "#000",
-};
-
-const inputBoxStyle: CSSProperties = {
-  backgroundColor: "#fff",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  padding: "8px 12px",
-};
-
-const fieldContainer: CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  marginBottom: "12px",
-};
-
-const sectionHeadingStyle: CSSProperties = {
-  fontWeight: "bold",
-  marginTop: "12px",
-  marginBottom: "6px",
-  fontSize: "1rem",
-  color: "#333",
-};
-
-const profilePictureStyle: CSSProperties = {
-  borderRadius: "50%",
-  border: "2px solid #ccc",
-};
-
 const profilePictureWrapper: CSSProperties = {
   position: "relative",
   width: "80px",
   height: "80px",
   cursor: "pointer",
+};
+
+const profilePictureStyle: CSSProperties = {
+  borderRadius: "50%",
+  border: "2px solid #ccc",
 };
 
 const overlayStyle: CSSProperties = {
@@ -115,10 +90,51 @@ const overlayStyle: CSSProperties = {
   fontWeight: "bold",
 };
 
+const fieldContainer: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  marginBottom: "12px",
+};
+
+const labelStyle: CSSProperties = {
+  fontWeight: "bold",
+  marginBottom: "4px",
+  color: "#000",
+};
+
+const inputBoxStyle: CSSProperties = {
+  backgroundColor: "#fff",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  padding: "8px 12px",
+};
+
+const sectionHeadingStyle: CSSProperties = {
+  fontWeight: "bold",
+  marginTop: "12px",
+  marginBottom: "6px",
+  fontSize: "1rem",
+  color: "#333",
+};
+
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
   color: "#ffffff",
   width: "100%",
+};
+
+const avatarGridContainer: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, 1fr)",
+  gap: "16px",
+  justifyItems: "center",
+};
+
+const avatarItem: CSSProperties = {
+  cursor: "pointer",
+  padding: "4px",
+  border: "2px solid transparent",
+  borderRadius: "50%",
 };
 
 const EditUser: React.FC = () => {
@@ -128,7 +144,8 @@ const EditUser: React.FC = () => {
   const [form] = Form.useForm<FormValues>();
   const [user, setUser] = useState<User | null>(null);
   const [hover, setHover] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | undefined>();
 
   const loggedInUserId = localStorage.getItem("userId");
   const isOwnProfile = id === loggedInUserId;
@@ -158,7 +175,9 @@ const EditUser: React.FC = () => {
           biography: fetchedUser.biography || "",
           sharable: fetchedUser.sharable || false,
           publicRatings: fetchedUser.publicRatings || false,
+          avatarKey: fetchedUser.avatarKey || undefined,
         });
+        setSelectedAvatar(fetchedUser.avatarKey || undefined);
       } catch {
         message.error("Error loading user data");
       }
@@ -166,19 +185,10 @@ const EditUser: React.FC = () => {
     fetchUser();
   }, [apiService, id, form]);
 
-  const handlePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      await apiService.post(`/users/${id}/upload-picture`, formData);
-      const updatedUser = await apiService.get<User>(`/users/${id}`);
-      setUser(updatedUser);
-      message.success("Profile picture updated!");
-    } catch {
-      message.error("Upload failed.");
-    }
+  const handleAvatarSelect = (key: string) => {
+    form.setFieldsValue({ avatarKey: key });
+    setSelectedAvatar(key);
+    setIsModalVisible(false);
   };
 
   const onFinish = async (values: FormValues) => {
@@ -190,6 +200,7 @@ const EditUser: React.FC = () => {
         biography: values.biography || null,
         sharable: values.sharable,
         publicRatings: values.publicRatings,
+        avatarKey: values.avatarKey,
       };
       if (values.password && values.password.trim().length > 0) {
         payload.password = values.password;
@@ -199,13 +210,7 @@ const EditUser: React.FC = () => {
       router.push(`/users/${id}`);
     } catch (error) {
       if (error instanceof Error) {
-        let msg = error.message;
-        if (msg.trim() === "400:" || msg.trim() === "400: ") {
-          msg = "Invalid birthday format. Please use YYYY-MM-DD.";
-        } else if (msg.includes("Username already taken")) {
-          msg = "The chosen username is already taken. Please choose another one.";
-        }
-        message.error("Update Failed: " + msg);
+        message.error("Update Failed: " + error.message);
       } else {
         message.error("Update Failed: Unknown error.");
       }
@@ -215,13 +220,7 @@ const EditUser: React.FC = () => {
   return (
     <div style={containerStyle}>
       <div style={logoContainerStyle}>
-        <Image
-          src="/NiroLogo.png"
-          alt="App Logo"
-          style={logoStyle}
-          width={160}
-          height={100}
-        />
+        <Image src="/NiroLogo.png" alt="App Logo" style={logoStyle} width={160} height={100} />
       </div>
       {user && (
         <div style={contentStyle}>
@@ -230,47 +229,39 @@ const EditUser: React.FC = () => {
               style={profilePictureWrapper}
               onMouseEnter={() => setHover(true)}
               onMouseLeave={() => setHover(false)}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setIsModalVisible(true)}
             >
               <Image
-                src={user.profilePictureUrl || "/default-avatar.jpg"}
+                src={
+                  avatars.find(a => a.key === selectedAvatar)?.url ||
+                  user.profilePictureUrl ||
+                  "/default-avatar.jpg"
+                }
                 alt="Profile Picture"
                 width={80}
                 height={80}
                 style={profilePictureStyle}
               />
               {hover && <div style={overlayStyle}>Edit</div>}
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handlePictureUpload}
-                accept="image/*"
-                style={{ display: "none" }}
-              />
             </div>
             <div style={headingStyle}>Edit Your Profile</div>
           </div>
 
-          <Form layout="vertical" form={form} onFinish={onFinish}>
+          <Form form={form} layout="vertical" onFinish={onFinish}>
+            <Form.Item name="avatarKey" style={{ display: "none" }}>
+              <Input />
+            </Form.Item>
+
             <div style={fieldContainer}>
-              <Form.Item
-                name="username"
-                label={<span style={labelStyle}>Username:</span>}
-                rules={[{ required: true }]}
-              >
+              <Form.Item name="username" label={<span style={labelStyle}>Username:</span>} rules={[{ required: true }]}>
                 <Input style={inputBoxStyle} />
               </Form.Item>
             </div>
-
             <div style={fieldContainer}>
-              <Form.Item
-                name="email"
-                label={<span style={labelStyle}>Email:</span>}
-              >
+              <Form.Item name="email" label={<span style={labelStyle}>Email:</span>}>
                 <Input style={inputBoxStyle} />
               </Form.Item>
             </div>
-
             <div style={fieldContainer}>
               <Form.Item
                 name="birthday"
@@ -280,19 +271,11 @@ const EditUser: React.FC = () => {
                     validator: (_, value) => {
                       if (!value) return Promise.resolve();
                       const regex = /^\d{4}-\d{2}-\d{2}$/;
-                      if (!regex.test(value)) {
-                        return Promise.reject(
-                          new Error("Please use the format YYYY-MM-DD")
-                        );
-                      }
+                      if (!regex.test(value)) return Promise.reject(new Error("Please use the format YYYY-MM-DD"));
                       const inputDate = new Date(value);
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      if (inputDate > today) {
-                        return Promise.reject(
-                          new Error("Birthday cannot be in the future.")
-                        );
-                      }
+                      if (inputDate > today) return Promise.reject(new Error("Birthday cannot be in the future."));
                       return Promise.resolve();
                     },
                   },
@@ -301,18 +284,11 @@ const EditUser: React.FC = () => {
                 <Input style={inputBoxStyle} placeholder="YYYY-MM-DD" />
               </Form.Item>
             </div>
-
             <div style={fieldContainer}>
               <Form.Item label={<span style={labelStyle}>Current Password:</span>}>
-                <Input
-                  type="password"
-                  style={inputBoxStyle}
-                  value="**********"
-                  readOnly
-                />
+                <Input type="password" style={inputBoxStyle} value="**********" readOnly />
               </Form.Item>
             </div>
-
             <div style={fieldContainer}>
               <Form.Item
                 name="password"
@@ -320,32 +296,17 @@ const EditUser: React.FC = () => {
                 rules={[
                   {
                     validator: (_, value) => {
-                      if (!value || value.trim().length === 0) {
-                        return Promise.resolve();
-                      }
-                      const valid =
-                        value.length >= 8 &&
-                        /[A-Za-z]/.test(value) &&
-                        /[^A-Za-z0-9]/.test(value);
-                      if (!valid) {
-                        return Promise.reject(
-                          new Error(
-                            "Password must be at least 8 characters and include letters and special characters."
-                          )
-                        );
-                      }
+                      if (!value || value.trim().length === 0) return Promise.resolve();
+                      const valid = value.length >= 8 && /[A-Za-z]/.test(value) && /[^A-Za-z0-9]/.test(value);
+                      if (!valid) return Promise.reject(new Error("Password must be at least 8 characters and include letters and special characters."));
                       return Promise.resolve();
                     },
                   },
                 ]}
               >
-                <Input.Password
-                  style={inputBoxStyle}
-                  placeholder="Leave empty to keep current"
-                />
+                <Input.Password style={inputBoxStyle} placeholder="Leave empty to keep current" />
               </Form.Item>
             </div>
-
             <div style={fieldContainer}>
               <Form.Item
                 name="biography"
@@ -354,32 +315,15 @@ const EditUser: React.FC = () => {
                   {
                     validator: (_, value) => {
                       if (!value) return Promise.resolve();
-                      const lines = value.split("\n");
-                      if (lines.length > 3) {
-                        return Promise.reject(
-                          new Error("Maximum of 3 lines allowed.")
-                        );
-                      }
+                      if (value.split("\n").length > 3) return Promise.reject(new Error("Maximum of 3 lines allowed."));
                       return Promise.resolve();
                     },
                   },
                 ]}
               >
-                <Input.TextArea
-                  rows={3}
-                  maxLength={300}
-                  style={{
-                    ...inputBoxStyle,
-                    resize: "none",
-                    lineHeight: "1.5",
-                    height: "72px",
-                    overflow: "hidden",
-                    whiteSpace: "pre-wrap",
-                  }}
-                />
+                <Input.TextArea rows={3} maxLength={300} style={{ ...inputBoxStyle, resize: "none", lineHeight: "1.5", height: "72px", overflow: "hidden", whiteSpace: "pre-wrap" }} />
               </Form.Item>
             </div>
-
             <div style={sectionHeadingStyle}>Privacy Settings</div>
             <div style={fieldContainer}>
               <Form.Item name="sharable" valuePropName="checked">
@@ -391,7 +335,6 @@ const EditUser: React.FC = () => {
                 <Checkbox>Share my ratings</Checkbox>
               </Form.Item>
             </div>
-
             <Form.Item>
               <Button style={buttonStyle} htmlType="submit">
                 Save
@@ -405,6 +348,19 @@ const EditUser: React.FC = () => {
           </Form>
         </div>
       )}
+      <Modal open={isModalVisible} title="Select a Profile Picture" onCancel={() => setIsModalVisible(false)} footer={null}>
+        <div style={avatarGridContainer}>
+          {avatars.map(a => (
+            <div
+              key={a.key}
+              style={{ ...avatarItem, borderColor: selectedAvatar === a.key ? "#007BFF" : "transparent" }}
+              onClick={() => handleAvatarSelect(a.key)}
+            >
+              <Image src={a.url} width={80} height={80} style={{ borderRadius: "50%" }} alt={a.key} />
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 };
