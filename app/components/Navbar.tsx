@@ -2,61 +2,59 @@
 
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Button, Space } from "antd";
+import { Layout, Menu, Drawer, Dropdown, Button, Avatar, message } from "antd";
+import { MenuOutlined, UserOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import Image from "next/image";
-import { User } from "@/types/user";
-import { message } from "antd";
+import type { MenuProps } from "antd";
+import { avatars } from "@/constants/avatars";
 
-const Navbar: React.FC = () => {
+const { Header } = Layout;
+
+export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const api = useApi();
-
-  const { value: userId, clear: clearUserId } = useLocalStorage<number>(
-    "userId",
-    0
-  );
+  const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const [username, setUsername] = useState("");
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUsername = async () => {
-      // Fallback mechanism to ensure userId is retrieved properly
-      const validUserId = userId || Number(localStorage.getItem("userId"));
-      if (!validUserId) return;
+    (async () => {
+      const id = userId || Number(localStorage.getItem("userId"));
+      if (!id) return;
       try {
-        const user = await api.get<User>(`/users/${validUserId}`);
-        setUsername(user.username || "Profile");
+        const u = await api.get<{
+          username?: string;
+          avatarKey?: string;
+          profilePictureUrl?: string;
+        }>(`/users/${id}`);
+        setUsername(u.username ?? "Profile");
+        const url =
+          avatars.find(a => a.key === u.avatarKey)?.url ||
+          u.profilePictureUrl ||
+          "/default-avatar.jpg";
+        setProfileImage(url);
       } catch {
         setUsername("Profile");
       }
-    };
-    fetchUsername();
-  }, [userId]);
+    })();
+  }, [userId, api, pathname]);
 
   const handleLogout = async () => {
-    // Double-check and use fallback to get userId
-    const validUserId = userId || Number(localStorage.getItem("userId"));
-    if (!validUserId) {
-      message.error("User ID is missing. Logout cannot proceed.");
+    const id = userId || Number(localStorage.getItem("userId"));
+    if (!id) {
+      message.error("User ID missing, cannot logout.");
       return;
     }
-
     try {
-      await api.put(`/users/${validUserId}/logout`, {});
-      message.success(
-        "Logout Successful: You have been logged out successfully."
-      );
+      await api.put(`/users/${id}/logout`, {});
+      message.success("Logged out successfully.");
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        message.error("Logout Failed: " + error.message);
-      } else {
-        message.error(
-          "Logout Failed: An unknown error occurred during logout."
-        );
-      }
+      message.error(error instanceof Error ? error.message : "Unknown error.");
     } finally {
       clearToken();
       clearUserId();
@@ -64,53 +62,130 @@ const Navbar: React.FC = () => {
     }
   };
 
-  if (["/", "/login", "/register", "/otpVerification"].includes(pathname))
+  if (["/", "/login", "/register", "/otpVerification"].includes(pathname)) {
     return null;
+  }
+
+  const items: MenuProps["items"] = [
+    { key: "home", label: "🏠 Home", onClick: () => router.push("/users") },
+    { key: "watchparty", label: "🎉 Create Watchparty", onClick: () => router.push("/watchparty") },
+    { key: "trending", label: "🔥 Trending Now", onClick: () => router.push("/trending") },
+    { key: "watchlist", label: "📺 Your Watchlist", onClick: () => router.push("/watchlist") },
+    { key: "search", label: "🔎 Search for Users", onClick: () => router.push("/search-users") },
+  ];
+
+  const userMenuItems: MenuProps["items"] = [
+    { key: "profile", label: "👤 Profile", onClick: () => router.push(`/users/${userId}`) },
+    { key: "logout", label: "🚪 Logout", danger: true, onClick: handleLogout },
+  ];
+
+  const segment = pathname.split("/")[1];
+  let activeKey: string;
+  if (/^users\/\d+/.test(pathname.slice(1))) {
+    activeKey = "profile";
+  } else {
+    switch (segment) {
+      case "":
+      case "users":
+        activeKey = "home"; break;
+      case "watchparty":
+        activeKey = "watchparty"; break;
+      case "trending":
+        activeKey = "trending"; break;
+      case "watchlist":
+        activeKey = "watchlist"; break;
+      case "search-users":
+        activeKey = "search"; break;
+      default:
+        activeKey = "home";
+    }
+  }
 
   return (
-    <div
-      style={{
-        width: "100%",
-        backgroundColor: "#e0e0e0",
-        padding: "16px 24px",
-        display: "flex",
-        alignItems: "center",
-        position: "fixed",
-        top: 0,
-        zIndex: 1000,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-      }}
-    >
-      {/* Logo links */}
-      <div style={{ cursor: "pointer" }} onClick={() => router.push("/users")}>
-        <Image
-          src="/NiroLogo.png"
-          alt="Logo"
-          width={150}
-          height={60}
-          style={{ objectFit: "contain" }}
+    <>
+      <Header
+        style={{
+          position: "fixed", top: 0, width: "100%", zIndex: 1000,
+          display: "flex", alignItems: "center",
+          padding: "0 32px", height: 72,
+          background: "#f7f7f7", boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <Button
+          type="text"
+          icon={<MenuOutlined />}
+          onClick={() => setDrawerVisible(true)}
+          style={{ fontSize: 24, color: "#333", marginRight: 24 }}
         />
-      </div>
-
-      {/* Buttons rechtszentriert */}
-      <div style={{ marginLeft: "auto" }}>
-        <Space size="large">
-          <Button type="link" onClick={() => router.push("/users")}>
-            Home
-          </Button>
-          <Button type="link" onClick={() => router.push("/watchparty")}>
-            Watchparty
-          </Button>
-          <Button type="link" onClick={() => router.push(`/users/${userId}`)}>
-            {username || "Profile"}
-          </Button>
-          <Button danger type="primary" onClick={handleLogout}>
-            Logout
-          </Button>
-        </Space>
-      </div>
-    </div>
+        <div
+          onClick={() => router.push("/users")}
+          style={{
+            cursor: "pointer", marginRight: 48,
+            position: "relative", width: 140, height: 46,
+          }}
+        >
+          <Image src="/NiroLogo.png" alt="Logo" fill style={{ objectFit: "contain" }} />
+        </div>
+        <Menu
+          mode="horizontal"
+          selectedKeys={activeKey === "profile" ? [] : [activeKey]}
+          items={items}
+          className="custom-navbar-menu"
+          style={{ flex: 1, background: "transparent", borderBottom: "none" }}
+          overflowedIndicator={<MenuOutlined style={{ color: "#333" }} />}
+        />
+        <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
+          <div
+            style={{
+              cursor: "pointer", marginLeft: 16,
+              transition: "transform 0.2s", display: "inline-block",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
+            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            <Avatar
+              src={profileImage || undefined}
+              icon={!profileImage ? <UserOutlined /> : undefined}
+              size={40}
+            />
+          </div>
+        </Dropdown>
+      </Header>
+      <Drawer
+        placement="left"
+        open={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        styles={{
+          header: { background: "#f7f7f7", color: "#333", height: 72 },
+          body: { padding: 0 },
+        }}
+      >
+        <Menu
+          mode="inline"
+          selectedKeys={[activeKey]}
+          items={[
+            ...items,
+            { key: "profile", label: `👤 ${username}`, onClick: () => router.push(`/users/${userId}`) },
+            { key: "logout", label: "🚪 Logout", onClick: handleLogout, danger: true },
+          ]}
+          style={{ height: "100%", borderRight: 0 }}
+        />
+      </Drawer>
+      <style jsx global>{`
+        .custom-navbar-menu .ant-menu-item {
+          transition: background-color 0.3s, color 0.3s;
+        }
+        .custom-navbar-menu .ant-menu-item:hover {
+          background-color: rgba(24,144,255,0.1) !important;
+          color: #1890ff !important;
+        }
+        .custom-navbar-menu .ant-menu-item-selected {
+          color: #1890ff !important;
+        }
+        .custom-navbar-menu .ant-menu-item-selected::after {
+          border-bottom: 2px solid #1890ff !important;
+        }
+      `}</style>
+    </>
   );
-};
-
-export default Navbar;
+}
