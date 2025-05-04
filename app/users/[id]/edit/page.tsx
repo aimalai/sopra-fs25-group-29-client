@@ -307,23 +307,25 @@ const EditUser: React.FC = () => {
                 <Input.Password style={inputBoxStyle} placeholder="Leave empty to keep current" />
               </Form.Item>
             </div>
+
             <div style={fieldContainer}>
-              <Form.Item
-                name="biography"
-                label={<span style={labelStyle}>Biography:</span>}
-                rules={[
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      if (value.split("\n").length > 3) return Promise.reject(new Error("Maximum of 3 lines allowed."));
-                      return Promise.resolve();
-                    },
-                  },
-                ]}
-              >
-                <Input.TextArea rows={3} maxLength={300} style={{ ...inputBoxStyle, resize: "none", lineHeight: "1.5", height: "72px", overflow: "hidden", whiteSpace: "pre-wrap" }} />
+              <Form.Item name="biography" label={<span style={labelStyle}>Biography:</span>}>
+                <Input.TextArea
+                  showCount
+                  maxLength={200}
+                  rows={4}
+                  style={{
+                    ...inputBoxStyle,
+                    resize: "none",
+                    lineHeight: "1.5",
+                    height: "auto",
+                    overflow: "hidden",
+                    whiteSpace: "pre-wrap",
+                  }}
+                />
               </Form.Item>
             </div>
+
             <div style={sectionHeadingStyle}>Privacy Settings</div>
             <div style={fieldContainer}>
               <Form.Item name="sharable" valuePropName="checked">
