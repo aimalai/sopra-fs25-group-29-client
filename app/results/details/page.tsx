@@ -3,7 +3,7 @@
 import { App as AntdApp } from "antd";
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, Button, message, Spin, Rate, Input, List } from "antd";
+import { Card, Button, message, Spin, Rate, Input, List, Grid } from "antd";
 import { useApi } from "@/hooks/useApi";
 import Image from "next/image";
 
@@ -44,6 +44,7 @@ interface UserGetDTO {
 }
 
 const DetailsPage: React.FC = () => {
+  const screens = Grid.useBreakpoint();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   const mediaType = searchParams.get("media_type") || "movie";
@@ -246,11 +247,8 @@ const DetailsPage: React.FC = () => {
 
   return (
     <AntdApp>
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", position: "relative", color: "black", paddingTop: "100px" }}>
-        <div style={{ position: "absolute", top: 20, left: 20 }}>
-          <Image alt="Logo" src="/NiroLogo.png" width={120} height={120} />
-        </div>
-        <div style={{ marginTop: "60px", width: "80%", maxWidth: "800px" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 100 }}>
+        <div style={{ marginTop: 60, width: screens.lg ? "80%" : "90%", maxWidth: 800 }}>
           <Card
             title={`Detailed View for "${details.title}"`}
             headStyle={{ color: "black" }}
@@ -261,11 +259,13 @@ const DetailsPage: React.FC = () => {
             }
             style={{ backgroundColor: "#ddd", border: "1px solid #bbb" }}
           >
-            <div style={{ backgroundColor: "#ccc", padding: "20px", borderRadius: "4px", display: "flex", gap: "20px" }}>
+            <div style={{ backgroundColor: "#ccc", padding: "20px", borderRadius: "4px", display: "flex", gap: "20px", flexDirection: screens.lg ? "row" : "column", alignItems: screens.lg ? "flex-start" : "center",}}>
               {details.poster_path && (
-                <Image alt="Poster" src={`https://image.tmdb.org/t/p/w200${details.poster_path}`} width={200} height={300} style={{ borderRadius: "4px" }} />
+                <div style={{ flex: "0 0 200px" }}>
+                  <Image alt="Poster" src={`https://image.tmdb.org/t/p/w200${details.poster_path}`} width={200} height={300} style={{ borderRadius: 4, width: "100%", height: "auto" }} />
+                </div>
               )}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div>
                   <p><strong>Release Date:</strong> {details.release_date}</p>
                   <p><strong>Genre:</strong> {details.genre}</p>
