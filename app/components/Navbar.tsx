@@ -178,6 +178,7 @@ export default function Navbar() {
             { key: "logout", label: "🚪 Logout", onClick: handleLogout, danger: true },
           ]}
           style={{ height: "100%", borderRight: 0 }}
+          onClick={() => setDrawerVisible(false)}
         />
       </Drawer>
       <style jsx global>{`
