@@ -50,7 +50,7 @@ export default function Dashboard() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onPressEnter={handleSearch}
-          style={{ width: "100%" }}
+          style={{ width: 350 }}
           suffix={
             <Button
               type="primary"
@@ -62,7 +62,6 @@ export default function Dashboard() {
         />
       </Space>
 
-      {/* Tutorial Text Box */}
       <div style={tutorialBoxStyle}>
         <br />
         <h3>Welcome to Flicks & Friends! 🍿✨</h3>

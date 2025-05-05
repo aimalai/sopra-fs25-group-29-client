@@ -22,7 +22,7 @@ interface SearchResult {
 const containerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  height: "100vh",
+  minHeight: "100vh",
   paddingTop: "100px",
 };
 
@@ -31,7 +31,6 @@ const contentStyle: CSSProperties = {
   display: "flex",
   justifyContent: "center",
   padding: "20px",
-  overflowY: "auto",
 };
 
 const boxStyle: CSSProperties = {
@@ -61,8 +60,8 @@ const buttonDangerStyle: CSSProperties = {
   borderColor: "#ff4d4f",
 };
 
-const tableStyle: CSSProperties = {
-  backgroundColor: "#e0e0e0",
+const tableContainerStyle: CSSProperties = {
+  overflowX: "auto",
 };
 
 interface ApiResponse {
@@ -74,6 +73,7 @@ const ResultsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const apiService = useApi();
+  const { value: userId } = useLocalStorage<number>("userId", 0);
 
   const initialQuery = searchParams.get("query") || "";
   const initialSort = searchParams.get("sort") || "popularity";
@@ -81,8 +81,6 @@ const ResultsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
   const [sortOption, setSortOption] = useState<string>(initialSort);
   const [onlyCompleteResults, setOnlyCompleteResults] = useState<boolean>(true);
-
-  const { value: userId } = useLocalStorage<number>("userId", 0);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -90,55 +88,51 @@ const ResultsPage: React.FC = () => {
   const [totalItems, setTotalItems] = useState<number>(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
 
-  const fetchWatchlist = async () => {
-    try {
-      if (!userId) return;
-      const res = await apiService.get(`/users/${userId}/watchlist`);
-      if (Array.isArray(res)) {
-        setWatchlist(res);
-      }
-    } catch (e) {
-      console.error("Failed to load watchlist", e);
-    }
-  };
-
   useEffect(() => {
-    fetchWatchlist();
-  }, [userId]);
-
-  const isInWatchlist = (id: number) => {
-    return watchlist.some((entry) => {
+    const fetchWatchlist = async () => {
+      if (!userId) return;
       try {
-        const parsed = JSON.parse(entry);
-        return parsed.movieId === id.toString();
+        const res = await apiService.get(`/users/${userId}/watchlist`);
+        if (Array.isArray(res)) setWatchlist(res);
+      } catch {
+        console.error("Failed to load watchlist");
+      }
+    };
+    fetchWatchlist();
+  }, [userId, apiService]);
+
+  const isInWatchlist = (id: number) =>
+    watchlist.some((entry) => {
+      try {
+        return JSON.parse(entry).movieId === id.toString();
       } catch {
         return false;
       }
     });
-  };
 
   const handleAddToWatchlist = async (record: SearchResult) => {
+    if (!userId) return;
     try {
-      if (!userId) throw new Error("No userId in local storage");
-      const body = {
+      await apiService.post(`/users/${userId}/watchlist`, {
         movieId: record.id.toString(),
         title: record.media_type === "tv" ? record.name : record.title,
-        posterPath: record.poster_path ?? "",
-      };
-      await apiService.post(`/users/${userId}/watchlist`, body);
+        posterPath: record.poster_path || "",
+      });
       message.success("Added to Watchlist");
-      fetchWatchlist();
+      const res = await apiService.get(`/users/${userId}/watchlist`);
+      if (Array.isArray(res)) setWatchlist(res);
     } catch {
       message.error("Could not add to Watchlist.");
     }
   };
 
   const handleRemoveFromWatchlist = async (record: SearchResult) => {
+    if (!userId) return;
     try {
-      if (!userId) throw new Error("No userId in local storage");
       await apiService.delete(`/users/${userId}/watchlist/${record.id}`);
       message.success("Removed from Watchlist");
-      fetchWatchlist();
+      const res = await apiService.get(`/users/${userId}/watchlist`);
+      if (Array.isArray(res)) setWatchlist(res);
     } catch {
       message.error("Could not remove from Watchlist.");
     }
@@ -146,79 +140,81 @@ const ResultsPage: React.FC = () => {
 
   const columns = [
     {
-      title: <span style={{ color: "#000" }}>Poster</span>,
+      title: "Poster",
       dataIndex: "poster_path",
       key: "poster",
       width: 100,
-      render: (posterPath: string) => {
-        if (!posterPath) return <span style={{ color: "#000" }}>No Poster</span>;
-        return (
+      render: (poster: string) =>
+        poster ? (
           <Image
-            src={`https://image.tmdb.org/t/p/w200${posterPath}`}
+            src={`https://image.tmdb.org/t/p/w200${poster}`}
             alt="Poster"
-            style={{ borderRadius: "4px" }}
             width={60}
             height={90}
+            style={{ borderRadius: 4 }}
           />
-        );
-      },
+        ) : (
+          <span>No Poster</span>
+        ),
     },
     {
-      title: <span style={{ color: "#000" }}>Title</span>,
+      title: "Title",
       key: "title",
-      render: (_: unknown, record: SearchResult) => {
-        const title = record.media_type === "tv" ? record.name : record.title;
-        return (
-          <a
-            style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
-            onClick={() =>
-              router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
-            }
-          >
-            {title}
-          </a>
-        );
-      },
+      render: (_: unknown, record: SearchResult) => (
+        <a
+          style={{ color: "blue" }}
+          onClick={() =>
+            router.push(
+              `/results/details?id=${record.id}&media_type=${record.media_type}`
+            )
+          }
+        >
+          {record.media_type === "tv" ? record.name : record.title}
+        </a>
+      ),
     },
     {
-      title: <span style={{ color: "#000" }}>Release Date</span>,
+      title: "Release Date",
       key: "release_date",
       width: 120,
-      render: (_: unknown, record: SearchResult) => {
-        const releaseDate =
-          record.media_type === "tv" ? record.first_air_date : record.release_date;
-        return <span style={{ whiteSpace: "nowrap", color: "#000" }}>{releaseDate}</span>;
-      },
+      
+      render: (_: unknown, record: SearchResult) => (
+        <span>
+          {record.media_type === "tv" ? record.first_air_date : record.release_date}
+        </span>
+      ),
     },
     {
-      title: <span style={{ color: "#000" }}>Overview</span>,
+      title: "Overview",
       dataIndex: "overview",
       key: "overview",
-      render: (overview: string) => <span style={{ color: "#000" }}>{overview}</span>,
+      
+      render: (overview: string) => <span>{overview}</span>,
     },
     {
-      title: <span style={{ color: "#000" }}>Actions</span>,
+      title: "Actions",
       key: "actions",
-      width: 240,
       render: (_: unknown, record: SearchResult) => {
         const inList = isInWatchlist(record.id);
         return (
-          <Space size="small">
+          <Space className="actions-space" size="small">
             <Button
-              onClick={() =>
-                router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`)
-              }
-              style={buttonPrimaryStyle}
-            >
-              View Details
-            </Button>
-            <Button
+              style={inList ? buttonDangerStyle : buttonPrimaryStyle}
               onClick={() =>
                 inList ? handleRemoveFromWatchlist(record) : handleAddToWatchlist(record)
               }
-              style={inList ? buttonDangerStyle : buttonPrimaryStyle}
             >
               {inList ? "Remove from Watchlist" : "Add to Watchlist"}
+            </Button>
+            <Button
+              style={buttonPrimaryStyle}
+              onClick={() =>
+                router.push(
+                  `/results/details?id=${record.id}&media_type=${record.media_type}`
+                )
+              }
+            >
+              View Details
             </Button>
           </Space>
         );
@@ -228,25 +224,23 @@ const ResultsPage: React.FC = () => {
 
   const fetchData = useCallback(
     async (page: number, size: number) => {
-      if (initialQuery.trim().length === 0) {
+      if (!initialQuery.trim()) {
         setResults([]);
         setTotalItems(0);
         return;
       }
       setLoading(true);
       try {
-        const url = `/api/movies/search?query=${encodeURIComponent(initialQuery)}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(sortOption)}`;
-        const response = await apiService.get(url);
-        const parsed = typeof response === "string" ? JSON.parse(response) : response;
-        let fetched = (parsed as ApiResponse).results || [];
-        const total = (parsed as ApiResponse).totalCount || 0;
-        if (onlyCompleteResults) {
-          fetched = fetched.filter((r) => r.poster_path && (r.release_date || r.first_air_date) && r.overview);
-        }
+        const url =
+          `/api/movies/search?query=${encodeURIComponent(initialQuery)}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(sortOption)}`;
+        const resp = await apiService.get(url);
+        const data = typeof resp === "string" ? JSON.parse(resp) : (resp as ApiResponse);
+        let fetched = data.results || [];
+        if (onlyCompleteResults) fetched = fetched.filter((r: SearchResult) => r.poster_path && (r.release_date || r.first_air_date) && r.overview);
         setResults(fetched);
-        setTotalItems(total);
+        setTotalItems(data.totalCount || 0);
       } catch {
-        message.error("Error fetching search results. Please try again.");
+        message.error("Error fetching search results.");
       } finally {
         setLoading(false);
       }
@@ -258,79 +252,40 @@ const ResultsPage: React.FC = () => {
     fetchData(currentPage, pageSize);
   }, [fetchData, currentPage, pageSize]);
 
-  const handleSearchClick = () => {
-    if (searchQuery.trim()) {
-      router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`);
-    }
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSortChange = (value: string) => {
-    setSortOption(value);
-    router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(value)}`);
-  };
-
-  const handleTableChange = (newPage: number, newPageSize: number) => {
-    setCurrentPage(newPage);
-    setPageSize(newPageSize);
-  };
-
   return (
     <div style={containerStyle}>
       <div style={contentStyle}>
         <div style={boxStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div style={headingStyle}>Search Results for &quot;{initialQuery}&quot;</div>
+            <div style={headingStyle}>Search Results for "{initialQuery}"</div>
             <Button style={buttonPrimaryStyle} onClick={() => router.push("/users")}>Back to Dashboard</Button>
           </div>
-          <Space style={{ display: "flex", marginBottom: 20, flexWrap: "wrap" }} size="large">
+          <Space size="large" style={{ display: "flex", flexWrap: "wrap", marginBottom: 20 }}>
             <Input
               placeholder="Search for Movies & TV Shows"
               value={searchQuery}
-              onChange={handleSearchChange}
-              onPressEnter={handleSearchClick}
+              onChange={e => setSearchQuery(e.target.value)}
+              onPressEnter={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
               style={{ width: 300 }}
-              suffix={
-                <Button
-                  type="primary"
-                  icon={<SearchOutlined />}
-                  loading={loading}
-                  onClick={handleSearchClick}
-                />
-              }
+              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />}
             />
-            <Select value={sortOption} onChange={handleSortChange} style={{ minWidth: 180 }}>
+            <Select value={sortOption} onChange={value => { setSortOption(value); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(value)}`); }} style={{ minWidth: 180 }}>
               <Select.Option value="popularity">Sort by Popularity</Select.Option>
               <Select.Option value="rating">Sort by Rating</Select.Option>
               <Select.Option value="newest">Sort by Newest</Select.Option>
               <Select.Option value="oldest">Sort by Oldest</Select.Option>
             </Select>
-            <Checkbox
-              checked={onlyCompleteResults}
-              onChange={(e) => setOnlyCompleteResults(e.target.checked)}
-              style={{ marginTop: "4px" }}
-            >
-              Complete Results Only
-            </Checkbox>
+            <Checkbox checked={onlyCompleteResults} onChange={e => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>Complete Results Only</Checkbox>
           </Space>
-          <Table
-            columns={columns}
-            dataSource={results}
-            rowKey="id"
-            loading={loading}
-            style={tableStyle}
-            pagination={{
-              current: currentPage,
-              pageSize: pageSize,
-              total: totalItems,
-              showSizeChanger: true,
-              pageSizeOptions: ["5", "10", "20"],
-              onChange: handleTableChange,
-            }}
-          />
+          <div style={tableContainerStyle}>
+            <Table
+              columns={columns}
+              dataSource={results}
+              rowKey="id"
+              loading={loading}
+              pagination={{ current: currentPage, pageSize, total: totalItems, showSizeChanger: true, pageSizeOptions: ["5","10","20"], onChange: (page, size) => { setCurrentPage(page); if(size) setPageSize(size);} }}
+            />
+          </div>
         </div>
       </div>
     </div>
