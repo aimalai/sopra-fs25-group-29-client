@@ -1,9 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { Input, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+
+const containerStyle: CSSProperties = {
+  padding: 24,
+  paddingTop: 140,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+};
+
+const searchContainerStyle: CSSProperties = {
+  width: 1100,
+  display: "flex",
+  justifyContent: "center",
+};
+
+const tutorialBoxStyle: CSSProperties = {
+  marginTop: 24,
+  width: 1300,
+  minHeight: 400,
+  backgroundColor: "#e0e0e0",
+  padding: "16px",
+  borderRadius: "8px",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  textAlign: "center",
+};
 
 export default function Dashboard() {
   const router = useRouter();
@@ -18,14 +43,14 @@ export default function Dashboard() {
   };
 
   return (
-    <div style={{ padding: 24, paddingTop: 100 }}>
-      <Space style={{ width: "100%", justifyContent: "center" }}>
+    <div style={containerStyle}>
+      <Space style={searchContainerStyle}>
         <Input
           placeholder="Search for Movies & TV Shows"
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
           onPressEnter={handleSearch}
-          style={{ width: 400 }}
+          style={{ width: "100%" }}
           suffix={
             <Button
               type="primary"
@@ -36,6 +61,19 @@ export default function Dashboard() {
           }
         />
       </Space>
+
+      {/* Tutorial Text Box */}
+      <div style={tutorialBoxStyle}>
+        <br />
+        <h3>Welcome to Flicks & Friends! 🍿✨</h3>
+        <br />
+        <br />
+        <p>
+          Explore movies, create watchlists, and connect with friends. Start by
+          searching for your favorite movies and TV shows above. Watch this
+          space for more information soon! 🍿✨
+        </p>
+      </div>
     </div>
   );
 }
