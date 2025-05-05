@@ -105,10 +105,16 @@ export default function Navbar() {
     <>
       <Header
         style={{
-          position: "fixed", top: 0, width: "100%", zIndex: 1000,
-          display: "flex", alignItems: "center",
-          padding: "0 32px", height: 72,
-          background: "#f7f7f7", boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          position: "fixed",
+          top: 0,
+          width: "100%",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          padding: "0 32px",
+          height: 72,
+          background: "#f7f7f7",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         }}
       >
         <Button
@@ -120,8 +126,11 @@ export default function Navbar() {
         <div
           onClick={() => router.push("/users")}
           style={{
-            cursor: "pointer", marginRight: 48,
-            position: "relative", width: 140, height: 46,
+            cursor: "pointer",
+            marginRight: 48,
+            position: "relative",
+            width: 140,
+            height: 46,
           }}
         >
           <Image src="/NiroLogo.png" alt="Logo" fill style={{ objectFit: "contain" }} />
@@ -135,13 +144,13 @@ export default function Navbar() {
           overflowedIndicator={<MenuOutlined style={{ color: "#333" }} />}
         />
         <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
-          <div
-            style={{
-              cursor: "pointer", marginLeft: 16,
-              transition: "transform 0.2s", display: "inline-block",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
-            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+          <div className="user-dropdown" 
+          style={{ 
+            cursor: "pointer", marginLeft: "auto", 
+            transition: "transform 0.2s", display: "inline-block" 
+            }} 
+            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")} 
+            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)") }
           >
             <Avatar
               src={profileImage || undefined}
@@ -184,6 +193,12 @@ export default function Navbar() {
         }
         .custom-navbar-menu .ant-menu-item-selected::after {
           border-bottom: 2px solid #1890ff !important;
+        }
+        @media (max-width: 768px) {
+          .custom-navbar-menu {
+            display: none !important;
+            flex: 0 !important;
+          }
         }
       `}</style>
     </>
