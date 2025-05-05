@@ -7,6 +7,8 @@ import { SearchOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import Image from "next/image";
+import type { ColumnsType } from "antd/es/table";
+
 
 interface SearchResult {
   id: number;
@@ -87,6 +89,14 @@ const ResultsPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(5);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [mobileScroll, setMobileScroll] = useState(false);
+
+  useEffect(() => {
+    const check = () => setMobileScroll(window.innerWidth <= 430);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const fetchWatchlist = async () => {
@@ -177,10 +187,12 @@ const ResultsPage: React.FC = () => {
       title: "Release Date",
       key: "release_date",
       width: 120,
-      
+      responsive: ["md"] as const,
       render: (_: unknown, record: SearchResult) => (
         <span>
-          {record.media_type === "tv" ? record.first_air_date : record.release_date}
+          {record.media_type === "tv"
+            ? record.first_air_date
+            : record.release_date}
         </span>
       ),
     },
@@ -188,7 +200,7 @@ const ResultsPage: React.FC = () => {
       title: "Overview",
       dataIndex: "overview",
       key: "overview",
-      
+      responsive: ["md"] as const,
       render: (overview: string) => <span>{overview}</span>,
     },
     {
@@ -201,7 +213,9 @@ const ResultsPage: React.FC = () => {
             <Button
               style={inList ? buttonDangerStyle : buttonPrimaryStyle}
               onClick={() =>
-                inList ? handleRemoveFromWatchlist(record) : handleAddToWatchlist(record)
+                inList
+                  ? handleRemoveFromWatchlist(record)
+                  : handleAddToWatchlist(record)
               }
             >
               {inList ? "Remove from Watchlist" : "Add to Watchlist"}
@@ -232,11 +246,18 @@ const ResultsPage: React.FC = () => {
       setLoading(true);
       try {
         const url =
-          `/api/movies/search?query=${encodeURIComponent(initialQuery)}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(sortOption)}`;
+          `/api/movies/search?query=${encodeURIComponent(
+            initialQuery
+          )}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(
+            sortOption
+          )}`;
         const resp = await apiService.get(url);
         const data = typeof resp === "string" ? JSON.parse(resp) : (resp as ApiResponse);
         let fetched = data.results || [];
-        if (onlyCompleteResults) fetched = fetched.filter((r: SearchResult) => r.poster_path && (r.release_date || r.first_air_date) && r.overview);
+        if (onlyCompleteResults)
+          fetched = fetched.filter((r: SearchResult) =>
+            r.poster_path && (r.release_date || r.first_air_date) && r.overview
+          );
         setResults(fetched);
         setTotalItems(data.totalCount || 0);
       } catch {
@@ -275,19 +296,33 @@ const ResultsPage: React.FC = () => {
               <Select.Option value="newest">Sort by Newest</Select.Option>
               <Select.Option value="oldest">Sort by Oldest</Select.Option>
             </Select>
-            <Checkbox checked={onlyCompleteResults} onChange={e => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>Complete Results Only</Checkbox>
+            <Checkbox checked={onlyCompleteResults} onChange={e => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>
+              Complete Results Only
+            </Checkbox>
           </Space>
           <div style={tableContainerStyle}>
             <Table
-              columns={columns}
+              columns={columns as ColumnsType<SearchResult>}
+              scroll={mobileScroll ? { x: "max-content" } : undefined}
               dataSource={results}
               rowKey="id"
               loading={loading}
-              pagination={{ current: currentPage, pageSize, total: totalItems, showSizeChanger: true, pageSizeOptions: ["5","10","20"], onChange: (page, size) => { setCurrentPage(page); if(size) setPageSize(size);} }}
+              pagination={{ current: currentPage, pageSize, total: totalItems, showSizeChanger: true, pageSizeOptions: ["5","10","20"], onChange: (page, size) => { setCurrentPage(page); if (size) setPageSize(size); } }}
             />
           </div>
         </div>
       </div>
+      <style jsx global>{`
+        .actions-space {
+          display: flex;
+          gap: 8px;
+        }
+        @media (max-width: 768px) {
+          .actions-space {
+            flex-direction: column;
+          }
+        }
+      `}</style>
     </div>
   );
 };
