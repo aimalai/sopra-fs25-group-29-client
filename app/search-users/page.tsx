@@ -9,6 +9,8 @@ import { Card, Input, Table, Button, Space, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
+import type { ColumnsType } from 'antd/es/table';
+
 
 export default function SearchUsersPage() {
   const router = useRouter();
@@ -67,11 +69,11 @@ export default function SearchUsersPage() {
     fetchRequests();
   }, [userId]);
 
-  const userColumn = {
-    title: "Username",
-    key: "username",
-    render: (_: unknown, user: User) => (
-      <Space align="center">
+  const commonColumns: ColumnsType<User> = [
+    {
+      title: "Username",
+      key: "username",
+      render: (_: unknown, user: User) => (<Space align="center">
         <Image
           src={
             avatars.find(a => a.key === user.avatarKey)?.url ||
@@ -89,13 +91,14 @@ export default function SearchUsersPage() {
         >
           {user.username}
         </a>
-      </Space>
-    ),
-  };
-
-  const commonColumns = [
-    userColumn,
-    { title: "Email", dataIndex: "email", key: "email" },
+      </Space>),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+      responsive: ['sm'],
+    },
     {
       title: "Status",
       dataIndex: "status",
