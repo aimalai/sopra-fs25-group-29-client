@@ -194,7 +194,7 @@ export default function Navbar() {
         .custom-navbar-menu .ant-menu-item-selected::after {
           border-bottom: 2px solid #1890ff !important;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 950px) {
           .custom-navbar-menu {
             display: none !important;
             flex: 0 !important;
