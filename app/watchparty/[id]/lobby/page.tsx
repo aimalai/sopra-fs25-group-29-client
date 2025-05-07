@@ -56,6 +56,9 @@ export default function LobbyPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownStarted = useRef(false);
 
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const syncTimeoutRef = useRef<number | null>(null);
+
   const playerRef = useRef<PlayerAPI | null>(null);
   const stompRef = useRef<Client | null>(null);
   const subscribedRef = useRef(false);
@@ -149,10 +152,17 @@ export default function LobbyPage() {
               pl.seekTo(currentTime, true);
               pl.playVideo();
             }
+            const h = String(Math.floor(currentTime / 3600)).padStart(2, '0');
+            const mnt = String(Math.floor((currentTime % 3600) / 60)).padStart(2, '0');
+            const s = String(Math.floor(currentTime % 60)).padStart(2, '0');
+            setSyncMessage(`You are now synced to ${h}:${mnt}:${s}`);
+            if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+            syncTimeoutRef.current = window.setTimeout(() => {
+              setSyncMessage(null);
+            }, 3000);
           });
-          client.subscribe(`/topic/chat/${roomId}`, m => {
-            setChat(c => [...c, JSON.parse(m.body)]);
-          });
+
+          client.subscribe(`/topic/chat/${roomId}`, m => setChat(c => [...c, JSON.parse(m.body)]));
           subscribedRef.current = true;
         }
         if (!joinedRef.current) {
@@ -331,6 +341,11 @@ export default function LobbyPage() {
           Leave Lobby
         </Button>
       </div>
+      {syncMessage && (
+        <div style={{ position:'fixed', bottom:20, left:'50%', transform:'translateX(-50%)', backgroundColor:'rgba(0,0,0,0.7)', color:'#fff', fontSize:'2rem', padding:'8px 16px', borderRadius:4 }}>
+          {syncMessage}
+        </div>
+      )}
     </div>
   );
 }
