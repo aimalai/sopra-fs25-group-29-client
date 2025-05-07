@@ -289,7 +289,7 @@ const WatchpartyPage: React.FC = () => {
               rules={[
                 { required: true, message: "Please enter a content link" },
               ]}
-              extra={<p style={{ color: 'white', fontSize: '12px', marginLeft: 20}}> <br /> No link? Try out with this one: <br /> ✨ https://www.youtube.com/watch?v=pb-j3svRQLIs ✨</p>}
+              extra={<p style={{ color: 'white', fontSize: '12px', marginLeft: 20}}> <br /> No link? Try out with this one: <br /> ✨ https://www.youtube.com/watch?v=oRDRfikj2z8 ✨</p>}
             >
               <Input placeholder="Enter content link (e.g., YouTube URL)" />
               

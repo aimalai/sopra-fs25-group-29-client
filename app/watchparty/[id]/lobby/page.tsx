@@ -1,10 +1,9 @@
 'use client';
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Input } from 'antd';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { getApiDomain } from '@/utils/domain';
 import { useApi } from '@/hooks/useApi';
 
@@ -38,6 +37,7 @@ interface Watchparty {
 
 export default function LobbyPage() {
   const { id } = useParams() as { id?: string };
+  const router = useRouter();
   const roomId = id || 'lobby-room';
   const api = useApi();
 
@@ -55,6 +55,8 @@ export default function LobbyPage() {
 
   const playerRef = useRef<PlayerAPI | null>(null);
   const stompRef = useRef<Client | null>(null);
+  const subscribedRef = useRef(false);
+  const joinedRef = useRef(false);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -121,48 +123,62 @@ export default function LobbyPage() {
       webSocketFactory: () => sock,
       reconnectDelay: 5000,
       onConnect: () => {
-        client.subscribe(`/topic/syncReadyState/${roomId}`, m => {
-          const state = JSON.parse(m.body) as {
-            participants: { username: string; ready: boolean }[];
-            hostUsername: string;
-          };
-          const parts = state.participants || [];
-          setParticipants(parts);
-          setHostUsername(state.hostUsername || '');
-          if (!parts.every(p => p.ready)) {
-            playerRef.current?.pauseVideo();
-          } else if (username === state.hostUsername && playerRef.current?.getCurrentTime) {
-            client.publish({
-              destination: '/app/shareTime',
-              body: JSON.stringify({
-                roomId,
-                currentTime: playerRef.current.getCurrentTime!()
-              })
-            });
-          }
-        });
-        client.subscribe(`/topic/syncTime/${roomId}`, m => {
-          const { currentTime } = JSON.parse(m.body) as { currentTime: number };
-          const pl = playerRef.current;
-          if (pl?.seekTo) {
-            pl.seekTo(currentTime, true);
-            pl.playVideo();
-          }
-        });
-        client.subscribe(`/topic/chat/${roomId}`, m => {
-          setChat(c => [...c, JSON.parse(m.body)]);
-        });
-        client.publish({
-          destination: '/app/join',
-          body: JSON.stringify({ roomId, sender: username })
-        });
+        if (!subscribedRef.current) {
+          client.subscribe(`/topic/syncReadyState/${roomId}`, m => {
+            const state = JSON.parse(m.body) as {
+              participants: { username: string; ready: boolean }[];
+              hostUsername: string;
+            };
+            const parts = state.participants || [];
+            setParticipants(parts);
+            setHostUsername(state.hostUsername || '');
+            if (!parts.every(p => p.ready)) {
+              playerRef.current?.pauseVideo();
+            } else if (username === state.hostUsername && playerRef.current?.getCurrentTime) {
+              client.publish({
+                destination: '/app/shareTime',
+                body: JSON.stringify({
+                  roomId,
+                  currentTime: playerRef.current.getCurrentTime!()
+                })
+              });
+            }
+          });
+          client.subscribe(`/topic/syncTime/${roomId}`, m => {
+            const { currentTime } = JSON.parse(m.body) as { currentTime: number };
+            const pl = playerRef.current;
+            if (pl?.seekTo) {
+              pl.seekTo(currentTime, true);
+              pl.playVideo();
+            }
+          });
+          client.subscribe(`/topic/chat/${roomId}`, m => {
+            setChat(c => [...c, JSON.parse(m.body)]);
+          });
+          subscribedRef.current = true;
+        }
+        if (!joinedRef.current) {
+          client.publish({
+            destination: '/app/join',
+            body: JSON.stringify({ roomId, sender: username })
+          });
+          joinedRef.current = true;
+        }
       },
       onStompError: () => {},
       onWebSocketError: () => {},
     });
     client.activate();
     stompRef.current = client;
-    return () => { client.deactivate(); };
+    return () => {
+      if (stompRef.current?.connected) {
+        stompRef.current.publish({
+          destination: '/app/leave',
+          body: JSON.stringify({ roomId, sender: username })
+        });
+      }
+      client.deactivate();
+    };
   }, [roomId, username]);
 
   const toggleReady = () => {
@@ -185,9 +201,9 @@ export default function LobbyPage() {
 
   return (
     <div style={{
-      marginTop: '120px',
-      width: '60vw',
-      height: 'calc(100vh - 128px)',
+      marginTop: '65px',
+      width: '70vw',
+      height: 'calc(120vh - 128px)',
       marginLeft: 'auto',
       marginRight: 'auto',
       display: 'grid',
@@ -263,14 +279,22 @@ export default function LobbyPage() {
         </div>
       </div>
 
-      <div style={{ gridArea: 'button', width: '100%' }}>
+      <div style={{ gridArea: 'button', display: 'flex', gap: 8 }}>
         <Button onClick={toggleReady} style={{
-          width: '100%',
+          flex: 1,
           backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
           borderColor: isReady ? '#ff4d4f' : '#52c41a',
           color: '#FFF'
         }}>
           {isReady ? 'I am not ready' : 'I am ready'}
+        </Button>
+        <Button onClick={() => router.push(`/watchparty/${roomId}`)} style={{
+          flex: 1,
+          backgroundColor: '#ff4d4f',
+          borderColor: '#ff4d4f',
+          color: '#FFF'
+        }}>
+          Leave Lobby
         </Button>
       </div>
     </div>

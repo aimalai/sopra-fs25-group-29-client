@@ -100,7 +100,10 @@ const WatchpartyDetail: React.FC = () => {
         </Button>
         <br />
         <br />
-        <Button style={buttonStyle} onClick={() => router.back()}>
+        <Button
+          style={buttonStyle}
+          onClick={() => router.push("/watchparty")}
+        >
           Back
         </Button>
       </div>

@@ -62,7 +62,9 @@ export default function Navbar() {
     }
   };
 
-  if (["/", "/login", "/register", "/otpVerification"].includes(pathname)) {
+  const hidePaths = ["/", "/login", "/register", "/otpVerification"];
+  const isLobby = /^\/watchparty\/[^/]+\/lobby$/.test(pathname);
+  if (hidePaths.includes(pathname) || isLobby) {
     return null;
   }
 
@@ -144,13 +146,15 @@ export default function Navbar() {
           overflowedIndicator={<MenuOutlined style={{ color: "#333" }} />}
         />
         <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
-          <div className="user-dropdown" 
-          style={{ 
-            cursor: "pointer", marginLeft: "auto", 
-            transition: "transform 0.2s", display: "inline-block" 
-            }} 
-            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")} 
-            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)") }
+          <div
+            style={{
+              cursor: "pointer",
+              marginLeft: "auto",
+              transition: "transform 0.2s",
+              display: "inline-block",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
+            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             <Avatar
               src={profileImage || undefined}
