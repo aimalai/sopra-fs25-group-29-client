@@ -289,15 +289,15 @@ const WatchpartyPage: React.FC = () => {
                 { required: true, message: "Please enter a content link" },
               ]}
               extra={
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 20, marginLeft: 20 }}>
-                  <p style={{ color: 'white', fontSize: '12px', margin: 0, marginRight: 10 }}>
-                    No link? Try out with this one:<br />✨ https://www.youtube.com/watch?v=oRDRfikj2z8 ✨
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 30}}>
+                  <p style={{ color: 'white', fontSize: '12px', marginRight: 10 , marginLeft: 15}}>
+                    No link? Try out this sample link:<br />https://www.youtube.com/watch?v=oRDRfikj2z8
                   </p>
                   <Button
                     type="primary"
                     size="small"
                     htmlType="button"
-                    style={{...buttonStyle, width: 'auto', padding: '0 12px', marginLeft: 15}}
+                    style={{...buttonStyle, width: 'auto', padding: '0 12px'}}
                     onClick={() => {
                       navigator.clipboard.writeText("https://www.youtube.com/watch?v=oRDRfikj2z8")
                         .then(() => message.success('Sample link copied!'))
