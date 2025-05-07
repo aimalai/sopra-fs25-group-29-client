@@ -44,10 +44,9 @@ const WatchpartyPage: React.FC = () => {
   const apiService = useApi();
 
   const [watchparties, setWatchparties] = useState<Watchparty[]>([]);
-  //const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [, setInvitations] = useState<Invitation[]>([]);
   const [form] = Form.useForm();
-  const [inviteModalVisible, setInviteModalVisible] = useState(false); // Modal visibility state
+  const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [selectedWatchPartyId, setSelectedWatchPartyId] = useState<
     number | null
   >(null);
@@ -289,7 +288,26 @@ const WatchpartyPage: React.FC = () => {
               rules={[
                 { required: true, message: "Please enter a content link" },
               ]}
-              extra={<p style={{ color: 'white', fontSize: '12px', marginLeft: 20}}> <br /> No link? Try out with this one: <br /> ✨ https://www.youtube.com/watch?v=oRDRfikj2z8 ✨</p>}
+              extra={
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 20, marginLeft: 20 }}>
+                  <p style={{ color: 'white', fontSize: '12px', margin: 0, marginRight: 10 }}>
+                    No link? Try out with this one:<br />✨ https://www.youtube.com/watch?v=oRDRfikj2z8 ✨
+                  </p>
+                  <Button
+                    type="primary"
+                    size="small"
+                    htmlType="button"
+                    style={{...buttonStyle, width: 'auto', padding: '0 12px', marginLeft: 15}}
+                    onClick={() => {
+                      navigator.clipboard.writeText("https://www.youtube.com/watch?v=oRDRfikj2z8")
+                        .then(() => message.success('Sample link copied!'))
+                        .catch(() => message.error('Failed to copy link'));
+                    }}
+                  >
+                    Copy link
+                  </Button>
+                </div>
+              }
             >
               <Input placeholder="Enter content link (e.g., YouTube URL)" />
               
