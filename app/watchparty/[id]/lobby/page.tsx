@@ -22,12 +22,13 @@ interface PlayerAPI {
   pauseVideo(): void;
   getCurrentTime?(): number;
   seekTo?(seconds: number, allowSeekAhead: boolean): void;
+  destroy?(): void;
 }
 
 interface YouTubePlayerOptions {
   videoId: string;
   playerVars?: Record<string, unknown>;
-  events?: { onReady?: () => void };
+  events?: { onReady?: () => void; onError?: () => void };
 }
 
 interface Watchparty {
@@ -48,6 +49,10 @@ export default function LobbyPage() {
   const [msg, setMsg] = useState('');
   const [username, setUsername] = useState('Anonymous');
 
+  const [videoError, setVideoError] = useState(false);
+  const [videoRetries, setVideoRetries] = useState(0);
+  const maxVideoRetries = 3;
+
   const playerRef = useRef<PlayerAPI | null>(null);
   const stompRef = useRef<Client | null>(null);
 
@@ -57,7 +62,7 @@ export default function LobbyPage() {
       fetch(`${getApiDomain()}/users/${uid}`)
         .then(r => r.json())
         .then(u => u.username && setUsername(u.username))
-        .catch(() => { });
+        .catch(() => {});
     }
   }, []);
 
@@ -68,7 +73,7 @@ export default function LobbyPage() {
         const wp = list.find(w => w.id.toString() === id);
         if (wp) setContentLink(wp.contentLink);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [id, api]);
 
   useEffect(() => {
@@ -76,13 +81,31 @@ export default function LobbyPage() {
     const regex = /(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/;
     const match = contentLink.match(regex);
     const vid = match ? match[1] : contentLink;
+
     window.onYouTubeIframeAPIReady = () => {
+      if (playerRef.current?.destroy) {
+        playerRef.current.destroy();
+      }
       playerRef.current = new window.YT.Player('yt-player', {
         videoId: vid,
         playerVars: { autoplay: 0 },
-        events: { onReady: () => { } },
+        events: {
+          onReady: () => {
+            setVideoError(false);
+          },
+          onError: () => {
+            setVideoError(true);
+            if (videoRetries < maxVideoRetries) {
+              setTimeout(() => {
+                setVideoRetries(r => r + 1);
+                window.onYouTubeIframeAPIReady();
+              }, 3000);
+            }
+          }
+        },
       });
     };
+
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -90,7 +113,7 @@ export default function LobbyPage() {
     } else {
       window.onYouTubeIframeAPIReady();
     }
-  }, [contentLink]);
+  }, [contentLink, videoRetries]);
 
   useEffect(() => {
     const sock = new SockJS(`${getApiDomain()}/ws`);
@@ -106,11 +129,9 @@ export default function LobbyPage() {
           const parts = state.participants || [];
           setParticipants(parts);
           setHostUsername(state.hostUsername || '');
-
           if (!parts.every(p => p.ready)) {
             playerRef.current?.pauseVideo();
-          }
-          else if (username === state.hostUsername && playerRef.current?.getCurrentTime) {
+          } else if (username === state.hostUsername && playerRef.current?.getCurrentTime) {
             client.publish({
               destination: '/app/shareTime',
               body: JSON.stringify({
@@ -120,7 +141,6 @@ export default function LobbyPage() {
             });
           }
         });
-
         client.subscribe(`/topic/syncTime/${roomId}`, m => {
           const { currentTime } = JSON.parse(m.body) as { currentTime: number };
           const pl = playerRef.current;
@@ -129,16 +149,16 @@ export default function LobbyPage() {
             pl.playVideo();
           }
         });
-
         client.subscribe(`/topic/chat/${roomId}`, m => {
           setChat(c => [...c, JSON.parse(m.body)]);
         });
-
         client.publish({
           destination: '/app/join',
           body: JSON.stringify({ roomId, sender: username })
         });
-      }
+      },
+      onStompError: () => {},
+      onWebSocketError: () => {},
     });
     client.activate();
     stompRef.current = client;
@@ -175,40 +195,55 @@ export default function LobbyPage() {
       gridTemplateRows: '1fr auto',
       gridTemplateAreas: '"video chat" "button button"',
       gap: 15,
-      backgroundColor: '#00000000',
       boxSizing: 'border-box',
     }}>
-      <div id="yt-player" style={{
-        gridArea: 'video',
-        width: '100%',
-        height: '100%',
-        aspectRatio: '16/9',
-        backgroundColor: '#000',
-      }} />
+      <div style={{ gridArea: 'video', position: 'relative', width: '100%', height: '100%' }}>
+        <div id="yt-player" style={{
+          width: '100%',
+          height: '100%',
+          aspectRatio: '16/9',
+          backgroundColor: '#000',
+        }} />
+        {videoError && (
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            padding: 20,
+            textAlign: 'center'
+          }}>
+            {videoRetries < maxVideoRetries
+              ? 'Video failed to load. Retrying...'
+              : <>An error occurred loading the video. The video may be private or does not allow embedding.<br/><a href={contentLink || '#'} target="_blank">Watch on YouTube instead</a></>
+            }
+          </div>
+        )}
+      </div>
 
       <div style={{
         gridArea: 'chat',
-        width: '100%',
-        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#fff',
-        color: '#000',
         borderRadius: 8,
+        color: '#000',
         overflow: 'hidden'
       }}>
         <div style={{
           flex: 1,
           padding: 10,
           overflowY: 'auto',
+          color: '#000',
           borderBottom: '1px solid #ddd',
-          backgroundColor: '#e5e5e5',
-          fontSize: '1rem'
+          backgroundColor: '#e5e5e5'
         }}>
-          Lobby (Host: {hostUsername}):
-          <br /><br />
-          Who is ready?
-          <br /><br />
+          Lobby (Host: {hostUsername}):<br/><br/>
+          Who is ready?<br/><br/>
           {participants.map((p, i) => (
             <span key={i} style={{ marginLeft: 12 }}>
               {p.username} {p.ready ? '✔️' : '⏳'}
@@ -218,33 +253,23 @@ export default function LobbyPage() {
 
         <div style={{ flex: 2, padding: 10, overflowY: 'auto' }}>
           {chat.map((m, i) => (
-            <div key={i} style={{ marginBottom: 8 }}>
-              <strong>{m.sender}:</strong> {m.content}
-            </div>
+            <div key={i} style={{ marginBottom: 8 }}><strong>{m.sender}:</strong> {m.content}</div>
           ))}
         </div>
 
         <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #ddd' }}>
-          <Input
-            value={msg}
-            onChange={e => setMsg(e.target.value)}
-            onPressEnter={sendChat}
-            placeholder="Type a message..."
-          />
+          <Input value={msg} onChange={e => setMsg(e.target.value)} onPressEnter={sendChat} placeholder="Type a message..." />
           <Button onClick={sendChat} style={{ marginLeft: 8 }}>Send</Button>
         </div>
       </div>
 
       <div style={{ gridArea: 'button', width: '100%' }}>
-        <Button
-          onClick={toggleReady}
-          style={{
-            width: '100%',
-            backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
-            borderColor: isReady ? '#ff4d4f' : '#52c41a',
-            color: '#FFF'
-          }}
-        >
+        <Button onClick={toggleReady} style={{
+          width: '100%',
+          backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
+          borderColor: isReady ? '#ff4d4f' : '#52c41a',
+          color: '#FFF'
+        }}>
           {isReady ? 'I am not ready' : 'I am ready'}
         </Button>
       </div>
