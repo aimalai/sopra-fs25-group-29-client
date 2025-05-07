@@ -53,6 +53,9 @@ export default function LobbyPage() {
   const [videoRetries, setVideoRetries] = useState(0);
   const maxVideoRetries = 3;
 
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownStarted = useRef(false);
+
   const playerRef = useRef<PlayerAPI | null>(null);
   const stompRef = useRef<Client | null>(null);
   const subscribedRef = useRef(false);
@@ -85,9 +88,7 @@ export default function LobbyPage() {
     const vid = match ? match[1] : contentLink;
 
     window.onYouTubeIframeAPIReady = () => {
-      if (playerRef.current?.destroy) {
-        playerRef.current.destroy();
-      }
+      playerRef.current?.destroy?.();
       playerRef.current = new window.YT.Player('yt-player', {
         videoId: vid,
         playerVars: { autoplay: 0 },
@@ -134,14 +135,11 @@ export default function LobbyPage() {
             setHostUsername(state.hostUsername || '');
             if (!parts.every(p => p.ready)) {
               playerRef.current?.pauseVideo();
-            } else if (username === state.hostUsername && playerRef.current?.getCurrentTime) {
-              client.publish({
-                destination: '/app/shareTime',
-                body: JSON.stringify({
-                  roomId,
-                  currentTime: playerRef.current.getCurrentTime!()
-                })
-              });
+              countdownStarted.current = false;
+              setCountdown(null);
+            } else if (!countdownStarted.current) {
+              countdownStarted.current = true;
+              setCountdown(3);
             }
           });
           client.subscribe(`/topic/syncTime/${roomId}`, m => {
@@ -164,9 +162,7 @@ export default function LobbyPage() {
           });
           joinedRef.current = true;
         }
-      },
-      onStompError: () => {},
-      onWebSocketError: () => {},
+      }
     });
     client.activate();
     stompRef.current = client;
@@ -181,13 +177,38 @@ export default function LobbyPage() {
     };
   }, [roomId, username]);
 
+  useEffect(() => {
+    if (countdown == null) return;
+    if (countdown > 0) {
+      const t = setTimeout(() => setCountdown(c => (c ?? 0) - 1), 1000);
+      return () => clearTimeout(t);
+    }
+    if (username === hostUsername && playerRef.current?.getCurrentTime) {
+      stompRef.current?.publish({
+        destination: '/app/shareTime',
+        body: JSON.stringify({
+          roomId,
+          currentTime: playerRef.current.getCurrentTime!()
+        })
+      });
+    }
+    setCountdown(null);
+  }, [countdown]);
+
   const toggleReady = () => {
     const nr = !isReady;
     setIsReady(nr);
+  
     stompRef.current?.publish({
       destination: nr ? '/app/ready' : '/app/notReady',
       body: JSON.stringify({ roomId, sender: username })
     });
+  
+    if (!nr) {
+      playerRef.current?.pauseVideo();
+      countdownStarted.current = false;
+      setCountdown(null);
+    }
   };
 
   const sendChat = () => {
@@ -239,6 +260,17 @@ export default function LobbyPage() {
             }
           </div>
         )}
+        {countdown != null && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '8rem', zIndex: 10
+          }}>
+            {countdown > 0 ? countdown : 'Go!'}
+          </div>
+        )}
       </div>
 
       <div style={{
@@ -247,22 +279,19 @@ export default function LobbyPage() {
         flexDirection: 'column',
         backgroundColor: '#fff',
         borderRadius: 8,
-        color: '#000',
         overflow: 'hidden'
       }}>
         <div style={{
           flex: 1,
           padding: 10,
           overflowY: 'auto',
-          color: '#000',
           borderBottom: '1px solid #ddd',
           backgroundColor: '#e5e5e5'
         }}>
           Lobby (Host: {hostUsername}):<br/><br/>
-          Who is ready?<br/><br/>
           {participants.map((p, i) => (
-            <span key={i} style={{ marginLeft: 12 }}>
-              {p.username} {p.ready ? '✔️' : '⏳'}
+            <span key={i} style={{ marginRight: 8 }}>
+              {p.username}{p.ready ? ' ✅' : ' ⏳'}
             </span>
           ))}
         </div>
@@ -274,24 +303,29 @@ export default function LobbyPage() {
         </div>
 
         <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #ddd' }}>
-          <Input value={msg} onChange={e => setMsg(e.target.value)} onPressEnter={sendChat} placeholder="Type a message..." />
+          <Input
+            value={msg}
+            onChange={e => setMsg(e.target.value)}
+            onPressEnter={sendChat}
+            placeholder="Type a message..."
+          />
           <Button onClick={sendChat} style={{ marginLeft: 8 }}>Send</Button>
         </div>
       </div>
 
       <div style={{ gridArea: 'button', display: 'flex', gap: 8 }}>
         <Button onClick={toggleReady} style={{
-          flex: 1,
-          backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
-          borderColor: isReady ? '#ff4d4f' : '#52c41a',
+            flex: 1,
+            backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
+            borderColor: isReady ? '#ff4d4f' : '#52c41a',
           color: '#FFF'
         }}>
           {isReady ? 'I am not ready' : 'I am ready'}
         </Button>
         <Button onClick={() => router.push("/watchparty")} style={{
-          flex: 1,
-          backgroundColor: '#ff4d4f',
-          borderColor: '#ff4d4f',
+            flex: 1,
+            backgroundColor: '#ff4d4f',
+            borderColor: '#ff4d4f',
           color: '#FFF'
         }}>
           Leave Lobby
