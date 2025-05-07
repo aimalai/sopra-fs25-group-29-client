@@ -188,11 +188,6 @@ const UserProfile: React.FC = () => {
               Share your Watchlist with Friends
             </Checkbox>
           </div>
-          <div style={fieldContainer}>
-            <Checkbox checked={user.publicRatings} disabled>
-              Share my ratings
-            </Checkbox>
-          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
             <Button style={buttonStyle} onClick={() => router.push(`/users/${id}/edit`)}>
               Edit

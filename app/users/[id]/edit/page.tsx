@@ -332,11 +332,6 @@ const EditUser: React.FC = () => {
                 <Checkbox>Share your Watchlist with Friends</Checkbox>
               </Form.Item>
             </div>
-            <div style={fieldContainer}>
-              <Form.Item name="publicRatings" valuePropName="checked">
-                <Checkbox>Share my ratings</Checkbox>
-              </Form.Item>
-            </div>
             <Form.Item>
               <Button style={buttonStyle} htmlType="submit">
                 Save
