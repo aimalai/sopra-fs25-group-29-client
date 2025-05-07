@@ -101,7 +101,7 @@ const Register: React.FC = () => {
     <div style={containerStyle}>
       <div style={logoContainerStyle}>
         <Image
-          src="/NiroLogo.png"
+          src="/NiroLogo_white.png"
           alt="App Logo"
           style={logoStyle}
           width={200}
