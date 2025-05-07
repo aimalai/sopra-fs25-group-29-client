@@ -185,7 +185,7 @@ const UserProfile: React.FC = () => {
           <div style={sectionHeadingStyle}>Privacy Settings</div>
           <div style={fieldContainer}>
             <Checkbox checked={user.sharable} disabled>
-              Enable profile search (Hint: If this is not enabled, your friends cannot see your Watchlist.)
+              Share your Watchlist with Friends
             </Checkbox>
           </div>
           <div style={fieldContainer}>

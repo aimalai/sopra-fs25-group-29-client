@@ -20,6 +20,8 @@ declare global {
 interface PlayerAPI {
   playVideo(): void;
   pauseVideo(): void;
+  getCurrentTime?(): number;
+  seekTo?(seconds: number, allowSeekAhead: boolean): void;
 }
 
 interface YouTubePlayerOptions {
@@ -33,56 +35,52 @@ interface Watchparty {
   contentLink: string;
 }
 
-function getYouTubeVideoId(url: string): string {
-  const regex = /(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : url;
-}
-
 export default function LobbyPage() {
   const { id } = useParams() as { id?: string };
   const roomId = id || 'lobby-room';
-  const apiService = useApi();
+  const api = useApi();
 
   const [contentLink, setContentLink] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{ sender: string; content: string }[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [participants, setParticipants] = useState<{ username: string; ready: boolean }[]>([]);
+  const [hostUsername, setHostUsername] = useState('');
+  const [chat, setChat] = useState<{ sender: string; content: string }[]>([]);
+  const [msg, setMsg] = useState('');
   const [username, setUsername] = useState('Anonymous');
 
   const playerRef = useRef<PlayerAPI | null>(null);
-  const stompClientRef = useRef<Client | null>(null);
+  const stompRef = useRef<Client | null>(null);
 
   useEffect(() => {
-    const storedId = localStorage.getItem('userId');
-    if (storedId) {
-      fetch(`${getApiDomain()}/users/${storedId}`)
-        .then(res => res.json())
-        .then(user => { if (user.username) setUsername(user.username) })
-        .catch(() => {});
+    const uid = localStorage.getItem('userId');
+    if (uid) {
+      fetch(`${getApiDomain()}/users/${uid}`)
+        .then(r => r.json())
+        .then(u => u.username && setUsername(u.username))
+        .catch(() => { });
     }
   }, []);
 
-  // fetch the full list, then pick out our party
   useEffect(() => {
     if (!id) return;
-    apiService
-      .get<Watchparty[]>('/api/watchparties')
-      .then(wps => {
-        const wp = wps.find(w => w.id.toString() === id);
+    api.get<Watchparty[]>('/api/watchparties')
+      .then(list => {
+        const wp = list.find(w => w.id.toString() === id);
         if (wp) setContentLink(wp.contentLink);
       })
-      .catch(() => {});
-  }, [id, apiService]);
+      .catch(() => { });
+  }, [id, api]);
 
   useEffect(() => {
     if (!contentLink) return;
-    const videoId = getYouTubeVideoId(contentLink);
+    const regex = /(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/;
+    const match = contentLink.match(regex);
+    const vid = match ? match[1] : contentLink;
     window.onYouTubeIframeAPIReady = () => {
       playerRef.current = new window.YT.Player('yt-player', {
-        videoId,
+        videoId: vid,
         playerVars: { autoplay: 0 },
-        events: { onReady: () => {} },
+        events: { onReady: () => { } },
       });
     };
     if (!window.YT) {
@@ -95,46 +93,74 @@ export default function LobbyPage() {
   }, [contentLink]);
 
   useEffect(() => {
-    const socket = new SockJS(`${getApiDomain()}/ws`);
+    const sock = new SockJS(`${getApiDomain()}/ws`);
     const client = new Client({
-      webSocketFactory: () => socket,
+      webSocketFactory: () => sock,
       reconnectDelay: 5000,
       onConnect: () => {
-        client.subscribe(`/topic/syncReadyState/${roomId}`, msg => {
-          const states: Record<string, boolean> = JSON.parse(msg.body);
-          const p = playerRef.current;
-          if (p) {
-            if (Object.values(states).every(v => v)) p.playVideo();
-            else p.pauseVideo();
+        client.subscribe(`/topic/syncReadyState/${roomId}`, m => {
+          const state = JSON.parse(m.body) as {
+            participants: { username: string; ready: boolean }[];
+            hostUsername: string;
+          };
+          const parts = state.participants || [];
+          setParticipants(parts);
+          setHostUsername(state.hostUsername || '');
+
+          if (!parts.every(p => p.ready)) {
+            playerRef.current?.pauseVideo();
+          }
+          else if (username === state.hostUsername && playerRef.current?.getCurrentTime) {
+            client.publish({
+              destination: '/app/shareTime',
+              body: JSON.stringify({
+                roomId,
+                currentTime: playerRef.current.getCurrentTime!()
+              })
+            });
           }
         });
-        client.subscribe(`/topic/chat/${roomId}`, msg => {
-          setChatMessages(ms => [...ms, JSON.parse(msg.body)]);
+
+        client.subscribe(`/topic/syncTime/${roomId}`, m => {
+          const { currentTime } = JSON.parse(m.body) as { currentTime: number };
+          const pl = playerRef.current;
+          if (pl?.seekTo) {
+            pl.seekTo(currentTime, true);
+            pl.playVideo();
+          }
         });
-        client.publish({ destination: '/app/join', body: JSON.stringify({ roomId }) });
-      },
+
+        client.subscribe(`/topic/chat/${roomId}`, m => {
+          setChat(c => [...c, JSON.parse(m.body)]);
+        });
+
+        client.publish({
+          destination: '/app/join',
+          body: JSON.stringify({ roomId, sender: username })
+        });
+      }
     });
     client.activate();
-    stompClientRef.current = client;
+    stompRef.current = client;
     return () => { client.deactivate(); };
-  }, [roomId]);
+  }, [roomId, username]);
 
   const toggleReady = () => {
-    const next = !isReady;
-    setIsReady(next);
-    stompClientRef.current?.publish({
-      destination: next ? '/app/ready' : '/app/notReady',
-      body: JSON.stringify({ roomId }),
+    const nr = !isReady;
+    setIsReady(nr);
+    stompRef.current?.publish({
+      destination: nr ? '/app/ready' : '/app/notReady',
+      body: JSON.stringify({ roomId, sender: username })
     });
   };
 
-  const sendChatMessage = () => {
-    if (!newMessage.trim()) return;
-    stompClientRef.current?.publish({
+  const sendChat = () => {
+    if (!msg.trim()) return;
+    stompRef.current?.publish({
       destination: '/app/chat.sendLobbyMessage',
-      body: JSON.stringify({ roomId, sender: username, content: newMessage.trim() }),
+      body: JSON.stringify({ roomId, sender: username, content: msg.trim() })
     });
-    setNewMessage('');
+    setMsg('');
   };
 
   return (
@@ -148,8 +174,8 @@ export default function LobbyPage() {
       gridTemplateColumns: '1fr 300px',
       gridTemplateRows: '1fr auto',
       gridTemplateAreas: '"video chat" "button button"',
-      gap: 20,
-      backgroundColor: '#000',
+      gap: 15,
+      backgroundColor: '#00000000',
       boxSizing: 'border-box',
     }}>
       <div id="yt-player" style={{
@@ -159,6 +185,7 @@ export default function LobbyPage() {
         aspectRatio: '16/9',
         backgroundColor: '#000',
       }} />
+
       <div style={{
         gridArea: 'chat',
         width: '100%',
@@ -166,34 +193,48 @@ export default function LobbyPage() {
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#fff',
-        borderRadius: 4,
-        overflow: 'hidden',
+        color: '#000',
+        borderRadius: 8,
+        overflow: 'hidden'
       }}>
         <div style={{
           flex: 1,
           padding: 10,
           overflowY: 'auto',
           borderBottom: '1px solid #ddd',
+          backgroundColor: '#e5e5e5',
+          fontSize: '1rem'
         }}>
-          {chatMessages.map((m, i) => (
-            <div key={i} style={{ marginBottom: 8, color: '#000' }}>
-              <strong style={{ color: '#000' }}>{m.sender}:</strong>{' '}
-              <span style={{ color: '#000' }}>{m.content}</span>
+          Lobby (Host: {hostUsername}):
+          <br /><br />
+          Who is ready?
+          <br /><br />
+          {participants.map((p, i) => (
+            <span key={i} style={{ marginLeft: 12 }}>
+              {p.username} {p.ready ? '✔️' : '⏳'}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ flex: 2, padding: 10, overflowY: 'auto' }}>
+          {chat.map((m, i) => (
+            <div key={i} style={{ marginBottom: 8 }}>
+              <strong>{m.sender}:</strong> {m.content}
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', padding: 10 }}>
+
+        <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #ddd' }}>
           <Input
-            value={newMessage}
-            onChange={e => setNewMessage(e.target.value)}
-            onPressEnter={sendChatMessage}
+            value={msg}
+            onChange={e => setMsg(e.target.value)}
+            onPressEnter={sendChat}
             placeholder="Type a message..."
           />
-          <Button onClick={sendChatMessage} style={{ marginLeft: 8 }}>
-            Send
-          </Button>
+          <Button onClick={sendChat} style={{ marginLeft: 8 }}>Send</Button>
         </div>
       </div>
+
       <div style={{ gridArea: 'button', width: '100%' }}>
         <Button
           onClick={toggleReady}
@@ -201,8 +242,9 @@ export default function LobbyPage() {
             width: '100%',
             backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
             borderColor: isReady ? '#ff4d4f' : '#52c41a',
-            color: '#fff',
-          }}>
+            color: '#FFF'
+          }}
+        >
           {isReady ? 'I am not ready' : 'I am ready'}
         </Button>
       </div>

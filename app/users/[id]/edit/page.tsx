@@ -329,7 +329,7 @@ const EditUser: React.FC = () => {
             <div style={sectionHeadingStyle}>Privacy Settings</div>
             <div style={fieldContainer}>
               <Form.Item name="sharable" valuePropName="checked">
-                <Checkbox>Enable profile search</Checkbox>
+                <Checkbox>Share your Watchlist with Friends</Checkbox>
               </Form.Item>
             </div>
             <div style={fieldContainer}>
