@@ -288,7 +288,7 @@ export default function LobbyPage() {
         }}>
           {isReady ? 'I am not ready' : 'I am ready'}
         </Button>
-        <Button onClick={() => router.push(`/watchparty/${roomId}`)} style={{
+        <Button onClick={() => router.push("/watchparty")} style={{
           flex: 1,
           backgroundColor: '#ff4d4f',
           borderColor: '#ff4d4f',
