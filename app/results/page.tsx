@@ -75,7 +75,7 @@ const ResultsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<number>("userId", 0);
+  const { value: userId } = useLocalStorage<number | null>("userId", null);
 
   const initialQuery = searchParams.get("query") || "";
   const initialSort = searchParams.get("sort") || "popularity";

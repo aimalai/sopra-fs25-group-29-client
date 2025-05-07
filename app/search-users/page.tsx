@@ -15,7 +15,7 @@ import type { ColumnsType } from 'antd/es/table';
 export default function SearchUsersPage() {
   const router = useRouter();
   const api = useApi();
-  const { value: userId } = useLocalStorage<number>("userId", 0);
+  const { value: userId } = useLocalStorage<number | null>("userId", null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<User[]>([]);

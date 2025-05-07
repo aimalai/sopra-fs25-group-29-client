@@ -65,7 +65,7 @@ const Register: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { set: setToken } = useLocalStorage<string>("token", "");
-  const { set: setUserId } = useLocalStorage<number>("userId", 0);
+  const { set: setUserId } = useLocalStorage<number | null>("userId", null);
 
   const handleRegister = async (
     values: Omit<FormFieldProps, "confirmPassword">

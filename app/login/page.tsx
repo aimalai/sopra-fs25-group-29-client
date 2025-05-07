@@ -61,7 +61,7 @@ const Login: React.FC = () => {
   const apiService = useApi();
   const [form] = Form.useForm();
   const { set: setToken } = useLocalStorage<string>("token", "");
-  const { set: setUserId } = useLocalStorage<number>("userId", 0);
+  const { set: setUserId } = useLocalStorage<number | null>("userId", null);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (values: FormFieldProps) => {

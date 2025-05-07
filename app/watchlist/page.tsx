@@ -17,7 +17,7 @@ interface Movie {
 export default function WatchlistPage() {
   const router = useRouter();
   const api = useApi();
-  const { value: userId } = useLocalStorage<number>("userId", 0);
+  const { value: userId } = useLocalStorage<number | null>("userId", null);
 
   const [watchlist, setWatchlist] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);

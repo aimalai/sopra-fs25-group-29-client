@@ -99,7 +99,7 @@ const UserProfile: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [user, setUser] = useState<User | null>(null);
-  const { value: loggedInUserId } = useLocalStorage<number>("userId", 0);
+  const { value: loggedInUserId } = useLocalStorage<number | null>("userId", null);
   const isOwnProfile = Number(id) === loggedInUserId;
   const [isFriend, setIsFriend] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -136,7 +136,7 @@ const UserProfile: React.FC = () => {
 
       apiService
         .get<number[]>(`/users/${user.id}/friendrequests`)
-        .then(reqs => setIsPending(reqs.includes(loggedInUserId)))
+        .then(reqs => setIsPending(loggedInUserId !== null && reqs.includes(loggedInUserId)))
         .catch(() => setIsPending(false));
     }
   }, [apiService, loggedInUserId, user, isOwnProfile]);
@@ -267,7 +267,7 @@ const UserProfile: React.FC = () => {
                 >
                   Unfriend
                 </Button>
-                <ChatBox friendId={Number(id)} currentUserId={loggedInUserId} />
+                <ChatBox friendId={Number(id)} currentUserId={loggedInUserId!} />
               </>
             ) : (
               <div style={placeholderStyle}>

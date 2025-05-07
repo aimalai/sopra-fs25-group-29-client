@@ -16,7 +16,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const api = useApi();
-  const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
+  const { value: userId, clear: clearUserId } = useLocalStorage<number | null>("userId", null);
   const { clear: clearToken } = useLocalStorage<string>("token", "");
   const [username, setUsername] = useState("");
   const [drawerVisible, setDrawerVisible] = useState(false);
