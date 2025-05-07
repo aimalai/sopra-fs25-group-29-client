@@ -237,7 +237,6 @@ const WatchpartyPage: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
-        {/* Create Watchparty Section */}
         <div
           style={{
             flex: "1 1 300px",
@@ -250,17 +249,22 @@ const WatchpartyPage: React.FC = () => {
           }}
         >
           <h2>Create Watchparty</h2>
-          <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Form 
+            form={form} 
+            layout="vertical" 
+            onFinish={onFinish} 
+            style={{ color: 'white' }}
+          >
             <Form.Item
               name="title"
-              label="Title"
+              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Title</span>}
               rules={[{ required: true, message: "Please enter a title" }]}
             >
               <Input placeholder="Enter title" />
             </Form.Item>
             <Form.Item
               name="date"
-              label="Date"
+              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Date</span>}
               rules={[{ required: true, message: "Please select a date" }]}
             >
               <DatePicker
@@ -270,7 +274,7 @@ const WatchpartyPage: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="time"
-              label="Time"
+              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Time</span>}
               rules={[{ required: true, message: "Please select a time" }]}
             >
               <TimePicker
@@ -281,14 +285,16 @@ const WatchpartyPage: React.FC = () => {
             </Form.Item>
             <Form.Item
               name="contentLink"
-              label="Content Link"
+              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Content Link</span>}
               rules={[
                 { required: true, message: "Please enter a content link" },
               ]}
+              extra={<p style={{ color: 'white', fontSize: '12px', marginLeft: 20}}> <br /> No link? Try out with this one: <br /> ✨ https://www.youtube.com/watch?v=pb-j3svRQLIs ✨</p>}
             >
               <Input placeholder="Enter content link (e.g., YouTube URL)" />
+              
             </Form.Item>
-            <Form.Item name="description" label="Description (Optional)">
+            <Form.Item name="description" label={<span style={{ color: 'white', fontWeight: 'bold'}}>Description (Optional)</span>}>
               <Input.TextArea placeholder="Enter additional details (optional)" />
             </Form.Item>
             <Form.Item>
@@ -298,7 +304,6 @@ const WatchpartyPage: React.FC = () => {
             </Form.Item>
           </Form>
         </div>
-        {/* Watchparties Section */}
         <div
           style={{
             flex: "2 1 400px",
@@ -320,7 +325,6 @@ const WatchpartyPage: React.FC = () => {
             />
           </Card>
         </div>
-        {/* Invitations Section */}
         <div
           style={{
             flex: "1 1 300px",
@@ -336,14 +340,12 @@ const WatchpartyPage: React.FC = () => {
           <Card
             style={{ background: "#2f2f2f", border: "none", padding: "10px" }}
           >
-            {/* Render InviteResponsesPolling for real-time responses */}
             <InviteResponsesPolling watchParties={watchparties} />
           </Card>
         </div>
       </div>
       <div style={{ marginTop: "20px", textAlign: "center" }}></div>
 
-      {/* InviteFriendsModal */}
       {selectedWatchPartyId && (
         <InviteFriendsModal
           watchPartyId={selectedWatchPartyId}
