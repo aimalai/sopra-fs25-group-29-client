@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, CSSProperties } from "react";
+import React, { useState, useEffect, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { Input, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
@@ -34,6 +34,14 @@ export default function Dashboard() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const key = "dashboard_reloaded";
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, "1");
+      window.location.reload();
+    }
+  }, []);
 
   const handleSearch = () => {
     const q = query.trim();
