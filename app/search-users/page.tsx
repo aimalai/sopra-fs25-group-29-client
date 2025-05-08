@@ -10,6 +10,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
 import type { ColumnsType } from "antd/es/table";
+import { Row, Col } from "antd";
 
 export default function SearchUsersPage() {
   const router = useRouter();
@@ -36,9 +37,9 @@ export default function SearchUsersPage() {
         !q
           ? all
           : all.filter(u =>
-              (u.username?.toLowerCase().includes(q) ?? false) ||
-              (u.email?.toLowerCase().includes(q) ?? false)
-            )
+            (u.username?.toLowerCase().includes(q) ?? false) ||
+            (u.email?.toLowerCase().includes(q) ?? false)
+          )
       );
     } catch {
       message.error("Failed to search users.");
@@ -120,52 +121,58 @@ export default function SearchUsersPage() {
 
   return (
     <div style={{ padding: 24, paddingTop: 100, maxWidth: 1200, margin: "0 auto" }}>
-      <Card title="Search for Users" style={{ marginBottom: 24 }}>
-        <Input
-          placeholder="Search for new friends..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          suffix={<SearchOutlined />}
-          style={{ marginBottom: 16 }}
-        />
-        <Table<User>
-          dataSource={results}
-          rowKey="id"
-          columns={[
-            ...commonColumns,
-            {
-              title: "Actions",
-              key: "actions",
-              render: (_: unknown, user: User) => (
-                <Button type="primary" onClick={() => router.push(`/users/${user.id}`)}>
-                  Details
-                </Button>
-              ),
-            },
-          ]}
-          pagination={{ pageSize: 5 }}
-        />
-      </Card>
+      <Row gutter={[16, 16]} align="stretch">
+        <Col xs={24} sm={24} md={24} lg={24} xl={12} style={{ display: "flex" }}>
+          <Card title="Search for Users" style={{ flex: 1, marginBottom: 24 }}>
+            <Input
+              placeholder="Search for new friends..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              suffix={<SearchOutlined />}
+              style={{ marginBottom: 16 }}
+            />
+            <Table<User>
+              dataSource={results}
+              rowKey="id"
+              columns={[
+                ...commonColumns,
+                {
+                  title: "Actions",
+                  key: "actions",
+                  render: (_: unknown, user: User) => (
+                    <Button type="primary" onClick={() => router.push(`/users/${user.id}`)}>
+                      Details
+                    </Button>
+                  ),
+                },
+              ]}
+              pagination={{ pageSize: 5 }}
+            />
+          </Card>
+        </Col>
 
-      <Card title="Friend List" style={{ marginBottom: 24 }}>
-        <Table<User>
-          dataSource={friends}
-          rowKey="id"
-          columns={[
-            ...commonColumns,
-            {
-              title: "Actions",
-              key: "actions",
-              render: (_: unknown, user: User) => (
-                <Button type="primary" onClick={() => router.push(`/users/${user.id}`)}>
-                  Details
-                </Button>
-              ),
-            },
-          ]}
-          pagination={{ pageSize: 5 }}
-        />
-      </Card>
+        <Col xs={24} sm={24} md={24} lg={24} xl={12} style={{ display: "flex" }}>
+          <Card title="Friend List" style={{ flex: 1, marginBottom: 24 }}>
+            <Table<User>
+              dataSource={friends}
+              rowKey="id"
+              columns={[
+                ...commonColumns,
+                {
+                  title: "Actions",
+                  key: "actions",
+                  render: (_: unknown, user: User) => (
+                    <Button type="primary" onClick={() => router.push(`/users/${user.id}`)}>
+                      Details
+                    </Button>
+                  ),
+                },
+              ]}
+              pagination={{ pageSize: 5 }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
       <Card title="Incoming Friend Requests">
         {requests.length === 0 ? (
