@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Layout, Menu, Drawer, Dropdown, Button, Avatar, message } from "antd";
 import { MenuOutlined, UserOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import Image from "next/image";
 import type { MenuProps } from "antd";
 import { avatars } from "@/constants/avatars";
@@ -16,21 +16,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const api = useApi();
-  const { value: userId, clear: clearUserId } = useLocalStorage<number>("userId", 0);
-  const { clear: clearToken } = useLocalStorage<string>("token", "");
+  const [userId, setUserId] = useSessionStorage<number>("userId", 0);
+  const [ ,    setToken ]   = useSessionStorage<string>("token", "");
   const [username, setUsername] = useState("");
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const getRealUserId = () => {
-    const hookId = userId;
-    const storId = Number(localStorage.getItem("userId"));
-    return hookId && hookId > 0 ? hookId : storId && storId > 0 ? storId : null;
-  };
-
   useEffect(() => {
     (async () => {
-      const id = getRealUserId();
+      const id = userId || Number(sessionStorage.getItem("userId") ?? 0);
       if (!id) return;
       try {
         const u = await api.get<{
@@ -48,10 +42,10 @@ export default function Navbar() {
         setUsername("Profile");
       }
     })();
-  }, [pathname, api]);
+  }, [userId, api, pathname]);
 
   const handleLogout = async () => {
-    const id = getRealUserId();
+    const id = userId || Number(sessionStorage.getItem("userId") ?? 0);
     if (!id) {
       message.error("User ID missing, cannot logout.");
       return;
@@ -62,19 +56,19 @@ export default function Navbar() {
     } catch (error: unknown) {
       message.error(error instanceof Error ? error.message : "Unknown error.");
     } finally {
-      clearToken();
-      clearUserId();
+      sessionStorage.removeItem("token");
+      localStorage.removeItem("token");
+      setToken(""); 
+
+      sessionStorage.removeItem("userId");
+      localStorage.removeItem("userId");
+      setUserId(0);
+
       router.push("/login");
     }
   };
 
   if (["/", "/login", "/register", "/otpVerification"].includes(pathname)) {
-    return null;
-  }
-  
-  const hidePaths = ["/", "/login", "/register", "/otpVerification"];
-  const isLobby = /^\/watchparty\/[^/]+\/lobby$/.test(pathname);
-  if (hidePaths.includes(pathname) || isLobby) {
     return null;
   }
 
@@ -87,13 +81,7 @@ export default function Navbar() {
   ];
 
   const userMenuItems: MenuProps["items"] = [
-    { key: "profile", label: "👤 Profile",
-      onClick: () => {
-        const id = getRealUserId();
-        if (id) router.push(`/users/${id}`);
-        else message.error("No valid profile found.");
-      },
-    },
+    { key: "profile", label: "👤 Profile", onClick: () => router.push(`/users/${userId}`) },
     { key: "logout", label: "🚪 Logout", danger: true, onClick: handleLogout },
   ];
 
@@ -105,15 +93,20 @@ export default function Navbar() {
     switch (segment) {
       case "":
       case "users":
-        activeKey = "home"; break;
+        activeKey = "home";
+        break;
       case "watchparty":
-        activeKey = "watchparty"; break;
+        activeKey = "watchparty";
+        break;
       case "trending":
-        activeKey = "trending"; break;
+        activeKey = "trending";
+        break;
       case "watchlist":
-        activeKey = "watchlist"; break;
+        activeKey = "watchlist";
+        break;
       case "search-users":
-        activeKey = "search"; break;
+        activeKey = "search";
+        break;
       default:
         activeKey = "home";
     }
@@ -162,13 +155,10 @@ export default function Navbar() {
           overflowedIndicator={<MenuOutlined style={{ color: "#333" }} />}
         />
         <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
-          <div className="user-dropdown" 
-          style={{ 
-            cursor: "pointer", marginLeft: "auto", 
-            transition: "transform 0.2s", display: "inline-block" 
-            }} 
-            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")} 
-            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)") }
+          <div
+            style={{ cursor: "pointer", marginLeft: "auto", display: "inline-block", transition: "transform 0.2s" }}
+            onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
+            onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             <Avatar
               src={profileImage || undefined}
@@ -191,16 +181,13 @@ export default function Navbar() {
           mode="inline"
           selectedKeys={[activeKey]}
           items={[
-          ...items,
-          { key: "profile", label: `👤 ${username}`,
-            onClick: () => {
-              const id = getRealUserId();
-              if (id) router.push(`/users/${id}`);
-              else message.error("No valid profile found.");
-            },
-          },
-          { key: "logout", label: "🚪 Logout", onClick: handleLogout, danger: true },
-        ]} />
+            ...items,
+            { key: "profile", label: `👤 ${username}`, onClick: () => router.push(`/users/${userId}`) },
+            { key: "logout", label: "🚪 Logout", onClick: handleLogout, danger: true },
+          ]}
+          style={{ height: "100%", borderRight: 0 }}
+          onClick={() => setDrawerVisible(false)}
+        />
       </Drawer>
       <style jsx global>{`
         .custom-navbar-menu .ant-menu-item {

@@ -1,9 +1,15 @@
 "use client";
+
+import React, { CSSProperties, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import { Button, Form, Input, message } from "antd";
-import { CSSProperties } from "react";
-import useLocalStorage from "@/hooks/useLocalStorage";
+
+interface OTPForm {
+  username: string;
+  otp: string;
+}
 
 const containerStyle: CSSProperties = {
   display: "flex",
@@ -40,47 +46,37 @@ const inputStyle: CSSProperties = {
   color: "#000",
 };
 
-const OTPVerification: React.FC = () => {
+export default function OTPVerification() {
   const router = useRouter();
-  const apiService = useApi();
-  const [form] = Form.useForm();
-  const { set: setToken } = useLocalStorage<string>("token", "");
-  const { set: setUserId } = useLocalStorage<number | null>("userId", null);
+  const api = useApi();
+  const [form] = Form.useForm<OTPForm>();
+  const [loading, setLoading] = useState(false);
 
-  const handleVerifyOTP = async (values: { username: string; otp: string }) => {
+  const [  , setToken ] = useSessionStorage<string>("token", "");
+  const [  , setUserId ] = useSessionStorage<number>("userId", 0);
+
+  const handleVerify = async (values: OTPForm) => {
+    setLoading(true);
     try {
-      const response = await apiService.post("/users/otp/verify", values);
-      console.log("Response from /users/otp/verify:", response);
-
+      const response = await api.post("/users/otp/verify", values);
       if (
         response &&
         typeof response === "object" &&
         "token" in response &&
         "userId" in response
       ) {
-        const token = response.token as string; // Extract token
-        const userId = response.userId as string; // Extract userId
-
-        // Store both token and userId in localStorage
-        setToken(token); // Use useLocalStorage for token
-        setUserId(Number(userId)); // Use useLocalStorage for userId
-
+        setToken(response.token as string);
+        setUserId(Number(response.userId));
         message.success("OTP Verified Successfully.");
-        router.push("/users"); // Navigate to the main user page
+        router.push("/users");
       } else {
-        throw new Error(
-          "Unexpected response format: " + JSON.stringify(response)
-        );
+        throw new Error("Unexpected response: " + JSON.stringify(response));
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Error during OTP Verification:", error); // Debugging
-        message.error(
-          "OTP Verification Failed: " + (error.message || "An error occurred.")
-        );
-      } else {
-        message.error("OTP Verification Failed: An unknown error occurred.");
-      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An error occurred.";
+      message.error("OTP Verification Failed: " + msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,9 +87,9 @@ const OTPVerification: React.FC = () => {
         <Form
           form={form}
           name="verifyOTP"
-          size="large"
-          onFinish={handleVerifyOTP}
           layout="vertical"
+          size="large"
+          onFinish={handleVerify}
         >
           <Form.Item
             label={<span style={{ color: "#000" }}>Enter your Username</span>}
@@ -102,6 +98,7 @@ const OTPVerification: React.FC = () => {
           >
             <Input style={inputStyle} placeholder="Enter username" />
           </Form.Item>
+
           <Form.Item
             label={<span style={{ color: "#000" }}>Enter your OTP</span>}
             name="otp"
@@ -109,8 +106,14 @@ const OTPVerification: React.FC = () => {
           >
             <Input style={inputStyle} placeholder="Enter OTP" />
           </Form.Item>
+
           <Form.Item>
-            <Button style={buttonStyle} htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              style={buttonStyle}
+            >
               Verify OTP
             </Button>
           </Form.Item>
@@ -118,6 +121,4 @@ const OTPVerification: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default OTPVerification;
+}

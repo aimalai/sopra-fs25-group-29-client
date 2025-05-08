@@ -4,7 +4,7 @@ import React, { CSSProperties, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Checkbox, message } from "antd";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
 import Image from "next/image";
 import ChatBox from "@/components/ChatBox";
@@ -98,30 +98,28 @@ const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const apiService = useApi();
+  const [loggedInUserId] = useSessionStorage<number>("userId", 0);
   const [user, setUser] = useState<User | null>(null);
-  const { value: loggedInUserId } = useLocalStorage<number | null>("userId", null);
   const isOwnProfile = Number(id) === loggedInUserId;
   const [isFriend, setIsFriend] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.replace("/login");
-    }
+    const token = sessionStorage.getItem("token");
+    if (!token) router.replace("/login");
   }, [router]);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const fetchedUser: User = await apiService.get<User>(`/users/${id}`);
+        const fetchedUser = await apiService.get<User>(`/users/${id}`);
         setUser(fetchedUser);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          message.error("Error loading user data: " + err.message);
-        } else {
-          message.error("Error loading user data");
-        }
+      } catch (err) {
+        message.error(
+          err instanceof Error
+            ? `Error loading user data: ${err.message}`
+            : "Error loading user data"
+        );
       }
     };
     fetchUser();
@@ -136,7 +134,7 @@ const UserProfile: React.FC = () => {
 
       apiService
         .get<number[]>(`/users/${user.id}/friendrequests`)
-        .then(reqs => setIsPending(loggedInUserId !== null && reqs.includes(loggedInUserId)))
+        .then(reqs => setIsPending(reqs.includes(loggedInUserId)))
         .catch(() => setIsPending(false));
     }
   }, [apiService, loggedInUserId, user, isOwnProfile]);
@@ -183,11 +181,9 @@ const UserProfile: React.FC = () => {
             <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
           </div>
           <div style={sectionHeadingStyle}>Privacy Settings</div>
-          <div style={fieldContainer}>
-            <Checkbox checked={user.sharable} disabled>
-              Share your Watchlist with Friends
-            </Checkbox>
-          </div>
+          <Checkbox checked={user.sharable} disabled>
+            Share your Watchlist with Friends
+          </Checkbox>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
             <Button style={buttonStyle} onClick={() => router.push(`/users/${id}/edit`)}>
               Edit
@@ -212,7 +208,7 @@ const UserProfile: React.FC = () => {
                 height={80}
                 style={profilePictureStyle}
               />
-              <div style={headingStyle}>View {user.username}&apos;s Profile</div>
+              <div style={headingStyle}>{`View ${user.username}'s Profile`}</div>
             </div>
             <div style={fieldContainer}>
               <div style={labelStyle}>Username:</div>
@@ -241,9 +237,9 @@ const UserProfile: React.FC = () => {
               <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
             </div>
             <div style={{ marginTop: "20px" }}>
-              <Button style={buttonStyle} onClick={() => router.push("/users")}>
-                Back
-              </Button>
+            <Button style={buttonStyle} onClick={() => router.push("/users")}>
+              Back
+            </Button>
             </div>
           </div>
           <div style={{ flex: 1, maxWidth: "480px", display: "flex", flexDirection: "column", justifyContent: "center" }}>

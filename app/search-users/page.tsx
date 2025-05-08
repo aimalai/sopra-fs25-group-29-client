@@ -1,21 +1,27 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
 import { Card, Input, Table, Button, Space, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
-import type { ColumnsType } from 'antd/es/table';
-
+import type { ColumnsType } from "antd/es/table";
 
 export default function SearchUsersPage() {
   const router = useRouter();
   const api = useApi();
-  const { value: userId } = useLocalStorage<number | null>("userId", null);
+  const [ userId ] = useSessionStorage<number>("userId", 0);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+    }
+  }, [router]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<User[]>([]);
@@ -30,9 +36,9 @@ export default function SearchUsersPage() {
         !q
           ? all
           : all.filter(u =>
-            (u.username?.toLowerCase().includes(q) ?? false) ||
-            (u.email?.toLowerCase().includes(q) ?? false)
-          )
+              (u.username?.toLowerCase().includes(q) ?? false) ||
+              (u.email?.toLowerCase().includes(q) ?? false)
+            )
       );
     } catch {
       message.error("Failed to search users.");
@@ -53,7 +59,9 @@ export default function SearchUsersPage() {
     if (!userId) return;
     try {
       const ids: (number | string)[] = await api.get(`/users/${userId}/friendrequests`);
-      const reqs = await Promise.all(ids.map(id => api.get<User>(`/users/${id}`)));
+      const reqs = await Promise.all(
+        ids.map(id => api.get<User>(`/users/${id}`))
+      );
       setRequests(reqs);
     } catch {
       message.error("Failed to load friend requests.");
@@ -73,37 +81,40 @@ export default function SearchUsersPage() {
     {
       title: "Username",
       key: "username",
-      render: (_: unknown, user: User) => (<Space align="center">
-        <Image
-          src={
-            avatars.find(a => a.key === user.avatarKey)?.url ||
-            user.profilePictureUrl ||
-            "/default-avatar.jpg"
-          }
-          alt="avatar"
-          width={32}
-          height={32}
-          style={{ borderRadius: "50%" }}
-        />
-        <a
-          onClick={() => router.push(`/users/${user.id}`)}
-          style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
-        >
-          {user.username}
-        </a>
-      </Space>),
+      render: (_: unknown, user: User) => (
+        <Space align="center">
+          <Image
+            src={
+              avatars.find(a => a.key === user.avatarKey)?.url ||
+              user.profilePictureUrl ||
+              "/default-avatar.jpg"
+            }
+            alt="avatar"
+            width={32}
+            height={32}
+            style={{ borderRadius: "50%" }}
+          />
+          <a
+            onClick={() => router.push(`/users/${user.id}`)}
+            style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
+          >
+            {user.username}
+          </a>
+        </Space>
+      ),
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
-      responsive: ['sm'],
+      responsive: ["sm"],
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (status === "ONLINE" ? "🟢 Online" : "🔴 Offline"),
+      render: (status: string) =>
+        status === "ONLINE" ? "🟢 Online" : "🔴 Offline",
     },
   ];
 

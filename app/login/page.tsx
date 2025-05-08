@@ -2,14 +2,14 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
 import { Button, Form, Input, message } from "antd";
 import { CSSProperties, useState } from "react";
 
 interface FormFieldProps {
-  label: string;
-  value: string;
+  username: string;
+  password: string;
 }
 
 const containerStyle: CSSProperties = {
@@ -60,8 +60,8 @@ const Login: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
-  const { set: setToken } = useLocalStorage<string>("token", "");
-  const { set: setUserId } = useLocalStorage<number | null>("userId", null);
+  const [ , setToken ] = useSessionStorage<string>("token", "");
+  const [ , setUserId ] = useSessionStorage<number>("userId", 0);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (values: FormFieldProps) => {
@@ -152,7 +152,7 @@ const Login: React.FC = () => {
         </Form>
       </div>
     </div>
-  );
+);
 };
 
 export default Login;

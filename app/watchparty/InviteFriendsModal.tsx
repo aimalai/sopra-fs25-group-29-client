@@ -1,9 +1,9 @@
-"use client"; // Enables React hooks in this component
+"use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { Modal, Button, Form, Input, List } from "antd";
-import useWatchPartyLocalStorage from "../hooks/useWatchPartyLocalStorage"; // modular storage
+import useWatchPartyLocalStorage from "../hooks/useWatchPartyLocalStorage";
 
 interface InviteFriendsProps {
   watchPartyId: number;
@@ -17,71 +17,51 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
   onClose,
 }) => {
   const apiService = useApi();
-  const { value: watchPartyUserId } = useWatchPartyLocalStorage("id", ""); // reference using modular storage
+  const { value: watchPartyUserId } = useWatchPartyLocalStorage<string>("id", "");
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
-  const [successMessage, setSuccessMessage] = useState(""); // Success message state
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // Fetch previously invited users when modal opens
   useEffect(() => {
-    // Debugging logs to check local storage
-    if (visible) {
-      console.log("Local storage content on modal open:", localStorage);
-      console.log("Retrieved watchPartyUserId:", localStorage.getItem("id"));
-    }
-
-    const fetchInvites = async () => {
+    if (!visible) return;
+    (async () => {
       try {
-        if (!watchPartyId) return; // Prevents unnecessary API call
-
+        if (!watchPartyId) return;
         const response = await apiService.get<string[]>(
           `/api/watchparties/${watchPartyId}/invites`
         );
-        setInvitedUsers(response); // Populate the invite list
-      } catch (error) {
-        console.error("Error fetching invites:", error);
+        setInvitedUsers(response);
+      } catch {
+        console.error("Error fetching invites");
       }
-    };
-
-    if (visible) {
-      fetchInvites(); // Only fetch invites when modal is open
-    }
-  }, [watchPartyId, visible]);
+    })();
+  }, [apiService, watchPartyId, visible]);
 
   const handleInvite = async (values: { username: string }) => {
     setLoading(true);
-    setSuccessMessage(""); // Clear any previous success message
+    setSuccessMessage("");
     try {
-      if (!watchPartyUserId) {
-        throw new Error("User ID not found.");
-      }
-
-      console.log("Sending invite request:", values.username);
-
+      if (!watchPartyUserId) throw new Error("User ID not found");
       const response = await apiService.post<{ message: string }>(
         `/api/watchparties/${watchPartyId}/invites?username=${encodeURIComponent(
           values.username
         )}&inviterId=${watchPartyUserId}`,
         {}
       );
-
       if (response.message === "Username does not exist") {
         form.setFields([
           {
             name: "username",
-            errors: [
-              "Username does not exist. Please check DB and enter again.",
-            ],
+            errors: ["Username does not exist. Please check DB and enter again."],
           },
         ]);
       } else {
-        setInvitedUsers([...invitedUsers, values.username]);
+        setInvitedUsers((prev) => [...prev, values.username]);
         setSuccessMessage(`🎉 Invite sent successfully to ${values.username}!`);
-        form.resetFields(["username"]); // Clears only the username field
+        form.resetFields(["username"]);
       }
-    } catch (error) {
-      console.error("Invitation Error:", error);
+    } catch {
       form.setFields([
         {
           name: "username",
@@ -95,33 +75,13 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
 
   return (
     <Modal open={visible} onCancel={onClose} footer={null}>
-      {/* Title Visibility */}
-      <div
-        style={{
-          backgroundColor: "#f5f5f5",
-          padding: "10px",
-          borderRadius: "5px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "20px",
-            fontWeight: "bold",
-            color: "#333",
-            textAlign: "center",
-          }}
-        >
+      <div style={{ backgroundColor: "#f5f5f5", padding: "10px", borderRadius: "5px" }}>
+        <h3 style={{ fontSize: "20px", fontWeight: "bold", color: "#333", textAlign: "center" }}>
           Invite Friends to Watch Party
         </h3>
       </div>
 
-      <Form
-        form={form}
-        name="inviteFriends"
-        size="large"
-        onFinish={handleInvite}
-        layout="vertical"
-      >
+      <Form form={form} name="inviteFriends" size="large" onFinish={handleInvite} layout="vertical">
         <Form.Item
           name="username"
           label="Username"
@@ -132,13 +92,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
 
         {successMessage && (
           <Form.Item>
-            <p
-              style={{
-                color: "green",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
+            <p style={{ color: "green", fontWeight: "bold", textAlign: "center" }}>
               {successMessage}
             </p>
           </Form.Item>
@@ -152,10 +106,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
       </Form>
 
       <h4>Invited Users:</h4>
-      <List
-        dataSource={invitedUsers}
-        renderItem={(user) => <List.Item>{user}</List.Item>}
-      />
+      <List dataSource={invitedUsers} renderItem={(user) => <List.Item>{user}</List.Item>} />
     </Modal>
   );
 };

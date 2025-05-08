@@ -5,10 +5,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Table, Button, message, Input, Space, Select, Checkbox } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import Image from "next/image";
 import type { ColumnsType } from "antd/es/table";
-
 
 interface SearchResult {
   id: number;
@@ -75,7 +74,7 @@ const ResultsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<number | null>("userId", null);
+  const [ userId ] = useSessionStorage<number>("userId", 0);
 
   const initialQuery = searchParams.get("query") || "";
   const initialSort = searchParams.get("sort") || "popularity";
@@ -102,7 +101,7 @@ const ResultsPage: React.FC = () => {
     const fetchWatchlist = async () => {
       if (!userId) return;
       try {
-        const res = await apiService.get(`/users/${userId}/watchlist`);
+        const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
         if (Array.isArray(res)) setWatchlist(res);
       } catch {
         console.error("Failed to load watchlist");
@@ -129,7 +128,7 @@ const ResultsPage: React.FC = () => {
         posterPath: record.poster_path || "",
       });
       message.success("Added to Watchlist");
-      const res = await apiService.get(`/users/${userId}/watchlist`);
+      const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
       if (Array.isArray(res)) setWatchlist(res);
     } catch {
       message.error("Could not add to Watchlist.");
@@ -141,14 +140,14 @@ const ResultsPage: React.FC = () => {
     try {
       await apiService.delete(`/users/${userId}/watchlist/${record.id}`);
       message.success("Removed from Watchlist");
-      const res = await apiService.get(`/users/${userId}/watchlist`);
+      const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
       if (Array.isArray(res)) setWatchlist(res);
     } catch {
       message.error("Could not remove from Watchlist.");
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<SearchResult> = [
     {
       title: "Poster",
       dataIndex: "poster_path",
@@ -245,21 +244,19 @@ const ResultsPage: React.FC = () => {
       }
       setLoading(true);
       try {
-        const url =
-          `/api/movies/search?query=${encodeURIComponent(
-            initialQuery
-          )}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(
-            sortOption
-          )}`;
-        const resp = await apiService.get(url);
-        const data = typeof resp === "string" ? JSON.parse(resp) : (resp as ApiResponse);
-        let fetched = data.results || [];
+        const url = `/api/movies/search?query=${encodeURIComponent(
+          initialQuery
+        )}&page=${page}&pageSize=${size}&sort=${encodeURIComponent(
+          sortOption
+        )}`;
+        const resp = await apiService.get<ApiResponse>(url);
+        let fetched = resp.results || [];
         if (onlyCompleteResults)
-          fetched = fetched.filter((r: SearchResult) =>
+          fetched = fetched.filter((r) =>
             r.poster_path && (r.release_date || r.first_air_date) && r.overview
           );
         setResults(fetched);
-        setTotalItems(data.totalCount || 0);
+        setTotalItems(resp.totalCount || 0);
       } catch {
         message.error("Error fetching search results.");
       } finally {
@@ -285,29 +282,36 @@ const ResultsPage: React.FC = () => {
             <Input
               placeholder="Search for Movies & TV Shows"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               onPressEnter={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
               style={{ width: 300 }}
-              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />}
+              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />} 
             />
-            <Select value={sortOption} onChange={value => { setSortOption(value); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(value)}`); }} style={{ minWidth: 180 }}>
+            <Select value={sortOption} onChange={(v) => { setSortOption(v); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(v)}`); }} style={{ minWidth: 180 }}>
               <Select.Option value="popularity">Sort by Popularity</Select.Option>
               <Select.Option value="rating">Sort by Rating</Select.Option>
               <Select.Option value="newest">Sort by Newest</Select.Option>
               <Select.Option value="oldest">Sort by Oldest</Select.Option>
             </Select>
-            <Checkbox checked={onlyCompleteResults} onChange={e => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>
+            <Checkbox checked={onlyCompleteResults} onChange={(e) => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>
               Complete Results Only
             </Checkbox>
           </Space>
           <div style={tableContainerStyle}>
             <Table
-              columns={columns as ColumnsType<SearchResult>}
+              columns={columns}
               scroll={mobileScroll ? { x: "max-content" } : undefined}
               dataSource={results}
               rowKey="id"
               loading={loading}
-              pagination={{ current: currentPage, pageSize, total: totalItems, showSizeChanger: true, pageSizeOptions: ["5","10","20"], onChange: (page, size) => { setCurrentPage(page); if (size) setPageSize(size); } }}
+              pagination={{
+                current: currentPage,
+                pageSize,
+                total: totalItems,
+                showSizeChanger: true,
+                pageSizeOptions: ["5", "10", "20"],
+                onChange: (p, s) => { setCurrentPage(p); if (s) setPageSize(s); }
+              }}
             />
           </div>
         </div>

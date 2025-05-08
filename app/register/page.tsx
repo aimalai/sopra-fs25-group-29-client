@@ -3,7 +3,7 @@ import React, { CSSProperties, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
 import { Button, Form, Input, message } from "antd";
 
@@ -11,7 +11,7 @@ interface FormFieldProps {
   username: string;
   password: string;
   confirmPassword?: string;
-  email: string; // email field
+  email: string;
 }
 
 const containerStyle: CSSProperties = {
@@ -64,8 +64,8 @@ const Register: React.FC = () => {
   const [form] = Form.useForm<FormFieldProps>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { set: setToken } = useLocalStorage<string>("token", "");
-  const { set: setUserId } = useLocalStorage<number | null>("userId", null);
+  const [ , setToken ] = useSessionStorage<string>("token", "");
+  const [ , setUserId ] = useSessionStorage<number>("userId", 0);
 
   const handleRegister = async (
     values: Omit<FormFieldProps, "confirmPassword">
@@ -167,7 +167,6 @@ const Register: React.FC = () => {
             />
           </Form.Item>
 
-          {/* email Field */}
           <Form.Item
             label={<span style={{ color: "#000" }}>Enter Your Email</span>}
             name="email"

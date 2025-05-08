@@ -4,6 +4,7 @@ import React, { CSSProperties, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Form, Input, Checkbox, Modal, message } from "antd";
 import { useApi } from "@/hooks/useApi";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
@@ -137,7 +138,7 @@ const avatarItem: CSSProperties = {
   borderRadius: "50%",
 };
 
-const EditUser: React.FC = () => {
+export default function EditUser() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const apiService = useApi();
@@ -147,43 +148,41 @@ const EditUser: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | undefined>();
 
-  const loggedInUserId = localStorage.getItem("userId");
-  const isOwnProfile = id === loggedInUserId;
+  const [token] = useSessionStorage<string>("token", "");
+  const [storedUserId] = useSessionStorage<number>("userId", 0);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.replace("/login");
-    }
-  }, [router]);
+    if (!token) router.replace("/login");
+  }, [token, router]);
 
+  const isOwnProfile = id === String(storedUserId);
   useEffect(() => {
     if (!isOwnProfile) {
       router.replace("/users");
     }
-  }, [router, isOwnProfile]);
+  }, [isOwnProfile, router]);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    if (!isOwnProfile) return;
+    (async () => {
       try {
-        const fetchedUser: User = await apiService.get<User>(`/users/${id}`);
+        const fetchedUser = await apiService.get<User>(`/users/${id}`);
         setUser(fetchedUser);
         form.setFieldsValue({
-          username: fetchedUser.username || "",
-          birthday: fetchedUser.birthday || "",
-          email: fetchedUser.email || "",
-          biography: fetchedUser.biography || "",
-          sharable: fetchedUser.sharable || false,
-          publicRatings: fetchedUser.publicRatings || false,
-          avatarKey: fetchedUser.avatarKey || undefined,
+          username: fetchedUser.username ?? "",
+          birthday: fetchedUser.birthday ?? "",
+          email: fetchedUser.email ?? "",
+          biography: fetchedUser.biography ?? "",
+          sharable: fetchedUser.sharable ?? false,
+          publicRatings: fetchedUser.publicRatings ?? false,
+          avatarKey: fetchedUser.avatarKey ?? undefined,
         });
-        setSelectedAvatar(fetchedUser.avatarKey || undefined);
+        setSelectedAvatar(fetchedUser.avatarKey ?? undefined);
       } catch {
         message.error("Error loading user data");
       }
-    };
-    fetchUser();
-  }, [apiService, id, form]);
+    })();
+  }, [isOwnProfile, apiService, id, form]);
 
   const handleAvatarSelect = (key: string) => {
     form.setFieldsValue({ avatarKey: key });
@@ -202,26 +201,29 @@ const EditUser: React.FC = () => {
         publicRatings: values.publicRatings,
         avatarKey: values.avatarKey,
       };
-      if (values.password && values.password.trim().length > 0) {
+      if (values.password?.trim()) {
         payload.password = values.password;
       }
       await apiService.put(`/users/${id}`, payload);
       message.success("Profile updated successfully.");
       router.push(`/users/${id}`);
-    } catch (error) {
-      if (error instanceof Error) {
-        message.error("Update Failed: " + error.message);
-      } else {
-        message.error("Update Failed: Unknown error.");
-      }
+    } catch (error: unknown) {
+      message.error(`Update Failed: ${(error as Error).message}`);
     }
   };
 
   return (
     <div style={containerStyle}>
       <div style={logoContainerStyle}>
-        <Image src="/NiroLogo.png" alt="App Logo" style={logoStyle} width={160} height={100} />
+        <Image
+          src="/NiroLogo.png"
+          alt="App Logo"
+          width={160}
+          height={100}
+          style={logoStyle}
+        />
       </div>
+
       {user && (
         <div style={contentStyle}>
           <div style={topRowStyle}>
@@ -233,7 +235,7 @@ const EditUser: React.FC = () => {
             >
               <Image
                 src={
-                  avatars.find(a => a.key === selectedAvatar)?.url ||
+                  avatars.find((a) => a.key === selectedAvatar)?.url ||
                   user.profilePictureUrl ||
                   "/default-avatar.jpg"
                 }
@@ -253,15 +255,24 @@ const EditUser: React.FC = () => {
             </Form.Item>
 
             <div style={fieldContainer}>
-              <Form.Item name="username" label={<span style={labelStyle}>Username:</span>} rules={[{ required: true }]}>
+              <Form.Item
+                name="username"
+                label={<span style={labelStyle}>Username:</span>}
+                rules={[{ required: true }]}
+              >
                 <Input style={inputBoxStyle} />
               </Form.Item>
             </div>
+
             <div style={fieldContainer}>
-              <Form.Item name="email" label={<span style={labelStyle}>Email:</span>}>
+              <Form.Item
+                name="email"
+                label={<span style={labelStyle}>Email:</span>}
+              >
                 <Input style={inputBoxStyle} />
               </Form.Item>
             </div>
+
             <div style={fieldContainer}>
               <Form.Item
                 name="birthday"
@@ -271,11 +282,17 @@ const EditUser: React.FC = () => {
                     validator: (_, value) => {
                       if (!value) return Promise.resolve();
                       const regex = /^\d{4}-\d{2}-\d{2}$/;
-                      if (!regex.test(value)) return Promise.reject(new Error("Please use the format YYYY-MM-DD"));
+                      if (!regex.test(value)) {
+                        return Promise.reject(new Error("Use YYYY-MM-DD"));
+                      }
                       const inputDate = new Date(value);
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      if (inputDate > today) return Promise.reject(new Error("Birthday cannot be in the future."));
+                      if (inputDate > today) {
+                        return Promise.reject(
+                          new Error("Birthday cannot be in the future.")
+                        );
+                      }
                       return Promise.resolve();
                     },
                   },
@@ -284,11 +301,13 @@ const EditUser: React.FC = () => {
                 <Input style={inputBoxStyle} placeholder="YYYY-MM-DD" />
               </Form.Item>
             </div>
+
             <div style={fieldContainer}>
               <Form.Item label={<span style={labelStyle}>Current Password:</span>}>
-                <Input type="password" style={inputBoxStyle} value="**********" readOnly />
+                <Input.Password style={inputBoxStyle} value="**********" readOnly />
               </Form.Item>
             </div>
+
             <div style={fieldContainer}>
               <Form.Item
                 name="password"
@@ -296,20 +315,35 @@ const EditUser: React.FC = () => {
                 rules={[
                   {
                     validator: (_, value) => {
-                      if (!value || value.trim().length === 0) return Promise.resolve();
-                      const valid = value.length >= 8 && /[A-Za-z]/.test(value) && /[^A-Za-z0-9]/.test(value);
-                      if (!valid) return Promise.reject(new Error("Password must be at least 8 characters and include letters and special characters."));
+                      if (!value) return Promise.resolve();
+                      const valid =
+                        value.length >= 8 &&
+                        /[A-Za-z]/.test(value) &&
+                        /[^A-Za-z0-9]/.test(value);
+                      if (!valid) {
+                        return Promise.reject(
+                          new Error(
+                            "At least 8 characters, letters & special chars."
+                          )
+                        );
+                      }
                       return Promise.resolve();
                     },
                   },
                 ]}
               >
-                <Input.Password style={inputBoxStyle} placeholder="Leave empty to keep current" />
+                <Input.Password
+                  style={inputBoxStyle}
+                  placeholder="Leave empty to keep current"
+                />
               </Form.Item>
             </div>
 
             <div style={fieldContainer}>
-              <Form.Item name="biography" label={<span style={labelStyle}>Biography:</span>}>
+              <Form.Item
+                name="biography"
+                label={<span style={labelStyle}>Biography:</span>}
+              >
                 <Input.TextArea
                   showCount
                   maxLength={200}
@@ -347,7 +381,7 @@ const EditUser: React.FC = () => {
       )}
       <Modal open={isModalVisible} title="Select a Profile Picture" onCancel={() => setIsModalVisible(false)} footer={null}>
         <div style={avatarGridContainer}>
-          {avatars.map(a => (
+          {avatars.map((a) => (
             <div
               key={a.key}
               style={{ ...avatarItem, borderColor: selectedAvatar === a.key ? "#007BFF" : "transparent" }}
@@ -360,6 +394,4 @@ const EditUser: React.FC = () => {
       </Modal>
     </div>
   );
-};
-
-export default EditUser;
+}

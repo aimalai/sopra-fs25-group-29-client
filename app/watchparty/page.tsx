@@ -102,7 +102,7 @@ const WatchpartyPage: React.FC = () => {
       const utcDateTime = localDateTime.utc();
       const utcTimeString = utcDateTime.format("YYYY-MM-DD[T]HH:mm:ss");
 
-      const organizerIdStr = localStorage.getItem("userId");
+      const organizerIdStr = sessionStorage.getItem("userId") || localStorage.getItem("userId");
       if (!organizerIdStr) {
         message.error("Organizer ID not found. Please log in.");
         return;
@@ -136,7 +136,7 @@ const WatchpartyPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const organizerIdStr = localStorage.getItem("userId");
+        const organizerIdStr = sessionStorage.getItem("userId") || localStorage.getItem("userId");
         if (organizerIdStr) {
           const organizerId = Number(organizerIdStr);
           const data = await apiService.get<Watchparty[]>(
