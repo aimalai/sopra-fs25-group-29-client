@@ -61,10 +61,11 @@ const TutorialContent = () => {
           <p style={{ marginBottom: "24px" }}>
             Stay updated on what’s popular! This section showcases highly rated
             and trending movies & TV shows. The trending list is refreshed
-            hourly based on real-time user engagement and API metrics. Discover
-            new releases, top-rated content, and watchlist suggestions, with
-            options to instantly add them to your personal watchlist or read
-            reviews from fellow users before deciding to watch.
+            hourly based on user engagement and API metrics. Along with global
+            trends, discover movies trending among your friends, ensuring
+            recommendations match your preferences. Instantly add titles to your
+            watchlist or read reviews from fellow users before deciding to
+            watch.
           </p>
         </div>
 
