@@ -17,7 +17,10 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
   onClose,
 }) => {
   const apiService = useApi();
-  const { value: watchPartyUserId } = useWatchPartyLocalStorage<string>("id", "");
+  const { value: watchPartyUserId } = useWatchPartyLocalStorage<string>(
+    "id",
+    ""
+  );
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [friends, setFriends] = useState<string[]>([]);
@@ -104,10 +107,22 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
   return (
     <Modal open={visible} onCancel={onClose} footer={null}>
       <div
-        style={{ backgroundColor: "#f5f5f5", padding: "10px", borderRadius: "5px" }}
+        style={{
+          backgroundColor: "#f5f5f5",
+          padding: "10px",
+          borderRadius: "5px",
+        }}
       >
         <h3
-          style={{ fontSize: "20px", fontWeight: "bold", color: "#333", textAlign: "center" }}
+          style={{
+            fontSize: "20px",
+            fontWeight: "bold",
+            color: "white",
+            backgroundColor: "red",
+            padding: "10px",
+            borderRadius: "5px",
+            textAlign: "center",
+          }}
         >
           Invite Friends to Watch Party
         </h3>
@@ -122,8 +137,9 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
       >
         <Form.Item
           name="username"
-          label="Username"
+          label="Enter friend's username or copy-paste from list below:"
           rules={[{ required: true, message: "Enter username to invite!" }]}
+          style={{ marginTop: "20px" }}
         >
           <AutoComplete
             options={filteredFriends.map((f) => ({ value: f }))}
@@ -135,7 +151,13 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
 
         {successMessage && (
           <Form.Item>
-            <p style={{ color: "green", fontWeight: "bold", textAlign: "center" }}>
+            <p
+              style={{
+                color: "green",
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+            >
               {successMessage}
             </p>
           </Form.Item>
@@ -148,8 +170,29 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
         </Form.Item>
       </Form>
 
+      <h4>Friends List:</h4>
+      <List
+        dataSource={friends}
+        renderItem={(friend) => (
+          <List.Item
+            style={{ display: "flex", alignItems: "center", gap: "15px" }}
+          >
+            <span>{friend}</span>
+            <Button
+              type="link"
+              onClick={() => navigator.clipboard.writeText(friend)}
+            >
+              Copy
+            </Button>
+          </List.Item>
+        )}
+      />
+
       <h4>Invited Users:</h4>
-      <List dataSource={invitedUsers} renderItem={(user) => <List.Item>{user}</List.Item>} />
+      <List
+        dataSource={invitedUsers}
+        renderItem={(user) => <List.Item>{user}</List.Item>}
+      />
     </Modal>
   );
 };
