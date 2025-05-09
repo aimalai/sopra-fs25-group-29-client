@@ -4,6 +4,7 @@ import React, { useState, useEffect, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { Input, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+import TutorialContent from "@/components/TutorialContent";
 
 const containerStyle: CSSProperties = {
   padding: 24,
@@ -58,7 +59,7 @@ export default function Dashboard() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onPressEnter={handleSearch}
-          style={{ width: 350 }}
+          style={{ width: 500 }}
           suffix={
             <Button
               type="primary"
@@ -70,16 +71,11 @@ export default function Dashboard() {
         />
       </Space>
 
-      <div style={tutorialBoxStyle}>
-        <br />
-        <h3>Welcome to Flicks & Friends! 🍿✨</h3>
+      <div style={{ ...tutorialBoxStyle, marginTop: "40px" }}>
         <br />
         <br />
-        <p>
-          Explore movies, create watchlists, and connect with friends. Start by
-          searching for your favorite movies and TV shows above. Watch this
-          space for more information soon! 🍿✨
-        </p>
+        <TutorialContent />{" "}
+        {/* Rendering the tutorial component inside here as a variable */}
       </div>
     </div>
   );
