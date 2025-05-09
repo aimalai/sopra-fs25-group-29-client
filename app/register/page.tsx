@@ -66,6 +66,7 @@ const Register: React.FC = () => {
 
   const [ , setToken ] = useSessionStorage<string>("token", "");
   const [ , setUserId ] = useSessionStorage<number>("userId", 0);
+   const [, setUsername] = useSessionStorage<string>("username", "");
 
   const handleRegister = async (
     values: Omit<FormFieldProps, "confirmPassword">
@@ -76,6 +77,9 @@ const Register: React.FC = () => {
 
       if (response.token) setToken(response.token);
       if (response.id) setUserId(Number(response.id));
+      if (response.username) {
+        setUsername(response.username);
+      }
 
       message.success(
         "Registration Successful: You have been successfully registered and logged in."

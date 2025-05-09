@@ -1,5 +1,6 @@
 "use client";
 import React, { CSSProperties, useEffect, useState } from "react";
+import useSessionStorage from "@/hooks/useSessionStorage";
 import {
   Form,
   Input,
@@ -31,6 +32,10 @@ interface Watchparty {
   title: string;
   scheduledTime: string;
   description: string;
+  organizer: {
+    id: number;
+    username: string;
+  };
 }
 
 interface Invitation {
@@ -44,6 +49,9 @@ const WatchpartyPage: React.FC = () => {
   const apiService = useApi();
 
   const [watchparties, setWatchparties] = useState<Watchparty[]>([]);
+  const [username] = useSessionStorage<string>("username", "");
+  const [userIdStr] = useSessionStorage<string>("userId", "");
+  const currentUserId  = Number(userIdStr);
   const [, setInvitations] = useState<Invitation[]>([]);
   const [form] = Form.useForm();
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
@@ -136,27 +144,26 @@ const WatchpartyPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const organizerIdStr = sessionStorage.getItem("userId") || localStorage.getItem("userId");
-        if (organizerIdStr) {
-          const organizerId = Number(organizerIdStr);
-          const data = await apiService.get<Watchparty[]>(
-            `/api/watchparties?organizerId=${organizerId}`
-          );
-          setWatchparties(data);
-        } else {
-          setWatchparties([]);
-          setInvitations([]);
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          message.error("Error fetching watchparties: " + error.message);
-        } else {
-          message.error("Error fetching watchparties");
-        }
+        const organizerId = Number(userIdStr);
+        const invitedUser = username;
+
+        const [own, invited] = await Promise.all([
+          apiService.get<Watchparty[]>(`/api/watchparties?organizerId=${organizerId}`),
+          apiService.get<Watchparty[]>(`/api/watchparties?username=${encodeURIComponent(invitedUser)}`)
+        ]);
+
+        const merged = [...own, ...invited].reduce<Watchparty[]>((acc, wp) => {
+          if (!acc.some(x => x.id === wp.id)) acc.push(wp);
+          return acc;
+        }, []);
+
+        setWatchparties(merged);
+      } catch (e) {
+        message.error("Error fetching watchparties.");
       }
     };
     fetchData();
-  }, [apiService]);
+  }, [apiService, userIdStr, username]);
 
   const handleInviteClick = (watchPartyId: number) => {
     setSelectedWatchPartyId(watchPartyId);
@@ -358,7 +365,7 @@ const WatchpartyPage: React.FC = () => {
           <Card
             style={{ background: "#2f2f2f", border: "none", padding: "10px" }}
           >
-            <InviteResponsesPolling watchParties={watchparties} />
+            <InviteResponsesPolling watchParties={watchparties.filter(wp => wp.organizer.id === currentUserId)}/>
           </Card>
         </div>
       </div>

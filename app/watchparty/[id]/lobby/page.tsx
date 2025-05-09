@@ -6,6 +6,7 @@ import SockJS from 'sockjs-client';
 import { useParams, useRouter } from 'next/navigation';
 import { getApiDomain } from '@/utils/domain';
 import { useApi } from '@/hooks/useApi';
+import useSessionStorage from '@/hooks/useSessionStorage';
 
 declare global {
   interface Window {
@@ -47,7 +48,8 @@ export default function LobbyPage() {
   const [hostUsername, setHostUsername] = useState('');
   const [chat, setChat] = useState<{ sender: string; content: string }[]>([]);
   const [msg, setMsg] = useState('');
-  const [username, setUsername] = useState('Anonymous');
+  const [userIdStr] = useSessionStorage<string>('userId', '');
+  const [username, setUsername] = useSessionStorage<string>('username', '');
 
   const [videoError, setVideoError] = useState(false);
   const [videoRetries, setVideoRetries] = useState(0);
@@ -65,21 +67,10 @@ export default function LobbyPage() {
   const joinedRef = useRef(false);
 
   useEffect(() => {
-    const uid = localStorage.getItem('userId');
-    if (uid) {
-      fetch(`${getApiDomain()}/users/${uid}`)
-        .then(r => r.json())
-        .then(u => u.username && setUsername(u.username))
-        .catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
     if (!id) return;
-    api.get<Watchparty[]>('/api/watchparties')
-      .then(list => {
-        const wp = list.find(w => w.id.toString() === id);
-        if (wp) setContentLink(wp.contentLink);
+    api.get<Watchparty>(`/api/watchparties/${id}`)
+      .then(wp => {
+        if (wp.contentLink) setContentLink(wp.contentLink);
       })
       .catch(() => {});
   }, [id, api]);
@@ -122,6 +113,12 @@ export default function LobbyPage() {
   }, [contentLink, videoRetries]);
 
   useEffect(() => {
+    if (!username) {
+      return;
+    }
+    subscribedRef.current = false;
+    joinedRef.current     = false;
+  
     const sock = new SockJS(`${getApiDomain()}/ws`);
     const client = new Client({
       webSocketFactory: () => sock,
@@ -185,7 +182,7 @@ export default function LobbyPage() {
       }
       client.deactivate();
     };
-  }, [roomId, username]);
+  }, [roomId, username]);  
 
   useEffect(() => {
     if (countdown == null) return;
@@ -233,18 +230,20 @@ export default function LobbyPage() {
   return (
     <div style={{
       marginTop: '65px',
-      width: '70vw',
-      height: 'calc(120vh - 128px)',
+      width: '90vw',
+      maxWidth: '1600px',
+      height: 'calc(100vh - 100px)',
       marginLeft: 'auto',
       marginRight: 'auto',
       display: 'grid',
-      gridTemplateColumns: '1fr 300px',
-      gridTemplateRows: '1fr auto',
+      gridTemplateColumns: '3fr minmax(250px, 1fr)',
+      gridTemplateRows: 'auto 60px',
       gridTemplateAreas: '"video chat" "button button"',
-      gap: 15,
+      gap: 12,
       boxSizing: 'border-box',
+      overflow: 'hidden'
     }}>
-      <div style={{ gridArea: 'video', position: 'relative', width: '100%', height: '100%' }}>
+      <div style={{ gridArea: 'video', position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
         <div id="yt-player" style={{
           width: '100%',
           height: '100%',
@@ -296,7 +295,8 @@ export default function LobbyPage() {
           padding: 10,
           overflowY: 'auto',
           borderBottom: '1px solid #ddd',
-          backgroundColor: '#e5e5e5'
+          backgroundColor: '#e5e5e5',
+          color: '#000',
         }}>
           Lobby (Host: {hostUsername}):<br/><br/>
           {participants.map((p, i) => (
@@ -306,7 +306,7 @@ export default function LobbyPage() {
           ))}
         </div>
 
-        <div style={{ flex: 2, padding: 10, overflowY: 'auto' }}>
+        <div style={{ flex: 2, padding: 10, overflowY: 'auto', color: '#000' }}>
           {chat.map((m, i) => (
             <div key={i} style={{ marginBottom: 8 }}><strong>{m.sender}:</strong> {m.content}</div>
           ))}

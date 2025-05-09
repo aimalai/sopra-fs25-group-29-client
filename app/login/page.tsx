@@ -62,6 +62,7 @@ const Login: React.FC = () => {
   const [form] = Form.useForm();
   const [ , setToken ] = useSessionStorage<string>("token", "");
   const [ , setUserId ] = useSessionStorage<number>("userId", 0);
+  const [, setUsername] = useSessionStorage<string>("username", "");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (values: FormFieldProps) => {
@@ -73,6 +74,9 @@ const Login: React.FC = () => {
       }
       if (response.id) {
         setUserId(Number(response.id));
+      }
+      if (response.username) {
+        setUsername(response.username);
       }
       message.success("You can now proceed to OTP Verification.");
       router.push("/otpVerification");

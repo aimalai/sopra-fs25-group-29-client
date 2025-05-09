@@ -45,6 +45,10 @@ export default function WatchlistPage() {
   const [loadingTopRated, setLoadingTopRated] = useState(false);
   const [topRated, setTopRated] = useState<TopRatedMovie[]>([]);
 
+  const watchlistScroll = watchlist.length > 0 ? { y: 600 } : undefined;
+  const topRatedScroll  = topRated.length  > 0 ? { y: 600 } : undefined;
+  const friendScroll    = friendWatchlist.length > 0 ? { y: 600 } : undefined;
+
   const loadWatchlist = async () => {
     if (!userId) return;
     setLoadingWatchlist(true);
@@ -242,11 +246,10 @@ export default function WatchlistPage() {
                 rowKey="movieId"
                 columns={columns}
                 pagination={false}
-                scroll={{ y: 600 }}
+                scroll={watchlistScroll}
                 locale={{ emptyText: "No entries in your watchlist." }}
               />
             )}
-            {/* FRIEND SELECT */}
             <div style={{ marginTop: 16 }}>
               <strong>Want to view your friend's watchlist? 👀</strong>
               <Space style={{ marginTop: 8 }}>
@@ -277,7 +280,7 @@ export default function WatchlistPage() {
                 rowKey="movieId"
                 columns={columnsRecommended}
                 pagination={false}
-                scroll={{ y: 600 }}
+                scroll={topRatedScroll}
                 locale={{ emptyText: "No recommended movies." }}
               />
             )}
@@ -311,7 +314,7 @@ export default function WatchlistPage() {
               rowKey="movieId"
               columns={columns}
               pagination={false}
-              scroll={{ y: 600 }}
+              scroll={friendScroll}
               locale={{ emptyText: "No entries in your friend's watchlist." }}
             />
           )}

@@ -188,7 +188,7 @@ const UserProfile: React.FC = () => {
             <Button style={buttonStyle} onClick={() => router.push(`/users/${id}/edit`)}>
               Edit
             </Button>
-            <Button style={buttonStyle} onClick={() => router.push("/users")}>
+            <Button style={buttonStyle} onClick={() => router.back()}>
               Back
             </Button>
           </div>
@@ -237,7 +237,7 @@ const UserProfile: React.FC = () => {
               <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
             </div>
             <div style={{ marginTop: "20px" }}>
-            <Button style={buttonStyle} onClick={() => router.push("/users")}>
+            <Button style={buttonStyle} onClick={() => router.back()}>
               Back
             </Button>
             </div>
