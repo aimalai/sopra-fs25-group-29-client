@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
-import { Card, Spin, Button, Table, message } from "antd";
+import { Card, Spin, Table, message } from "antd"; // Removed Button
 import Image from "next/image";
 
 interface TrendingItem {
@@ -33,9 +33,6 @@ export default function TrendingPage() {
   const router = useRouter();
   const [userId] = useSessionStorage<number>("userId", 0);
   const [data, setData] = useState<TrendingItem[]>([]);
-  const [friends, setFriends] = useState<{ id: number; username: string }[]>(
-    []
-  );
   const [friendsWatchlists, setFriendsWatchlists] = useState<
     FriendWatchlistDTO[]
   >([]);
@@ -57,37 +54,24 @@ export default function TrendingPage() {
     }
   };
 
-  // Step 1: Fetch friends FIRST
-  const fetchFriends = async () => {
+  // Step 1: Fetch friends and watchlists in one go
+  const fetchFriendsWatchlists = async () => {
     if (!userId) return;
-    try {
-      const friendsRes = await api.get<{ id: number; username: string }[]>(
-        `/users/${userId}/friends`
-      );
-      setFriends(friendsRes);
-      fetchFriendsWatchlists(friendsRes); // Now fetch watchlists AFTER friends are loaded
-    } catch {
-      message.error("Failed to load friends.");
-    }
-  };
-
-  // Step 2: Fetch watchlists for each friend correctly
-  const fetchFriendsWatchlists = async (
-    friendsList: { id: number; username: string }[]
-  ) => {
-    if (!friendsList || friendsList.length === 0) return;
 
     try {
       const allWatchlists = await api.get<
-        { friendId: number; watchlist: string[] | undefined }[]
+        {
+          friendId: number;
+          username: string;
+          watchlist: string[] | undefined;
+        }[]
       >(`/users/${userId}/friends/watchlists`);
 
-      // Match correct friend IDs and ensure watchlist is always an array
-      const formattedWatchlists: FriendWatchlistDTO[] = friendsList.map(
-        (friend) => {
-          const dto = allWatchlists.find((w) => w.friendId === friend.id);
-
-          const parsedWatchlist = (dto?.watchlist ?? [])
+      const formattedWatchlists: FriendWatchlistDTO[] = allWatchlists.map(
+        (friend) => ({
+          friendId: friend.friendId,
+          username: friend.username,
+          watchlist: (friend.watchlist ?? [])
             .map((w) => {
               try {
                 return JSON.parse(w); // Convert string back to Movie object
@@ -95,14 +79,8 @@ export default function TrendingPage() {
                 return null;
               }
             })
-            .filter((x): x is Movie => x !== null); // Ensure proper typing
-
-          return {
-            friendId: friend.id,
-            username: friend.username,
-            watchlist: parsedWatchlist,
-          };
-        }
+            .filter((x): x is Movie => x !== null),
+        })
       );
 
       setFriendsWatchlists(formattedWatchlists);
@@ -113,7 +91,7 @@ export default function TrendingPage() {
 
   useEffect(() => {
     fetchTrending();
-    fetchFriends();
+    fetchFriendsWatchlists();
   }, [userId]);
 
   return (
