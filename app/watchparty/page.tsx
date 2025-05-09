@@ -38,12 +38,6 @@ interface Watchparty {
   };
 }
 
-interface Invitation {
-  id: number;
-  sender: string;
-  watchpartyName: string;
-}
-
 const WatchpartyPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
@@ -52,7 +46,6 @@ const WatchpartyPage: React.FC = () => {
   const [username] = useSessionStorage<string>("username", "");
   const [userIdStr] = useSessionStorage<string>("userId", "");
   const currentUserId  = Number(userIdStr);
-  const [, setInvitations] = useState<Invitation[]>([]);
   const [form] = Form.useForm();
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [selectedWatchPartyId, setSelectedWatchPartyId] = useState<
@@ -158,7 +151,7 @@ const WatchpartyPage: React.FC = () => {
         }, []);
 
         setWatchparties(merged);
-      } catch (e) {
+      } catch {
         message.error("Error fetching watchparties.");
       }
     };

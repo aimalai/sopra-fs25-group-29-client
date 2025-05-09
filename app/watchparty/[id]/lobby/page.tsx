@@ -48,8 +48,7 @@ export default function LobbyPage() {
   const [hostUsername, setHostUsername] = useState('');
   const [chat, setChat] = useState<{ sender: string; content: string }[]>([]);
   const [msg, setMsg] = useState('');
-  const [userIdStr] = useSessionStorage<string>('userId', '');
-  const [username, setUsername] = useSessionStorage<string>('username', '');
+  const [username] = useSessionStorage<string>('username', '');
 
   const [videoError, setVideoError] = useState(false);
   const [videoRetries, setVideoRetries] = useState(0);
