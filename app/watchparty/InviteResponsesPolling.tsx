@@ -1,72 +1,92 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
+import { Button, Card, List, Tag, Spin, Typography } from "antd";
+
+const { Text } = Typography;
 
 interface PollingProps {
-  watchParties: { id: number; title: string }[]; // Include title in the watch parties interface
+  watchParties: { id: number; title: string }[];
 }
 
 const InviteResponsesPolling: React.FC<PollingProps> = ({ watchParties }) => {
   const apiService = useApi();
-  const [inviteResponses, setInviteResponses] = useState<
-    Record<string, string[]>
-  >({}); // Use title (string) as the key instead of party ID (number)
+  const [inviteResponses, setInviteResponses] = useState<Record<string, string[]>>({});
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchInviteResponses = async () => {
-      try {
-        const updatedResponses: Record<string, string[]> = {}; // Use watch party titles as keys
-        for (const party of watchParties) {
+  const fetchInviteResponses = async () => {
+    setLoading(true);
+    try {
+      const entries = await Promise.all(
+        watchParties.map(async (party) => {
           const responses = await apiService.get<string[]>(
             `/api/watchparties/${party.id}/latest-invite-status`
-          ); // Retrieve responses using party ID from the backend
-          updatedResponses[party.title] = responses; // Map responses to the title
-        }
-        setInviteResponses(updatedResponses); // Update state with title-based mapping
-      } catch (error) {
-        console.error("Error fetching invite responses:", error);
-      }
-    };
+          );
+          return [party.title, responses] as [string, string[]];
+        })
+      );
+      setInviteResponses(Object.fromEntries(entries));
+    } catch (error) {
+      console.error("Error fetching invite responses:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const pollingInterval = setInterval(fetchInviteResponses, 5000); // Poll every 5 seconds
-    return () => clearInterval(pollingInterval); // Cleanup polling on unmount
-  }, [watchParties]);
+  useEffect(() => {
+    if (watchParties.length > 0) {
+      fetchInviteResponses();
+    }
+  }, [watchParties, apiService]);
 
   return (
-    <div style={{ color: "#fff", padding: "10px" }}>
-      {Object.entries(inviteResponses).map(([partyTitle, responses]) => (
-        <div
-          key={partyTitle}
-          style={{
-            marginBottom: "20px",
-            padding: "10px",
-            border: "1px solid #007BFF",
-            borderRadius: "8px",
-            backgroundColor: "#1e1e1e",
-          }}
-        >
-          <h3 style={{ color: "#00FF7F", marginBottom: "10px" }}>
-            Responses for {partyTitle}:
-          </h3>
-          <ul style={{ paddingLeft: "20px" }}>
-            {responses.map((response, index) => (
-              <li
-                key={index}
-                style={{
-                  fontWeight: "bold",
-                  color: response.includes("accepted")
-                    ? "#4CAF50" // Green for accepted
-                    : response.includes("declined")
-                    ? "#FF5722" // Red for declined
-                    : "#FFD700", // Yellow for other statuses
-                }}
-              >
-                {response}
-              </li>
-            ))}
-          </ul>
+    <>
+      <Button 
+        size="small" 
+        onClick={fetchInviteResponses} 
+        style={{ marginBottom: 8 }}
+      >
+        Reload Status
+      </Button>
+
+      {loading && Object.keys(inviteResponses).length === 0 && (
+        <div style={{ textAlign: "center", padding: 20 }}>
+          <Spin tip="Load Responses..." />
         </div>
+      )}
+
+      {Object.entries(inviteResponses).map(([partyTitle, responses]) => (
+        <Card
+          key={partyTitle}
+          style={{ marginBottom: 24, border: "1px solid #000" }}
+          headStyle={{
+            backgroundColor: "#d4d4d4",
+            borderBottom: "1px solid #e0e0e0",
+          }}
+          bodyStyle={{ backgroundColor: "#e0e0e0" }}
+          title={partyTitle}
+        >
+          {responses.length === 0 ? (
+            <Text type="secondary">No User Invited.</Text>
+          ) : (
+            <List
+              dataSource={responses}
+              renderItem={(resp) => {
+                let color: "green" | "red" | "gold" = "gold";
+                if (resp.toLowerCase().includes("accepted")) color = "green";
+                else if (resp.toLowerCase().includes("declined")) color = "red";
+                return (
+                  <List.Item style={{ padding: "8px 0" }}>
+                    <Tag color={color} style={{ fontWeight: 600 }}>
+                      {resp}
+                    </Tag>
+                  </List.Item>
+                );
+              }}
+            />
+          )}
+        </Card>
       ))}
-    </div>
+    </>
   );
 };
 

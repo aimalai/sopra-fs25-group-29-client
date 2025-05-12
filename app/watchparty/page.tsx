@@ -38,7 +38,7 @@ interface Watchparty {
   };
 }
 
-const WatchpartyPage: React.FC = () => {
+export default function WatchpartyPage() {
   const router = useRouter();
   const apiService = useApi();
 
@@ -92,22 +92,22 @@ const WatchpartyPage: React.FC = () => {
     description?: string;
   }) => {
     try {
-      const localDateTime = dayjs(
-        `${values.date.format("YYYY-MM-DD")} ${values.time.format("HH:mm")}`,
-        "YYYY-MM-DD HH:mm"
-      );
-      if (!localDateTime.isAfter(dayjs())) {
-        message.error("Please select a future time for the watch party.");
-        return;
-      }
+    const localDateTime = dayjs(
+      `${values.date.format("YYYY-MM-DD")} ${values.time.format("HH:mm")}`,
+      "YYYY-MM-DD HH:mm"
+    );
+    if (!localDateTime.isAfter(dayjs())) {
+      message.error("Please select a future time for the watch party.");
+      return;
+    }
       const utcDateTime = localDateTime.utc();
       const utcTimeString = utcDateTime.format("YYYY-MM-DD[T]HH:mm:ss");
 
       const organizerIdStr = sessionStorage.getItem("userId") || localStorage.getItem("userId");
       if (!organizerIdStr) {
-        message.error("Organizer ID not found. Please log in.");
-        return;
-      }
+      message.error("Organizer ID not found. Please log in.");
+      return;
+    }
       const organizerId = Number(organizerIdStr);
       const payload = {
         organizerId: organizerId,
@@ -191,30 +191,18 @@ const WatchpartyPage: React.FC = () => {
           >
             Details
           </Button>
+            {record.organizer.id === currentUserId && (
           <Button
             style={buttonStyle}
             onClick={() => handleInviteClick(record.id)}
           >
             Invite Friends
           </Button>
-        </div>
-      ),
-    },
-  ];
-  /*
-  const invitationColumns: ColumnsType<Invitation> = [
-    {
-      title: "Sender",
-      dataIndex: "sender",
-      key: "sender",
-    },
-    {
-      title: "Watchparty",
-      dataIndex: "watchpartyName",
-      key: "watchpartyName",
-    },
-  ];
-  */
+        )}
+      </div>
+    ),
+  },
+];
 
   return (
     <div
@@ -236,18 +224,7 @@ const WatchpartyPage: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
-        <div
-          style={{
-            flex: "1 1 300px",
-            border: "1px solid #444",
-            padding: "20px",
-            borderRadius: "8px",
-            background: "#2f2f2f",
-            color: "#fff",
-            minWidth: "280px",
-          }}
-        >
-          <h2>Create Watchparty</h2>
+        <Card title="Create Watchparty" style={{ flex: "1 1 300px", marginBottom: 24 }}>
           <Form 
             form={form} 
             layout="vertical" 
@@ -256,41 +233,39 @@ const WatchpartyPage: React.FC = () => {
           >
             <Form.Item
               name="title"
-              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Title</span>}
+              label={<span style={{ color: 'black', fontWeight: 'bold' }}>Title</span>}
               rules={[{ required: true, message: "Please enter a title" }]}
             >
               <Input placeholder="Enter title" />
             </Form.Item>
             <Form.Item
               name="date"
-              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Date</span>}
+              label={<span style={{ color: 'black', fontWeight: 'bold' }}>Date</span>}
               rules={[{ required: true, message: "Please select a date" }]}
             >
               <DatePicker
-                style={{ width: "100%" }}
+                style={{ width: "100%", border: "1px solid #000", borderRadius: 4}}
                 disabledDate={disabledDate}
               />
             </Form.Item>
             <Form.Item
               name="time"
-              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Time</span>}
+              label={<span style={{ color: 'black', fontWeight: 'bold' }}>Time</span>}
               rules={[{ required: true, message: "Please select a time" }]}
             >
               <TimePicker
-                style={{ width: "100%" }}
+                style={{ width: "100%", border: "1px solid #000", borderRadius: 4}}
                 format="HH:mm"
                 disabledTime={disabledTime}
               />
             </Form.Item>
             <Form.Item
               name="contentLink"
-              label={<span style={{ color: 'white', fontWeight: 'bold' }}>Content Link</span>}
-              rules={[
-                { required: true, message: "Please enter a content link" },
-              ]}
+              label={<span style={{ color: 'black', fontWeight: 'bold' }}>Content Link</span>}
+              rules={[{ required: true, message: "Please enter a content link" }]}
               extra={
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 30}}>
-                  <p style={{ color: 'white', fontSize: '12px', marginRight: 10 , marginLeft: 15}}>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+                  <p style={{ color: 'black', fontSize: '12px', marginRight: 10 , marginLeft: 15}}>
                     No link? Try out this sample link:<br />https://www.youtube.com/watch?v=oRDRfikj2z8
                   </p>
                   <Button
@@ -312,8 +287,8 @@ const WatchpartyPage: React.FC = () => {
               <Input placeholder="Enter content link (e.g., YouTube URL)" />
               
             </Form.Item>
-            <Form.Item name="description" label={<span style={{ color: 'white', fontWeight: 'bold'}}>Description (Optional)</span>}>
-              <Input.TextArea placeholder="Enter additional details (optional)" />
+            <Form.Item name="description" label={<span style={{ color: 'black', fontWeight: 'bold'}}>Description (Optional)</span>}>
+              <Input.TextArea placeholder="Enter additional details" />
             </Form.Item>
             <Form.Item>
               <Button style={buttonStyle} htmlType="submit">
@@ -321,48 +296,21 @@ const WatchpartyPage: React.FC = () => {
               </Button>
             </Form.Item>
           </Form>
-        </div>
-        <div
-          style={{
-            flex: "2 1 400px",
-            border: "1px solid #444",
-            padding: "20px",
-            borderRadius: "8px",
-            background: "#2f2f2f",
-            color: "#fff",
-            minWidth: "300px",
-          }}
-        >
-          <h2>Watchparties</h2>
-          <Card style={{ background: "#2f2f2f", border: "none" }}>
-            <Table
-              dataSource={watchparties}
-              columns={watchpartyColumns}
-              rowKey="id"
-              pagination={false}
-            />
-          </Card>
-        </div>
-        <div
-          style={{
-            flex: "1 1 300px",
-            border: "1px solid #444",
-            padding: "20px",
-            borderRadius: "8px",
-            background: "#2f2f2f",
-            color: "#fff",
-            minWidth: "280px",
-          }}
-        >
-          <h2>Invitations & Responses</h2>
-          <Card
-            style={{ background: "#2f2f2f", border: "none", padding: "10px" }}
-          >
-            <InviteResponsesPolling watchParties={watchparties.filter(wp => wp.organizer.id === currentUserId)}/>
-          </Card>
-        </div>
+        </Card>
+        <Card title="Watchparties" style={{ flex: "2 1 400px", marginBottom: 24 }}>
+          <Table
+            dataSource={watchparties}
+            columns={watchpartyColumns}
+            rowKey="id"
+            pagination={false}
+          />
+        </Card>
+        <Card title="Invitations & Responses" style={{ flex: "1 1 300px", marginBottom: 24 }}>
+          <InviteResponsesPolling
+            watchParties={watchparties.filter((wp) => wp.organizer.id === currentUserId)}
+          />
+        </Card>
       </div>
-      <div style={{ marginTop: "20px", textAlign: "center" }}></div>
 
       {selectedWatchPartyId && (
         <InviteFriendsModal
@@ -373,6 +321,4 @@ const WatchpartyPage: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default WatchpartyPage;
+}

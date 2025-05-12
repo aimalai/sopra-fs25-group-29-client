@@ -38,7 +38,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
         );
         const usernames = friendList.map((u) => u.username);
         setFriends(usernames);
-        setFilteredFriends(usernames);
+        setFilteredFriends(usernames.filter((u) => !invitedUsers.includes(u)));
       } catch {
         console.error("Error fetching friends");
       }
@@ -63,7 +63,12 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
   const handleSearch = (value: string) => {
     const q = value.trim().toLowerCase();
     setFilteredFriends(
-      !q ? friends : friends.filter((f) => f.toLowerCase().includes(q))
+      !q
+        ? friends.filter((f) => !invitedUsers.includes(f))
+        : friends.filter(
+            (f) =>
+              !invitedUsers.includes(f) && f.toLowerCase().includes(q)
+          )
     );
   };
 
@@ -88,7 +93,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
           },
         ]);
       } else {
-        setInvitedUsers((prev) => [...prev, values.username]);
+        setFilteredFriends((prev) => prev.filter((f) => f !== values.username));
         setSuccessMessage(`🎉 Invite sent successfully to ${values.username}!`);
         form.resetFields(["username"]);
       }
@@ -138,7 +143,10 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
         <Form.Item
           name="username"
           label="Enter friend's username or copy-paste from list below:"
-          rules={[{ required: true, message: "Enter username to invite!" }]}
+          rules={[
+        { required: true, message: "Enter username to invite!" },
+        {
+          validator: (_, value) => invitedUsers.includes(value) ? Promise.reject("This friend has already been invited."): Promise.resolve(),},]}
           style={{ marginTop: "20px" }}
         >
           <AutoComplete

@@ -22,7 +22,8 @@ const searchContainerStyle: CSSProperties = {
 
 const tutorialBoxStyle: CSSProperties = {
   marginTop: 24,
-  width: 1300,
+  width: "100%",
+  maxWidth: 1300,
   minHeight: 400,
   backgroundColor: "#e0e0e0",
   padding: "16px",
@@ -59,7 +60,7 @@ export default function Dashboard() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onPressEnter={handleSearch}
-          style={{ width: 500 }}
+          style={{ width: "100%", maxWidth: 1100 }}
           suffix={
             <Button
               type="primary"
