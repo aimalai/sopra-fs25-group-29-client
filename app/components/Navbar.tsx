@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Layout, Menu, Drawer, Dropdown, Button, Avatar, message } from "antd";
 import { MenuOutlined, UserOutlined } from "@ant-design/icons";
@@ -17,7 +17,7 @@ export default function Navbar() {
   const router = useRouter();
   const api = useApi();
   const [userId, setUserId] = useSessionStorage<number>("userId", 0);
-  const [ ,    setToken ]   = useSessionStorage<string>("token", "");
+  const [, setToken] = useSessionStorage<string>("token", "");
   const [username, setUsername] = useState("");
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export default function Navbar() {
     } finally {
       sessionStorage.removeItem("token");
       localStorage.removeItem("token");
-      setToken(""); 
+      setToken("");
 
       sessionStorage.removeItem("userId");
       localStorage.removeItem("userId");
@@ -67,6 +67,12 @@ export default function Navbar() {
       router.push("/login");
     }
   };
+
+  const hidePaths = ["/", "/login", "/register", "/otpVerification"];
+  const isLobby = /^\/watchparty\/[^/]+\/lobby$/.test(pathname);
+  if (hidePaths.includes(pathname) || isLobby) {
+    return null;
+  }
 
   if (["/", "/login", "/register", "/otpVerification"].includes(pathname)) {
     return null;
