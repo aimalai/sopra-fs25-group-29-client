@@ -2,33 +2,48 @@
 
 import React, { useState, useEffect, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { Input, Button, Space } from "antd";
+import { Input, Button } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TutorialContent from "@/components/TutorialContent";
 
 const containerStyle: CSSProperties = {
-  padding: 24,
-  paddingTop: 140,
+  minHeight: "100vh",
+  padding: "24px",
+  paddingTop: "140px",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
 };
 
 const searchContainerStyle: CSSProperties = {
-  width: 1100,
+  width: "100%",
+  maxWidth: 1000,
+  backgroundColor: "#e0e0e0",
+  padding: "16px 24px",
+  borderRadius: "24px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
   display: "flex",
-  justifyContent: "center",
+  alignItems: "center",
+};
+
+const inputStyle: CSSProperties = {
+  width: "100%",
+  maxWidth: 1000,
+  borderRadius: "50px",
+  padding: "12px 20px",
+  backgroundColor: "#f9f9f9",
+  border: "none",
 };
 
 const tutorialBoxStyle: CSSProperties = {
-  marginTop: 24,
+  marginTop: "48px",
   width: "100%",
   maxWidth: 1300,
   minHeight: 400,
   backgroundColor: "#e0e0e0",
-  padding: "16px",
-  borderRadius: "8px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  padding: "24px",
+  borderRadius: "16px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
   textAlign: "center",
 };
 
@@ -54,29 +69,28 @@ export default function Dashboard() {
 
   return (
     <div style={containerStyle}>
-      <Space style={searchContainerStyle}>
+      <div style={searchContainerStyle}>
         <Input
           placeholder="Search for Movies & TV Shows"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onPressEnter={handleSearch}
-          style={{ width: "100%", maxWidth: 1100 }}
+          style={inputStyle}
           suffix={
             <Button
               type="primary"
+              shape="circle"
+              size="middle"
               icon={<SearchOutlined />}
               loading={loading}
               onClick={handleSearch}
             />
           }
         />
-      </Space>
+      </div>
 
-      <div style={{ ...tutorialBoxStyle, marginTop: "40px" }}>
-        <br />
-        <br />
-        <TutorialContent />{" "}
-        {/* Rendering the tutorial component inside here as a variable */}
+      <div style={tutorialBoxStyle}>
+        <TutorialContent />
       </div>
     </div>
   );
