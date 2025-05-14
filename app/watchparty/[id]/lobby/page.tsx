@@ -52,7 +52,7 @@ export default function LobbyPage() {
 
   const [videoError, setVideoError] = useState(false);
   const [videoRetries, setVideoRetries] = useState(0);
-  const maxVideoRetries = 3;
+  const maxVideoRetries = 2;
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownStarted = useRef(false);
@@ -71,14 +71,21 @@ export default function LobbyPage() {
       .then(wp => {
         if (wp.contentLink) setContentLink(wp.contentLink);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [id, api]);
 
   useEffect(() => {
     if (!contentLink) return;
+
     const regex = /(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/;
-    const match = contentLink.match(regex);
-    const vid = match ? match[1] : contentLink;
+    if (!contentLink.match(regex)) {
+      setVideoError(true);
+      setVideoRetries(maxVideoRetries);
+      return;
+    }
+
+    const match = contentLink.match(regex)!;
+    const vid = match[1];
 
     window.onYouTubeIframeAPIReady = () => {
       playerRef.current?.destroy?.();
@@ -86,16 +93,11 @@ export default function LobbyPage() {
         videoId: vid,
         playerVars: { autoplay: 0 },
         events: {
-          onReady: () => {
-            setVideoError(false);
-          },
+          onReady: () => setVideoError(false),
           onError: () => {
             setVideoError(true);
             if (videoRetries < maxVideoRetries) {
-              setTimeout(() => {
-                setVideoRetries(r => r + 1);
-                window.onYouTubeIframeAPIReady();
-              }, 3000);
+              setTimeout(() => setVideoRetries(r => r + 1), 3000);
             }
           }
         },
@@ -117,7 +119,7 @@ export default function LobbyPage() {
     }
     subscribedRef.current = false;
     joinedRef.current     = false;
-  
+
     const sock = new SockJS(`${getApiDomain()}/ws`);
     const client = new Client({
       webSocketFactory: () => sock,
@@ -181,7 +183,7 @@ export default function LobbyPage() {
       }
       client.deactivate();
     };
-  }, [roomId, username]);  
+  }, [roomId, username]);
 
   useEffect(() => {
     if (countdown == null) return;
@@ -204,12 +206,12 @@ export default function LobbyPage() {
   const toggleReady = () => {
     const nr = !isReady;
     setIsReady(nr);
-  
+
     stompRef.current?.publish({
       destination: nr ? '/app/ready' : '/app/notReady',
       body: JSON.stringify({ roomId, sender: username })
     });
-  
+
     if (!nr) {
       playerRef.current?.pauseVideo();
       countdownStarted.current = false;
@@ -251,21 +253,41 @@ export default function LobbyPage() {
         }} />
         {videoError && (
           <div style={{
-            position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            padding: 20,
-            textAlign: 'center'
-          }}>
-            {videoRetries < maxVideoRetries
-              ? 'Video failed to load. Retrying...'
-              : <>An error occurred loading the video. The video may be private or does not allow embedding.<br/><a href={contentLink || '#'} target="_blank">Watch on YouTube instead</a></>
-            }
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              padding: 20,
+              textAlign: 'center'
+            }}
+          >
+            {videoRetries < maxVideoRetries ? (
+              <span style={{ fontSize: '1.5rem', fontWeight: 500 }}>
+                Video failed to load. Retrying...
+              </span>
+            ) : (
+              <>
+                <p style={{ fontSize: '1.4rem', marginBottom: 24, lineHeight: 1.4 }}>
+                  An error occurred loading the video.<br />
+                  The video might be private or there may be copyright issues.
+                </p>
+                <Button
+                  size="large"
+                  style={{
+                    backgroundColor: '#007BFF',
+                    borderColor: '#007BFF',
+                    color: '#ffffff',
+                  }}
+                  onClick={() => window.open(contentLink || '#', '_blank')}
+                >
+                  Open link in new tab
+                </Button>
+              </>
+            )}
           </div>
         )}
         {countdown != null && (
@@ -324,24 +346,24 @@ export default function LobbyPage() {
 
       <div style={{ gridArea: 'button', display: 'flex', gap: 8 }}>
         <Button onClick={toggleReady} style={{
-            flex: 1,
-            backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
-            borderColor: isReady ? '#ff4d4f' : '#52c41a',
+          flex: 1,
+          backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
+          borderColor: isReady ? '#ff4d4f' : '#52c41a',
           color: '#FFF'
         }}>
           {isReady ? 'I am not ready' : 'I am ready'}
         </Button>
         <Button onClick={() => router.push("/watchparty")} style={{
-            flex: 1,
-            backgroundColor: '#ff4d4f',
-            borderColor: '#ff4d4f',
+          flex: 1,
+          backgroundColor: '#ff4d4f',
+          borderColor: '#ff4d4f',
           color: '#FFF'
         }}>
           Leave Lobby
         </Button>
       </div>
       {syncMessage && (
-        <div style={{ position:'fixed', bottom:20, left:'50%', transform:'translateX(-50%)', backgroundColor:'rgba(0,0,0,0.7)', color:'#fff', fontSize:'2rem', padding:'8px 16px', borderRadius:4 }}>
+        <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '2rem', padding: '8px 16px', borderRadius: 4 }}>
           {syncMessage}
         </div>
       )}
