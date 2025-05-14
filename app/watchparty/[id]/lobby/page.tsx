@@ -376,9 +376,26 @@ export default function LobbyPage() {
             ))}
           </div>
 
-          <div style={{ flex: 2, padding: 10, overflowY: 'auto', color: '#000' }}>
+          <div style={{
+            flex: 2,
+            padding: 10,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            wordBreak: 'break-word',
+            color: '#000'
+          }}>
             {chat.map((m, i) => (
-              <div key={i} style={{ marginBottom: 8 }}><strong>{m.sender}:</strong> {m.content}</div>
+              <div
+                key={i}
+                style={{ marginBottom: 8 }}
+                ref={el => {
+                  if (i === chat.length - 1 && el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                <strong>{m.sender}:</strong> {m.content}
+              </div>
             ))}
           </div>
 

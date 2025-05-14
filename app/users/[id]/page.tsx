@@ -27,6 +27,8 @@ const contentStyle: CSSProperties = {
   position: "relative",
   maxHeight: "calc(100vh - 200px)",
   overflowY: "auto",
+  overflowX: "hidden",
+  wordBreak: "break-word",
 };
 
 const topRowStyle: CSSProperties = {
@@ -237,9 +239,9 @@ const UserProfile: React.FC = () => {
               <div style={valueBoxStyle}>{user.biography || "N/A"}</div>
             </div>
             <div style={{ marginTop: "20px" }}>
-            <Button style={buttonStyle} onClick={() => router.back()}>
-              Back
-            </Button>
+              <Button style={buttonStyle} onClick={() => router.back()}>
+                Back
+              </Button>
             </div>
           </div>
           <div style={{ flex: 1, maxWidth: "480px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -263,8 +265,25 @@ const UserProfile: React.FC = () => {
                 >
                   Unfriend
                 </Button>
-                <ChatBox friendId={Number(id)} currentUserId={loggedInUserId!} />
+                <div
+                  style={{
+                    flex: 1,
+                    height: "100%",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    wordBreak: "break-word",
+                    padding: 10,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <ChatBox
+                    friendId={Number(id)}
+                    currentUserId={loggedInUserId!}
+                  />
+                </div>
               </>
+
             ) : (
               <div style={placeholderStyle}>
                 <p><strong>Messaging unavailable.</strong></p>
