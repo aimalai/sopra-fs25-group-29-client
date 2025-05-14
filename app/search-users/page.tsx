@@ -135,19 +135,12 @@ export default function SearchUsersPage() {
             <Table<User>
               dataSource={results}
               rowKey="id"
-              columns={[
-                ...commonColumns,
-                {
-                  title: "Actions",
-                  key: "actions",
-                  render: (_: unknown, user: User) => (
-                    <Button type="primary" onClick={() => router.push(`/users/${user.id}`)}>
-                      Details
-                    </Button>
-                  ),
-                },
-              ]}
+              columns={commonColumns}
               pagination={{ pageSize: 5 }}
+              onRow={user => ({
+                onClick: () => router.push(`/users/${user.id}`),
+                style: { cursor: "pointer" },
+              })}
             />
           </Card>
         </Col>
@@ -157,19 +150,12 @@ export default function SearchUsersPage() {
             <Table<User>
               dataSource={friends}
               rowKey="id"
-              columns={[
-                ...commonColumns,
-                {
-                  title: "Actions",
-                  key: "actions",
-                  render: (_: unknown, user: User) => (
-                    <Button type="primary" onClick={() => router.push(`/users/${user.id}`)}>
-                      Details
-                    </Button>
-                  ),
-                },
-              ]}
+              columns={commonColumns}
               pagination={{ pageSize: 5 }}
+              onRow={user => ({
+                onClick: () => router.push(`/users/${user.id}`),
+                style: { cursor: "pointer" },
+              })}
             />
           </Card>
         </Col>
