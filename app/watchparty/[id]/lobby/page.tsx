@@ -67,6 +67,7 @@ export default function LobbyPage() {
   const [notReadyMsg, setNotReadyMsg] = useState<string | null>(null);
   const prevParticipantsRef = useRef<{ username: string; ready: boolean }[]>([]);
   const splashTimeout = useRef<number | null>(null);
+  const [toggleLocked, setToggleLocked] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -222,6 +223,10 @@ export default function LobbyPage() {
   }, [countdown]);
 
   const toggleReady = () => {
+    if (toggleLocked) return;
+    setToggleLocked(true);
+    setTimeout(() => setToggleLocked(false), 3000);
+
     const nr = !isReady;
     setIsReady(nr);
 
@@ -389,7 +394,7 @@ export default function LobbyPage() {
         </div>
 
         <div style={{ gridArea: 'button', display: 'flex', gap: 8 }}>
-          <Button onClick={toggleReady} style={{
+          <Button onClick={toggleReady} disabled={toggleLocked} style={{
             flex: 1,
             backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
             borderColor: isReady ? '#ff4d4f' : '#52c41a',
