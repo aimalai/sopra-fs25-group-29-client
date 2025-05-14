@@ -64,6 +64,9 @@ export default function LobbyPage() {
   const stompRef = useRef<Client | null>(null);
   const subscribedRef = useRef(false);
   const joinedRef = useRef(false);
+  const [notReadyMsg, setNotReadyMsg] = useState<string | null>(null);
+  const prevParticipantsRef = useRef<{ username: string; ready: boolean }[]>([]);
+  const splashTimeout = useRef<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -126,23 +129,38 @@ export default function LobbyPage() {
       reconnectDelay: 5000,
       onConnect: () => {
         if (!subscribedRef.current) {
-          client.subscribe(`/topic/syncReadyState/${roomId}`, m => {
-            const state = JSON.parse(m.body) as {
-              participants: { username: string; ready: boolean }[];
-              hostUsername: string;
-            };
-            const parts = state.participants || [];
-            setParticipants(parts);
-            setHostUsername(state.hostUsername || '');
-            if (!parts.every(p => p.ready)) {
-              playerRef.current?.pauseVideo();
-              countdownStarted.current = false;
-              setCountdown(null);
-            } else if (!countdownStarted.current) {
-              countdownStarted.current = true;
-              setCountdown(3);
+          client.subscribe(
+            `/topic/syncReadyState/${roomId}`,
+            m => {
+              const state = JSON.parse(m.body) as {
+                participants: { username: string; ready: boolean }[];
+                hostUsername: string;
+              };
+              const parts = state.participants || [];
+
+              parts.forEach(pNew => {
+                const pOld = prevParticipantsRef.current.find(p => p.username === pNew.username);
+                if (pOld?.ready && !pNew.ready && pNew.username !== username) {
+                  setNotReadyMsg(`${pNew.username} is not ready`);
+                  if (splashTimeout.current) clearTimeout(splashTimeout.current);
+                  splashTimeout.current = window.setTimeout(() => setNotReadyMsg(null), 2000);
+                }
+              });
+              prevParticipantsRef.current = parts;
+
+              setParticipants(parts);
+              setHostUsername(state.hostUsername || '');
+
+              if (!parts.every(p => p.ready)) {
+                playerRef.current?.pauseVideo();
+                countdownStarted.current = false;
+                setCountdown(null);
+              } else if (!countdownStarted.current) {
+                countdownStarted.current = true;
+                setCountdown(3);
+              }
             }
-          });
+          );
           client.subscribe(`/topic/syncTime/${roomId}`, m => {
             const { currentTime } = JSON.parse(m.body) as { currentTime: number };
             const pl = playerRef.current;
@@ -229,30 +247,56 @@ export default function LobbyPage() {
   };
 
   return (
-    <div style={{
-      marginTop: '65px',
-      width: '90vw',
-      maxWidth: '1600px',
-      height: 'calc(100vh - 100px)',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      display: 'grid',
-      gridTemplateColumns: '3fr minmax(250px, 1fr)',
-      gridTemplateRows: 'auto 60px',
-      gridTemplateAreas: '"video chat" "button button"',
-      gap: 12,
-      boxSizing: 'border-box',
-      overflow: 'hidden'
-    }}>
-      <div style={{ gridArea: 'video', position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-        <div id="yt-player" style={{
-          width: '100%',
-          height: '100%',
-          aspectRatio: '16/9',
-          backgroundColor: '#000',
-        }} />
-        {videoError && (
+    <>
+      {notReadyMsg && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0,0,0,0)',
+          animation: 'overlayFade 0.5s forwards',
+          zIndex: 9999
+        }}>
           <div style={{
+            padding: '2rem 4rem',
+            backgroundColor: 'rgba(255,0,0,0.9)',
+            color: '#fff',
+            borderRadius: '8px',
+            fontSize: '2rem',
+            maxWidth: '80%',
+            textAlign: 'center',
+            animation: 'popInBounce 0.6s'
+          }}>
+            {notReadyMsg}
+          </div>
+        </div>
+      )}
+      <div style={{
+        marginTop: '65px',
+        width: '90vw',
+        maxWidth: '1600px',
+        height: 'calc(100vh - 100px)',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        display: 'grid',
+        gridTemplateColumns: '3fr minmax(250px, 1fr)',
+        gridTemplateRows: 'auto 60px',
+        gridTemplateAreas: '"video chat" "button button"',
+        gap: 12,
+        boxSizing: 'border-box',
+        overflow: 'hidden'
+      }}>
+        <div style={{ gridArea: 'video', position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+          <div id="yt-player" style={{
+            width: '100%',
+            height: '100%',
+            aspectRatio: '16/9',
+            backgroundColor: '#000',
+          }} />
+          {videoError && (
+            <div style={{
               position: 'absolute',
               top: 0, left: 0, right: 0, bottom: 0,
               backgroundColor: 'rgba(0,0,0,0.7)',
@@ -264,109 +308,122 @@ export default function LobbyPage() {
               padding: 20,
               textAlign: 'center'
             }}
-          >
-            {videoRetries < maxVideoRetries ? (
-              <span style={{ fontSize: '1.5rem', fontWeight: 500 }}>
-                Video failed to load. Retrying...
-              </span>
-            ) : (
-              <>
-                <p style={{ fontSize: '1.4rem', marginBottom: 24, lineHeight: 1.4 }}>
-                  An error occurred loading the video.<br />
-                  The video might be private or there may be copyright issues.
-                </p>
-                <Button
-                  size="large"
-                  style={{
-                    backgroundColor: '#007BFF',
-                    borderColor: '#007BFF',
-                    color: '#ffffff',
-                  }}
-                  onClick={() => window.open(contentLink || '#', '_blank')}
-                >
-                  Open link in new tab
-                </Button>
-              </>
-            )}
-          </div>
-        )}
-        {countdown != null && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '8rem', zIndex: 10
-          }}>
-            {countdown > 0 ? countdown : 'Go!'}
-          </div>
-        )}
-      </div>
+            >
+              {videoRetries < maxVideoRetries ? (
+                <span style={{ fontSize: '1.5rem', fontWeight: 500 }}>
+                  Video failed to load. Retrying...
+                </span>
+              ) : (
+                <>
+                  <p style={{ fontSize: '1.4rem', marginBottom: 24, lineHeight: 1.4 }}>
+                    An error occurred loading the video.<br />
+                    The video might be private or there may be copyright issues.
+                  </p>
+                  <Button
+                    size="large"
+                    style={{
+                      backgroundColor: '#007BFF',
+                      borderColor: '#007BFF',
+                      color: '#ffffff',
+                    }}
+                    onClick={() => window.open(contentLink || '#', '_blank')}
+                  >
+                    Open link in new tab
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+          {countdown != null && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '8rem', zIndex: 10
+            }}>
+              {countdown > 0 ? countdown : 'Go!'}
+            </div>
+          )}
+        </div>
 
-      <div style={{
-        gridArea: 'chat',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        overflow: 'hidden'
-      }}>
         <div style={{
-          flex: 1,
-          padding: 10,
-          overflowY: 'auto',
-          borderBottom: '1px solid #ddd',
-          backgroundColor: '#e5e5e5',
-          color: '#000',
+          gridArea: 'chat',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#fff',
+          borderRadius: 8,
+          overflow: 'hidden'
         }}>
+          <div style={{
+            flex: 1,
+            padding: 10,
+            overflowY: 'auto',
+            borderBottom: '1px solid #ddd',
+            backgroundColor: '#e5e5e5',
+            color: '#000',
+          }}>
           Lobby (Host: {hostUsername}):<br/><br/>
-          {participants.map((p, i) => (
-            <span key={i} style={{ marginRight: 8 }}>
-              {p.username}{p.ready ? ' ✅' : ' ⏳'}
-            </span>
-          ))}
+            {participants.map((p, i) => (
+              <span key={i} style={{ marginRight: 8 }}>
+                {p.username}{p.ready ? ' ✅' : ' ⏳'}
+              </span>
+            ))}
+          </div>
+
+          <div style={{ flex: 2, padding: 10, overflowY: 'auto', color: '#000' }}>
+            {chat.map((m, i) => (
+              <div key={i} style={{ marginBottom: 8 }}><strong>{m.sender}:</strong> {m.content}</div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #ddd' }}>
+            <Input
+              value={msg}
+              onChange={e => setMsg(e.target.value)}
+              onPressEnter={sendChat}
+              placeholder="Type a message..."
+            />
+            <Button onClick={sendChat} style={{ marginLeft: 8 }}>Send</Button>
+          </div>
         </div>
 
-        <div style={{ flex: 2, padding: 10, overflowY: 'auto', color: '#000' }}>
-          {chat.map((m, i) => (
-            <div key={i} style={{ marginBottom: 8 }}><strong>{m.sender}:</strong> {m.content}</div>
-          ))}
+        <div style={{ gridArea: 'button', display: 'flex', gap: 8 }}>
+          <Button onClick={toggleReady} style={{
+            flex: 1,
+            backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
+            borderColor: isReady ? '#ff4d4f' : '#52c41a',
+            color: '#FFF'
+          }}>
+            {isReady ? 'I am not ready' : 'I am ready'}
+          </Button>
+          <Button onClick={() => router.push("/watchparty")} style={{
+            flex: 1,
+            backgroundColor: '#ff4d4f',
+            borderColor: '#ff4d4f',
+            color: '#FFF'
+          }}>
+            Leave Lobby
+          </Button>
         </div>
-
-        <div style={{ display: 'flex', padding: 10, borderTop: '1px solid #ddd' }}>
-          <Input
-            value={msg}
-            onChange={e => setMsg(e.target.value)}
-            onPressEnter={sendChat}
-            placeholder="Type a message..."
-          />
-          <Button onClick={sendChat} style={{ marginLeft: 8 }}>Send</Button>
-        </div>
+        {syncMessage && (
+          <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '2rem', padding: '8px 16px', borderRadius: 4 }}>
+            {syncMessage}
+          </div>
+        )}
       </div>
+      <style jsx global>{`
+        @keyframes overlayFade {
+        from { background-color: rgba(0,0,0,0); }
+        to   { background-color: rgba(0,0,0,0.7); }
+        }
 
-      <div style={{ gridArea: 'button', display: 'flex', gap: 8 }}>
-        <Button onClick={toggleReady} style={{
-          flex: 1,
-          backgroundColor: isReady ? '#ff4d4f' : '#52c41a',
-          borderColor: isReady ? '#ff4d4f' : '#52c41a',
-          color: '#FFF'
-        }}>
-          {isReady ? 'I am not ready' : 'I am ready'}
-        </Button>
-        <Button onClick={() => router.push("/watchparty")} style={{
-          flex: 1,
-          backgroundColor: '#ff4d4f',
-          borderColor: '#ff4d4f',
-          color: '#FFF'
-        }}>
-          Leave Lobby
-        </Button>
-      </div>
-      {syncMessage && (
-        <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '2rem', padding: '8px 16px', borderRadius: 4 }}>
-          {syncMessage}
-        </div>
-      )}
-    </div>
+        @keyframes popInBounce {
+          0%   { transform: scale(0.5);   opacity: 0; }
+          60%  { transform: scale(1.1);   opacity: 1; }
+          100% { transform: scale(1);     opacity: 1; }`
+      }
+      </style>
+    </>
   );
 }
