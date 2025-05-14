@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
-import { Card, Input, Table, Button, Space, message } from "antd";
+import { Card, Input, Table, Button, Space, message, Row, Col } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
 import type { ColumnsType } from "antd/es/table";
-import { Row, Col } from "antd";
 
 export default function SearchUsersPage() {
   const router = useRouter();
@@ -37,9 +36,9 @@ export default function SearchUsersPage() {
         !q
           ? all
           : all.filter(u =>
-            (u.username?.toLowerCase().includes(q) ?? false) ||
-            (u.email?.toLowerCase().includes(q) ?? false)
-          )
+                (u.username?.toLowerCase().includes(q) ?? false) ||
+                (u.email?.toLowerCase().includes(q) ?? false)
+            )
       );
     } catch {
       message.error("Failed to search users.");
@@ -109,6 +108,8 @@ export default function SearchUsersPage() {
       dataIndex: "email",
       key: "email",
       responsive: ["sm"],
+      ellipsis: { showTitle: true },
+      width: 200,
     },
     {
       title: "Status",
