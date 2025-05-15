@@ -10,8 +10,10 @@ import { SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
 import type { ColumnsType } from "antd/es/table";
+import useAuth from "@/hooks/useAuth";
 
 export default function SearchUsersPage() {
+  const isAuthed = useAuth();
   const router = useRouter();
   const api = useApi();
   const [ userId ] = useSessionStorage<number>("userId", 0);
@@ -36,9 +38,9 @@ export default function SearchUsersPage() {
         !q
           ? all
           : all.filter(u =>
-                (u.username?.toLowerCase().includes(q) ?? false) ||
-                (u.email?.toLowerCase().includes(q) ?? false)
-            )
+            (u.username?.toLowerCase().includes(q) ?? false) ||
+            (u.email?.toLowerCase().includes(q) ?? false)
+          )
       );
     } catch {
       message.error("Failed to search users.");
@@ -76,6 +78,8 @@ export default function SearchUsersPage() {
     fetchFriends();
     fetchRequests();
   }, [userId]);
+
+  if (!isAuthed) return null;
 
   const commonColumns: ColumnsType<User> = [
     {

@@ -6,6 +6,7 @@ import { Card, Button, message, Spin, Rate, Input, List, Grid } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
 import Image from "next/image";
+import useAuth from "@/hooks/useAuth";
 
 interface MediaDetails {
   id: number;
@@ -44,6 +45,7 @@ interface UserGetDTO {
 }
 
 const DetailsPage: React.FC = () => {
+  const isAuthed = useAuth();
   const screens = Grid.useBreakpoint();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -58,7 +60,7 @@ const DetailsPage: React.FC = () => {
     if (!token) {
       router.replace("/login");
     }
-  }, [token, router]); 
+  }, [token, router]);
 
   const [details, setDetails] = useState<MediaDetails | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,7 +108,7 @@ const DetailsPage: React.FC = () => {
       return;
     }
     fetchDetails();
-  
+
     const checkWatchlist = async () => {
       if (!userId || !id) return;
       try {
@@ -121,7 +123,7 @@ const DetailsPage: React.FC = () => {
         setInWatchlist(exists);
       } catch {}
     };
-  
+
     const fetchUserRating = async () => {
       if (!userId || !id) return;
       try {
@@ -132,7 +134,7 @@ const DetailsPage: React.FC = () => {
         if (resp.comment) setCurrentTextComment(resp.comment);
       } catch {}
     };
-  
+
     const fetchAggregatedUserRating = async () => {
       if (!id) return;
       try {
@@ -142,7 +144,7 @@ const DetailsPage: React.FC = () => {
         setAggregatedUserRating(resp.averageRating);
       } catch {}
     };
-  
+
     const fetchChatRatings = async () => {
       if (!id) return;
       try {
@@ -150,12 +152,14 @@ const DetailsPage: React.FC = () => {
         setChatRatings(resp);
       } catch {}
     };
-  
+
     checkWatchlist();
     fetchUserRating();
     fetchAggregatedUserRating();
     fetchChatRatings();
-  }, [id, mediaType, userId, apiService]);  
+  }, [id, mediaType, userId, apiService]);
+
+  if (!isAuthed) return null;
 
   const handleAdd = async () => {
     if (!userId || !details) return;

@@ -18,6 +18,7 @@ import utc from "dayjs/plugin/utc";
 import type { ColumnsType } from "antd/es/table";
 import InviteFriendsModal from "@/watchparty/InviteFriendsModal";
 import InviteResponsesPolling from "./InviteResponsesPolling";
+import useAuth from "@/hooks/useAuth";
 
 dayjs.extend(utc);
 
@@ -39,6 +40,7 @@ interface Watchparty {
 }
 
 export default function WatchpartyPage() {
+  const isAuthed = useAuth();
   const router = useRouter();
   const apiService = useApi();
   const [messageApi, contextHolder] = message.useMessage();
@@ -153,6 +155,8 @@ export default function WatchpartyPage() {
     };
     fetchData();
   }, [apiService, userIdStr, username]);
+
+  if (!isAuthed) return null;
 
   const handleInviteClick = (watchPartyId: number) => {
     setSelectedWatchPartyId(watchPartyId);

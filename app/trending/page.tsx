@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import { Card, Spin, Button } from "antd";
 import Image from "next/image";
+import useAuth from "@/hooks/useAuth";
 
 interface TrendingItem {
   id: number;
@@ -15,6 +16,7 @@ interface TrendingItem {
 }
 
 export default function TrendingPage() {
+  const isAuthed = useAuth();
   const api = useApi();
   const router = useRouter();
   const [data, setData] = useState<TrendingItem[]>([]);
@@ -43,6 +45,8 @@ export default function TrendingPage() {
     router.push(`/results/details?id=${item.id}&media_type=${mediaType}`);
   };
 
+  if (!isAuthed) return null;
+
   return (
     <div style={{ padding: "100px 24px" }}>
       <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto" }}>
@@ -66,7 +70,7 @@ export default function TrendingPage() {
             </div>
           ) : (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
-            {data.map(item => (
+              {data.map(item => (
                 <Card
                   key={item.id}
                   hoverable

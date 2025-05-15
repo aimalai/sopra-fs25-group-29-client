@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Input, Button } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import TutorialContent from "@/components/TutorialContent";
+import useAuth from "@/hooks/useAuth";
 
 const containerStyle: CSSProperties = {
   minHeight: "100vh",
@@ -48,6 +49,7 @@ const tutorialBoxStyle: CSSProperties = {
 };
 
 export default function Dashboard() {
+  const isAuthed = useAuth();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,8 @@ export default function Dashboard() {
       window.location.reload();
     }
   }, []);
+
+  if (!isAuthed) return null;
 
   const handleSearch = () => {
     const q = query.trim();

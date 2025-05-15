@@ -8,6 +8,7 @@ import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
 import Image from "next/image";
 import type { ColumnsType } from "antd/es/table";
+import useAuth from "@/hooks/useAuth";
 
 interface SearchResult {
   id: number;
@@ -71,10 +72,11 @@ interface ApiResponse {
 }
 
 const ResultsPage: React.FC = () => {
+  const isAuthed = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const apiService = useApi();
-  const [ userId ] = useSessionStorage<number>("userId", 0);
+  const [userId] = useSessionStorage<number>("userId", 0);
 
   const initialQuery = searchParams.get("query") || "";
   const initialSort = searchParams.get("sort") || "popularity";
@@ -270,6 +272,8 @@ const ResultsPage: React.FC = () => {
     fetchData(currentPage, pageSize);
   }, [fetchData, currentPage, pageSize]);
 
+  if (!isAuthed) return null;
+
   return (
     <div style={containerStyle}>
       <div style={contentStyle}>
@@ -285,7 +289,7 @@ const ResultsPage: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onPressEnter={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
               style={{ width: 300 }}
-              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />} 
+              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />}
             />
             <Select value={sortOption} onChange={(v) => { setSortOption(v); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(v)}`); }} style={{ minWidth: 180 }}>
               <Select.Option value="popularity">Sort by Popularity</Select.Option>

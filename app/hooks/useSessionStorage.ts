@@ -13,6 +13,7 @@ export default function useSessionStorage<T>(key: string, initialValue: T) {
   useEffect(() => {
     try {
       sessionStorage.setItem(key, JSON.stringify(state));
+      localStorage.setItem(key, JSON.stringify(state));
     } catch {}
   }, [key, state]);
 

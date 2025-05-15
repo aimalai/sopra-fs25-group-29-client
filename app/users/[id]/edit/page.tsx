@@ -8,6 +8,7 @@ import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
 import Image from "next/image";
 import { avatars } from "@/constants/avatars";
+import useAuth from "@/hooks/useAuth";
 
 type FormValues = {
   username: string;
@@ -139,6 +140,7 @@ const avatarItem: CSSProperties = {
 };
 
 export default function EditUser() {
+  const isAuthed = useAuth();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const apiService = useApi();
@@ -183,6 +185,8 @@ export default function EditUser() {
       }
     })();
   }, [isOwnProfile, apiService, id, form]);
+
+  if (!isAuthed) return null;
 
   const handleAvatarSelect = (key: string) => {
     form.setFieldsValue({ avatarKey: key });

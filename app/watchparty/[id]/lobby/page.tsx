@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { getApiDomain } from '@/utils/domain';
 import { useApi } from '@/hooks/useApi';
 import useSessionStorage from '@/hooks/useSessionStorage';
+import useAuth from "@/hooks/useAuth";
 
 declare global {
   interface Window {
@@ -37,6 +38,7 @@ interface Watchparty {
 }
 
 export default function LobbyPage() {
+  const isAuthed = useAuth();
   const { id } = useParams() as { id?: string };
   const router = useRouter();
   const roomId = id || 'lobby-room';
@@ -221,6 +223,8 @@ export default function LobbyPage() {
     }
     setCountdown(null);
   }, [countdown]);
+
+  if (!isAuthed) return null;
 
   const toggleReady = () => {
     if (toggleLocked) return;

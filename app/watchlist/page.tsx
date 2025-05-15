@@ -6,6 +6,7 @@ import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
 import { Card, Table, Spin, Button, Select, Space, message } from "antd";
 import Image from "next/image";
+import useAuth from "@/hooks/useAuth";
 
 interface Movie {
   movieId: string;
@@ -22,6 +23,7 @@ interface TopRatedMovie {
 }
 
 export default function WatchlistPage() {
+  const isAuthed = useAuth();
   const router = useRouter();
   const api = useApi();
   const [token] = useSessionStorage<string>("token", "");
@@ -158,6 +160,8 @@ export default function WatchlistPage() {
     }
   }, [userId, selectedFriendId]);
 
+  if (!isAuthed) return null;
+
   const columns = [
     {
       title: "Poster",
@@ -280,7 +284,7 @@ export default function WatchlistPage() {
                 <Select<number | "all" | null>
                   placeholder="Select a friend…"
                   value={selectedFriendId}
-                   onChange={id => {
+                  onChange={id => {
                     if (id === null || id === undefined) {
                       setSelectedFriendId(null);
                       setFriendWatchlist([]);

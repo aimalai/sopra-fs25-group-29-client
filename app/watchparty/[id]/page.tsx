@@ -5,6 +5,7 @@ import { Card, Button, Descriptions } from "antd";
 import { useApi } from "@/hooks/useApi";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import useAuth from "@/hooks/useAuth";
 
 dayjs.extend(utc);
 
@@ -29,6 +30,7 @@ interface Watchparty {
 }
 
 const WatchpartyDetail: React.FC = () => {
+  const isAuthed = useAuth();
   const { id } = useParams() as { id?: string };
   const router = useRouter();
   const apiService = useApi();
@@ -48,6 +50,7 @@ const WatchpartyDetail: React.FC = () => {
     fetchWatchparty();
   }, [id, apiService]);
 
+  if (!isAuthed) return null;
   if (!id) return <div>No ID provided.</div>;
   if (!watchparty) return <div>Loading details...</div>;
 

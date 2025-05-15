@@ -9,6 +9,7 @@ import { User } from "@/types/user";
 import Image from "next/image";
 import ChatBox from "@/components/ChatBox";
 import { avatars } from "@/constants/avatars";
+import useAuth from "@/hooks/useAuth";
 
 const pageContainerStyle: CSSProperties = {
   display: "flex",
@@ -97,6 +98,7 @@ const placeholderStyle: CSSProperties = {
 };
 
 const UserProfile: React.FC = () => {
+  const isAuthed = useAuth();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const apiService = useApi();
@@ -140,6 +142,8 @@ const UserProfile: React.FC = () => {
         .catch(() => setIsPending(false));
     }
   }, [apiService, loggedInUserId, user, isOwnProfile]);
+
+  if (!isAuthed) return null;
 
   if (!user) {
     return <p>Loading user data...</p>;
