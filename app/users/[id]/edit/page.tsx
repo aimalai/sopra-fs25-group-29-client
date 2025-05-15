@@ -206,7 +206,7 @@ export default function EditUser() {
       }
       await apiService.put(`/users/${id}`, payload);
       message.success("Profile updated successfully.");
-      router.push(`/users/${id}`);
+      router.replace(`/users/${id}`);
     } catch (error: unknown) {
       message.error(`Update Failed: ${(error as Error).message}`);
     }
@@ -372,8 +372,8 @@ export default function EditUser() {
               </Button>
             </Form.Item>
             <Form.Item>
-              <Button style={buttonStyle} onClick={() => router.push(`/users/${id}`)}>
-                Back
+              <Button style={buttonStyle} onClick={() => router.replace(`/users/${id}`)}>
+                Cancel
               </Button>
             </Form.Item>
           </Form>

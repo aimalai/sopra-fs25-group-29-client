@@ -187,8 +187,8 @@ const UserProfile: React.FC = () => {
             Share your Watchlist with Friends
           </Checkbox>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
-            <Button style={buttonStyle} onClick={() => router.push(`/users/${id}/edit`)}>
-              Edit
+            <Button style={buttonStyle} onClick={() => router.replace(`/users/${id}/edit`)}>
+              Edit Profile
             </Button>
             <Button style={buttonStyle} onClick={() => router.back()}>
               Back
