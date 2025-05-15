@@ -79,11 +79,11 @@ export default function Navbar() {
   }
 
   const items: MenuProps["items"] = [
-    { key: "home", label: "🏠 Home", onClick: () => router.push("/users") },
+    { key: "home", label: "🏠 Home", onClick: () => router.push("/home") },
     { key: "watchparty", label: "🎉 Create Watchparty", onClick: () => router.push("/watchparty") },
     { key: "trending", label: "🔥 Trending Now", onClick: () => router.push("/trending") },
     { key: "watchlist", label: "📺 Your Watchlist", onClick: () => router.push("/watchlist") },
-    { key: "search", label: "🔎 Search for Users", onClick: () => router.push("/search-users") },
+    { key: "search", label: "🔎 Search for Users", onClick: () => router.push("/users") },
   ];
 
   const userMenuItems: MenuProps["items"] = [
@@ -141,7 +141,7 @@ export default function Navbar() {
           style={{ fontSize: 24, color: "#333", marginRight: 24 }}
         />
         <div
-          onClick={() => router.push("/users")}
+          onClick={() => router.push("/home")}
           style={{
             cursor: "pointer",
             marginRight: 48,

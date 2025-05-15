@@ -276,7 +276,7 @@ const ResultsPage: React.FC = () => {
         <div style={boxStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div style={headingStyle}>Search Results for "{initialQuery}"</div>
-            <Button style={buttonPrimaryStyle} onClick={() => router.push("/users")}>Back to Dashboard</Button>
+            <Button style={buttonPrimaryStyle} onClick={() => router.push("/home")}>Back to Home</Button>
           </div>
           <Space size="large" style={{ display: "flex", flexWrap: "wrap", marginBottom: 20 }}>
             <Input

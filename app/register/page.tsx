@@ -84,7 +84,7 @@ const Register: React.FC = () => {
       message.success(
         "Registration Successful: You have been successfully registered and logged in."
       );
-      router.push("/users");
+      router.push("/home");
     } catch (error) {
       if (error instanceof Error) {
         message.error(

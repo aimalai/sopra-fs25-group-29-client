@@ -68,7 +68,7 @@ export default function OTPVerification() {
         setToken(response.token as string);
         setUserId(Number(response.userId));
         message.success("OTP Verified Successfully.");
-        router.push("/users");
+        router.push("/home");
       } else {
         throw new Error("Unexpected response: " + JSON.stringify(response));
       }
