@@ -35,7 +35,7 @@ export default function WatchlistPage() {
 
   const [watchlist, setWatchlist] = useState<Movie[]>([]);
   const [friends, setFriends] = useState<{ id: number; username: string }[]>([]);
-  const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
+  const [selectedFriendId, setSelectedFriendId] = useState<number | "all" | null>(null);
   const [friendWatchlist, setFriendWatchlist] = useState<Movie[]>([]);
   const [shareableAllowed, setShareableAllowed] = useState(true);
   const [shareableMessage, setShareableMessage] = useState("");
@@ -104,6 +104,30 @@ export default function WatchlistPage() {
     }
   };
 
+  const loadAllFriendsWatchlists = async () => {
+    if (!userId) return;
+    setLoadingFriendWatch(true);
+    try {
+      const all = await api.get<{ friendId: number; watchlist: string[] }[]>(`/users/${userId}/friends/watchlists`);
+      const parsed: Movie[] = all
+        .flatMap(dto =>
+          dto.watchlist
+            .map(i => { try { return JSON.parse(i) as Movie; } catch { return null; } })
+            .filter((m): m is Movie => m !== null)
+        );
+      const unique = Array.from(
+        new Map(parsed.map(m => [m.movieId, m])).values()
+      );
+      setShareableAllowed(true);
+      setShareableMessage("");
+      setFriendWatchlist(unique);
+    } catch {
+      message.error("Failed to load all friends' watchlists.");
+    } finally {
+      setLoadingFriendWatch(false);
+    }
+  };
+
   const loadTopRated = async () => {
     if (!userId) return;
     setLoadingTopRated(true);
@@ -129,7 +153,7 @@ export default function WatchlistPage() {
   }, [userId]);
 
   useEffect(() => {
-    if (userId && selectedFriendId) {
+    if (userId && selectedFriendId && selectedFriendId !== "all") {
       loadFriendWatchlist(selectedFriendId);
     }
   }, [userId, selectedFriendId]);
@@ -253,13 +277,29 @@ export default function WatchlistPage() {
             <div style={{ marginTop: 16 }}>
               <strong>Want to view your friend's watchlist? 👀</strong>
               <Space style={{ marginTop: 8 }}>
-                <Select<number | null>
-                  placeholder="Select friend…"
+                <Select<number | "all" | null>
+                  placeholder="Select a friend…"
                   value={selectedFriendId}
-                  onChange={id => setSelectedFriendId(id)}
+                   onChange={id => {
+                    if (id === null || id === undefined) {
+                      setSelectedFriendId(null);
+                      setFriendWatchlist([]);
+                      return;
+                    }
+                    if (id === "all") {
+                      setSelectedFriendId("all");
+                      loadAllFriendsWatchlists();
+                    } else {
+                      setSelectedFriendId(id);
+                      loadFriendWatchlist(id);
+                    }
+                  }}
                   allowClear
                   style={{ width: 200 }}
                 >
+                  <Select.Option key="all" value="all">
+                    All friends
+                  </Select.Option>
                   {friends.map(f => (
                     <Select.Option key={f.id} value={f.id}>
                       {f.username}
@@ -288,9 +328,13 @@ export default function WatchlistPage() {
         </div>
       </div>
 
-      {selectedFriendId && (
+      {selectedFriendId !== null && (
         <Card
-          title={`${friends.find(f => f.id === selectedFriendId)?.username}'s Watchlist`}
+          title={
+            selectedFriendId === "all"
+              ? "Friends' Watchlist"
+              : `${friends.find(f => f.id === selectedFriendId)?.username}'s Watchlist`
+          }
           style={{ marginTop: 24 }}
         >
           {!shareableAllowed ? (
