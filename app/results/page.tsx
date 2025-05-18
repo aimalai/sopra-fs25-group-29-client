@@ -174,11 +174,9 @@ const ResultsPage: React.FC = () => {
       render: (_: unknown, record: SearchResult) => (
         <a
           style={{ color: "blue" }}
-          onClick={() =>
-            router.push(
-              `/results/details?id=${record.id}&media_type=${record.media_type}`
-            )
-          }
+          onClick={(e) => { e.stopPropagation(); router.push(
+            `/results/details?id=${record.id}&media_type=${record.media_type}`
+          ) }}
         >
           {record.media_type === "tv" ? record.name : record.title}
         </a>
@@ -202,7 +200,11 @@ const ResultsPage: React.FC = () => {
       dataIndex: "overview",
       key: "overview",
       responsive: ["md"] as const,
-      render: (overview: string) => <span>{overview}</span>,
+      render: (overview: string) => (
+        <div style={{ height: 100, overflowY: 'auto' }}>
+          <span>{overview}</span>
+        </div>
+      ),
     },
     {
       title: "Actions",
@@ -213,21 +215,19 @@ const ResultsPage: React.FC = () => {
           <Space className="actions-space" size="small">
             <Button
               style={inList ? buttonDangerStyle : buttonPrimaryStyle}
-              onClick={() =>
+              onClick={(e) => { e.stopPropagation();
                 inList
                   ? handleRemoveFromWatchlist(record)
-                  : handleAddToWatchlist(record)
-              }
+                  : handleAddToWatchlist(record);
+              }}
             >
               {inList ? "Remove from Watchlist" : "Add to Watchlist"}
             </Button>
             <Button
               style={buttonPrimaryStyle}
-              onClick={() =>
-                router.push(
-                  `/results/details?id=${record.id}&media_type=${record.media_type}`
-                )
-              }
+              onClick={(e) => { e.stopPropagation(); router.push(
+                `/results/details?id=${record.id}&media_type=${record.media_type}`
+              ) }}
             >
               View Details
             </Button>
@@ -316,6 +316,10 @@ const ResultsPage: React.FC = () => {
                 pageSizeOptions: ["5", "10", "20"],
                 onChange: (p, s) => { setCurrentPage(p); if (s) setPageSize(s); }
               }}
+              onRow={(record) => ({
+                onClick: () => router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`),
+                style: { cursor: 'pointer' }
+              })}
             />
           </div>
         </div>
