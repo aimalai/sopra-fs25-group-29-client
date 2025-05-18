@@ -167,27 +167,27 @@ The following is the high-level user flow of our interface:
 
 #### Login Page
 
-![Login Page](public/3.%20Login%20Page.png)
+![Login Page](public/3.%20login%20page.png)
 
 #### 2FA Page
 
-![2FA Page](public/4.%202FA%20Page.png)
+![2FA Page](public/4.%202fa%20page.png)
 
 #### Homepage
 
-![Homepage](public/5.%20Homepage.png)
+![Homepage](public/5.%20homepage.png)
 
 #### Trending Page
 
-![Trending Page](public/6.%20Trending%20Page.png)
+![Trending Page](public/6.%20trending%20page.png)
 
 #### Watchparty Page
 
-![Watchparty Page](public/7.%20Watchparty%20Page.png)
+![Watchparty Page](public/7.%20watchparty%20page.png)
 
 #### Watchlist Page
 
-![Watchlist Page](public/8.%20Watchlist%20Page.png)
+![Watchlist Page](public/8.%20watchlist%20page.png)
 
 ---
 
