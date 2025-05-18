@@ -9,9 +9,18 @@ export class ApiService {
   }
 
   private buildHeaders(isFormData = false): HeadersInit {
-    const token = typeof window !== "undefined"
-      ? sessionStorage.getItem("token")
-      : null;
+    const rawToken =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("token") || localStorage.getItem("token")
+        : null;
+    let token: string | null = null;
+    if (rawToken) {
+      try {
+        token = JSON.parse(rawToken);
+      } catch {
+        token = rawToken;
+      }
+    }
 
     const headers: HeadersInit = {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -27,8 +36,7 @@ export class ApiService {
       try {
         const json = await res.json();
         detail = json?.message ?? JSON.stringify(json);
-      } catch { /* ignore */ }
-
+      } catch {}
       const err = new Error(`${res.status}: ${detail}`) as ApplicationError;
       err.info = JSON.stringify({ status: res.status, statusText: res.statusText }, null, 2);
       err.status = res.status;
@@ -36,7 +44,14 @@ export class ApiService {
     }
 
     const text = await res.text();
-    return text ? JSON.parse(text) : ({} as T);
+    if (!text) {
+      return {} as T;
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text as unknown as T;
+    }
   }
 
   public async get<T>(endpoint: string): Promise<T> {
