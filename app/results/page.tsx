@@ -128,6 +128,7 @@ const ResultsPage: React.FC = () => {
         movieId: record.id.toString(),
         title: record.media_type === "tv" ? record.name : record.title,
         posterPath: record.poster_path || "",
+        mediaType: record.media_type,
       });
       message.success("Added to Watchlist");
       const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
