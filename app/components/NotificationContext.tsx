@@ -20,12 +20,7 @@ export default function NotificationProvider({
   useEffect(() => {
     if (!userId) return;
 
-    const isDev = process.env.NODE_ENV === "development";
-    const host = isDev
-      ? ""
-      : "https://sopra-fs25-group-29-server.oa.r.appspot.com";
-
-    const socket = new SockJS(`${host}/ws`);
+    const socket = new SockJS("/ws");
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
@@ -45,18 +40,13 @@ export default function NotificationProvider({
         if (type === "friendRequest") {
           toast(
             <span>
-              You have received a friend request. Click{" "}
+              You have received a friend request. Click{' '}
               <span
-                style={{
-                  color: "blue",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  pointerEvents: "auto",
-                }}
+                style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer', pointerEvents: 'auto' }}
                 onClick={() => link && router.push(link)}
               >
                 here
-              </span>{" "}
+              </span>{' '}
               to view it!
             </span>,
             toastOptions
@@ -64,18 +54,13 @@ export default function NotificationProvider({
         } else if (type === "chatMessage") {
           toast(
             <span>
-              {message} Click{" "}
+              {message} Click{' '}
               <span
-                style={{
-                  color: "blue",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  pointerEvents: "auto",
-                }}
+                style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer', pointerEvents: 'auto' }}
                 onClick={() => link && router.push(link)}
               >
                 here
-              </span>{" "}
+              </span>{' '}
               to view it!
             </span>,
             toastOptions
@@ -84,52 +69,44 @@ export default function NotificationProvider({
           const partyId = link;
           toast(
             <span>
-              {message} Alternatively,{" "}
+              {message} Alternatively,{' '}
               <span
-                style={{
-                  color: "green",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  pointerEvents: "auto",
-                }}
+                style={{ color: 'green', textDecoration: 'underline', cursor: 'pointer', pointerEvents: 'auto' }}
                 onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
+                e.stopPropagation();
+                try {
                     const res = await api.get(
-                      `/api/watchparties/${partyId}/invite-response?status=accepted`
+                    `/api/watchparties/${partyId}/invite-response?status=accepted`
                     );
                     console.log("Invite-Response success:", res);
                     toast.success("You accepted the invitation!");
                     setTimeout(() => router.push("/watchparty"), 300);
-                  } catch {
-                    toast.error("Failed to accept the invitation.");
-                  }
+                } catch (err) {
+                    console.error("Error accepting invitation:", err);
+                    toast.error("Failed to accept the invitation: " + (err as Error).message);
+                }
                 }}
+
               >
                 accept
-              </span>{" "}
-              or{" "}
+              </span>{' '}
+              or{' '}
               <span
-                style={{
-                  color: "red",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  pointerEvents: "auto",
-                }}
+                style={{ color: 'red', textDecoration: 'underline', cursor: 'pointer', pointerEvents: 'auto' }}
                 onClick={async (e) => {
                   e.stopPropagation();
                   try {
                     await api.get(
                       `/api/watchparties/${partyId}/invite-response?status=declined`
                     );
-                    toast.success("You declined the invitation!");
+                    toast.success('You declined the invitation!');
                   } catch {
-                    toast.error("Failed to decline the invitation.");
+                    toast.error('Failed to decline the invitation.');
                   }
                 }}
               >
                 decline
-              </span>{" "}
+              </span>{' '}
               the invitation directly!
             </span>,
             toastOptions
@@ -144,9 +121,7 @@ export default function NotificationProvider({
     };
 
     client.activate();
-    return () => {
-      client.deactivate();
-    };
+    return () => { client.deactivate(); };
   }, [userId, api, router]);
 
   return <>{children}</>;
