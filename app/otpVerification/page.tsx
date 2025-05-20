@@ -32,6 +32,7 @@ const headingStyle: CSSProperties = {
   marginBottom: "16px",
   fontWeight: "bold",
   fontSize: "1.25rem",
+  textAlign: "center",
 };
 
 const buttonStyle: CSSProperties = {
@@ -46,14 +47,25 @@ const inputStyle: CSSProperties = {
   color: "#000",
 };
 
+const otpInstructionStyle: CSSProperties = {
+  color: "#000",
+  fontSize: "1rem",
+  backgroundColor: "#e0e0e0",
+  padding: "8px",
+  borderRadius: "4px",
+  textAlign: "center",
+  marginBottom: "16px",
+  marginTop: "8px",
+};
+
 export default function OTPVerification() {
   const router = useRouter();
   const api = useApi();
   const [form] = Form.useForm<OTPForm>();
   const [loading, setLoading] = useState(false);
 
-  const [  , setToken ] = useSessionStorage<string>("token", "");
-  const [  , setUserId ] = useSessionStorage<number>("userId", 0);
+  const [, setToken] = useSessionStorage<string>("token", "");
+  const [, setUserId] = useSessionStorage<number>("userId", 0);
 
   const handleVerify = async (values: OTPForm) => {
     setLoading(true);
@@ -91,6 +103,12 @@ export default function OTPVerification() {
           size="large"
           onFinish={handleVerify}
         >
+          <p style={otpInstructionStyle}>
+            An email with a One-Time Password (OTP) was sent to your registered
+            email address. Please check your email and enter the OTP below to
+            complete your login!
+          </p>
+
           <Form.Item
             label={<span style={{ color: "#000" }}>Enter your Username</span>}
             name="username"
