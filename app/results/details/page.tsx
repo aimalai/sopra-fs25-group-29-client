@@ -168,7 +168,6 @@ const DetailsPage: React.FC = () => {
         movieId: details.id.toString(),
         title: details.title,
         posterPath: details.poster_path ?? "",
-        mediaType:  mediaType
       });
       setInWatchlist(true);
     } catch {

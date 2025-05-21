@@ -128,7 +128,6 @@ const ResultsPage: React.FC = () => {
         movieId: record.id.toString(),
         title: record.media_type === "tv" ? record.name : record.title,
         posterPath: record.poster_path || "",
-        mediaType: record.media_type,
       });
       message.success("Added to Watchlist");
       const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
@@ -175,12 +174,11 @@ const ResultsPage: React.FC = () => {
       render: (_: unknown, record: SearchResult) => (
         <a
           style={{ color: "blue" }}
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() =>
             router.push(
               `/results/details?id=${record.id}&media_type=${record.media_type}`
-            );
-          }}
+            )
+          }
         >
           {record.media_type === "tv" ? record.name : record.title}
         </a>
@@ -204,9 +202,7 @@ const ResultsPage: React.FC = () => {
       dataIndex: "overview",
       key: "overview",
       responsive: ["md"] as const,
-      render: (overview: string) => (
-        <div style={{ height: 100, overflowY: 'auto' }}>{overview}</div>
-      ),
+      render: (overview: string) => <span>{overview}</span>,
     },
     {
       title: "Actions",
@@ -217,25 +213,21 @@ const ResultsPage: React.FC = () => {
           <Space className="actions-space" size="small">
             <Button
               style={inList ? buttonDangerStyle : buttonPrimaryStyle}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (inList) {
-                  handleRemoveFromWatchlist(record);
-                } else {
-                  handleAddToWatchlist(record);
-                }
-              }}
+              onClick={() =>
+                inList
+                  ? handleRemoveFromWatchlist(record)
+                  : handleAddToWatchlist(record)
+              }
             >
               {inList ? "Remove from Watchlist" : "Add to Watchlist"}
             </Button>
             <Button
               style={buttonPrimaryStyle}
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={() =>
                 router.push(
                   `/results/details?id=${record.id}&media_type=${record.media_type}`
-                );
-              }}
+                )
+              }
             >
               View Details
             </Button>
@@ -286,91 +278,33 @@ const ResultsPage: React.FC = () => {
     <div style={containerStyle}>
       <div style={contentStyle}>
         <div style={boxStyle}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <div style={headingStyle}>
-              Search Results for "{initialQuery}"
-            </div>
-            <Button
-              style={buttonPrimaryStyle}
-              onClick={() => router.push("/home")}
-            >
-              Back to Home
-            </Button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div style={headingStyle}>Search Results for "{initialQuery}"</div>
+            <Button style={buttonPrimaryStyle} onClick={() => router.push("/home")}>Back to Home</Button>
           </div>
-          <Space
-            size="large"
-            style={{ display: "flex", flexWrap: "wrap", marginBottom: 20}}
-          >
+          <Space size="large" style={{ display: "flex", flexWrap: "wrap", marginBottom: 20 }}>
             <Input
               placeholder="Search for Movies & TV Shows"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onPressEnter={() =>
-                router.push(
-                  `/results?query=${encodeURIComponent(
-                    searchQuery
-                  )}&sort=${encodeURIComponent(sortOption)}`
-                )
-              }
+              onPressEnter={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
               style={{ width: 300 }}
-              suffix={
-                <Button
-                  type="primary"
-                  icon={<SearchOutlined />}
-                  loading={loading}
-                  onClick={() =>
-                    router.push(
-                      `/results?query=${encodeURIComponent(
-                        searchQuery
-                      )}&sort=${encodeURIComponent(sortOption)}`
-                    )
-                  }
-                />
-              }
+              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />}
             />
-            <Select
-              value={sortOption}
-              onChange={(v) => {
-                setSortOption(v);
-                router.push(
-                  `/results?query=${encodeURIComponent(
-                    searchQuery
-                  )}&sort=${encodeURIComponent(v)}`
-                );
-              }}
-              style={{ minWidth: 180 }}
-            >
-              <Select.Option value="popularity">
-                Sort by Popularity
-              </Select.Option>
-              <Select.Option value="rating">
-                Sort by Rating
-              </Select.Option>
-              <Select.Option value="newest">
-                Sort by Newest
-              </Select.Option>
-              <Select.Option value="oldest">
-                Sort by Oldest
-              </Select.Option>
+            <Select value={sortOption} onChange={(v) => { setSortOption(v); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(v)}`); }} style={{ minWidth: 180 }}>
+              <Select.Option value="popularity">Sort by Popularity</Select.Option>
+              <Select.Option value="rating">Sort by Rating</Select.Option>
+              <Select.Option value="newest">Sort by Newest</Select.Option>
+              <Select.Option value="oldest">Sort by Oldest</Select.Option>
             </Select>
-            <Checkbox
-              checked={onlyCompleteResults}
-              onChange={(e) => setOnlyCompleteResults(e.target.checked)}
-              style={{ marginTop: 4 }}
-            >
+            <Checkbox checked={onlyCompleteResults} onChange={(e) => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>
               Complete Results Only
             </Checkbox>
           </Space>
           <div style={tableContainerStyle}>
             <Table
               columns={columns}
+              scroll={mobileScroll ? { x: "max-content" } : undefined}
               dataSource={results}
               rowKey="id"
               loading={loading}
@@ -379,27 +313,23 @@ const ResultsPage: React.FC = () => {
                 pageSize,
                 total: totalItems,
                 showSizeChanger: true,
-                pageSizeOptions: ["5","10","20"],
-                onChange: (p,s) => {
-                  setCurrentPage(p);
-                  if (s) setPageSize(s);
-                }
+                pageSizeOptions: ["5", "10", "20"],
+                onChange: (p, s) => { setCurrentPage(p); if (s) setPageSize(s); }
               }}
-              scroll={mobileScroll ? { x: "max-content" } : undefined}
-              onRow={(record) => ({
-                onClick: () =>
-                  router.push(
-                    `/results/details?id=${record.id}&media_type=${record.media_type}`
-                  ),
-                style: { cursor: 'pointer' }
-              })}
             />
           </div>
         </div>
       </div>
       <style jsx global>{`
-        .actions-space { display: flex; gap: 8px; }
-        @media (max-width: 768px) { .actions-space { flex-direction: column; } }
+        .actions-space {
+          display: flex;
+          gap: 8px;
+        }
+        @media (max-width: 768px) {
+          .actions-space {
+            flex-direction: column;
+          }
+        }
       `}</style>
     </div>
   );

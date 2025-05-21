@@ -7,9 +7,6 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { Suspense } from "react";
 import "@/styles/globals.css";
 import Navbar from "@/components/Navbar";
-import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
-import NotificationProvider from "@/components/NotificationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,16 +75,7 @@ export default function RootLayout({
           >
             <AntdRegistry>
               <Navbar />
-              <NotificationProvider>
-                {children}
-                <ToastContainer
-                  position="top-right"
-                  autoClose={10000}
-                  newestOnTop
-                  closeButton
-                  style={{ top: "80px" }}
-                />
-              </NotificationProvider>
+              {children}
             </AntdRegistry>
           </ConfigProvider>
         </Suspense>
