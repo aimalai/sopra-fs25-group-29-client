@@ -98,8 +98,10 @@ export default function Navbar() {
   } else {
     switch (segment) {
       case "":
-      case "users":
         activeKey = "home";
+        break;
+      case "users":
+        activeKey = "search";
         break;
       case "watchparty":
         activeKey = "watchparty";

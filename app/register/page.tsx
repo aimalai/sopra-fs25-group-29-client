@@ -126,11 +126,6 @@ const Register: React.FC = () => {
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Register below!</div>
-        <p style={infoTextStyle}>
-          Please register using a genuine email ID. A one-time password (OTP)
-          will be sent to your email each time you log in. Be sure to note your
-          chosen username—you'll need it to access your account in the future!
-        </p>
         <Form
           form={form}
           name="register"

@@ -13,6 +13,7 @@ interface TrendingItem {
   title?: string;
   name?: string;
   overview?: string;
+  media_type: "movie" | "tv";
 }
 
 export default function TrendingPage() {
@@ -28,7 +29,7 @@ export default function TrendingPage() {
     try {
       const res = await api.get("/api/movies/trending");
       const body = typeof res==="string"? JSON.parse(res): res;
-      setData(body.results || []);
+      setData(body.results as TrendingItem[]);
     } catch {
       setError("Failed to load trending.");
     } finally {
@@ -41,8 +42,7 @@ export default function TrendingPage() {
   }, []);
 
   const goToDetails = (item: TrendingItem) => {
-    const mediaType = item.title ? "movie" : "tv";
-    router.push(`/results/details?id=${item.id}&media_type=${mediaType}`);
+    router.push(`/results/details?id=${item.id}&media_type=${item.media_type}`);
   };
 
   if (!isAuthed) return null;

@@ -13,6 +13,7 @@ interface Movie {
   posterPath?: string;
   title?: string;
   addedOn?: string;
+  mediaType: "movie" | "tv";
 }
 interface TopRatedMovie {
   movieId: string;
@@ -184,7 +185,7 @@ export default function WatchlistPage() {
       key: "title",
       render: (_: unknown, r: Movie) => (
         <a
-          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=movie`)}
+          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=${r.mediaType}`)}
           style={{ textDecoration: "underline", cursor: "pointer" }}
         >
           {r.title}
@@ -204,7 +205,7 @@ export default function WatchlistPage() {
         <Button
           type="primary"
           size="small"
-          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=movie`)}
+          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=${r.mediaType}`)}
         >
           Details
         </Button>
