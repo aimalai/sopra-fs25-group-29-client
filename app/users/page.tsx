@@ -18,15 +18,6 @@ export default function SearchUsersPage() {
   const api = useApi();
   const [ userId ] = useSessionStorage<number>("userId", 0);
 
-  const [currentUsername, setCurrentUsername] = useState<string>("");
-  useEffect(() => {
-    if (!userId) return;
-    api
-      .get<{ username: string }>(`/users/${userId}`)
-      .then((u) => setCurrentUsername(u.username))
-      .catch(() => {});
-  }, [userId, api]);
-
   useEffect(() => {
     const token = sessionStorage.getItem("token");
     if (!token) {
@@ -45,12 +36,12 @@ export default function SearchUsersPage() {
       const q = searchTerm.trim().toLowerCase();
       setResults(
         !q
-        ? all
-        : all.filter(u =>
-              (u.username?.toLowerCase().includes(q) ?? false) ||
-              (u.email?.toLowerCase().includes(q) ?? false)
+          ? all
+          : all.filter(u =>
+            (u.username?.toLowerCase().includes(q) ?? false) ||
+            (u.email?.toLowerCase().includes(q) ?? false)
           )
-          );
+      );
     } catch {
       message.error("Failed to search users.");
     }
@@ -94,31 +85,27 @@ export default function SearchUsersPage() {
     {
       title: "Username",
       key: "username",
-      render: (_: unknown, user: User) => {
-        const isCurrent = user.username === currentUsername;
-        return (
-          <Space align="center">
-            <Image
-              src={
+      render: (_: unknown, user: User) => (
+        <Space align="center">
+          <Image
+            src={
               avatars.find(a => a.key === user.avatarKey)?.url ||
-                user.profilePictureUrl ||
-                "/default-avatar.jpg"
-              }
-              alt="avatar"
-              width={32}
-              height={32}
-              style={{ borderRadius: "50%" }}
-            />
-            <a
-              onClick={() => router.push(`/users/${user.id}`)}
+              user.profilePictureUrl ||
+              "/default-avatar.jpg"
+            }
+            alt="avatar"
+            width={32}
+            height={32}
+            style={{ borderRadius: "50%" }}
+          />
+          <a
+            onClick={() => router.push(`/users/${user.id}`)}
             style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
-            >
-              {user.username}
-              {isCurrent && <span style={{ marginLeft: 4 }}>(You)</span>}
-            </a>
-          </Space>
-        );
-      },
+          >
+            {user.username}
+          </a>
+        </Space>
+      ),
     },
     {
       title: "Email",
