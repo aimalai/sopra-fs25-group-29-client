@@ -62,14 +62,6 @@ const inputStyle: CSSProperties = {
   color: "#000",
 };
 
-const infoTextStyle: CSSProperties = {
-  color: "#000",
-  fontSize: "1rem",
-  backgroundColor: "#e0e0e0",
-  padding: "8px",
-  borderRadius: "4px",
-};
-
 const Register: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
