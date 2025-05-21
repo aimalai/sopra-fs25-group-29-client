@@ -1,4 +1,5 @@
 "use client";
+
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import { Card, Button, Descriptions } from "antd";
@@ -58,20 +59,18 @@ const WatchpartyDetail: React.FC = () => {
     <div style={{ minHeight: "100vh", padding: "20px", paddingTop: "100px", boxSizing: "border-box" }}>
       <Card
         title={watchparty.title}
-        headStyle={{ color: "#fff", fontSize: "18px" }}
+        headStyle={{ backgroundColor: "#d9d9d9", color: "#000", fontSize: "18px" }}
         style={{
           margin: "20px",
-          background: "#2f2f2f",
-          border: "1px solid #444",
+          backgroundColor: "#f5f5f5",
           borderRadius: "8px",
-          color: "#fff",
         }}
       >
         <Descriptions
           bordered
           column={1}
-          labelStyle={{ color: "#fff" }}
-          contentStyle={{ color: "#fff" }}
+          labelStyle={{ color: "#000", backgroundColor: "#f0f0f0" }}
+          contentStyle={{ color: "#000", backgroundColor: "#f0f0f0" }}
         >
           <Descriptions.Item label="Organizer">
             {watchparty.organizer.username}
@@ -95,7 +94,8 @@ const WatchpartyDetail: React.FC = () => {
         </Descriptions>
       </Card>
       <div style={{ margin: "20px" }}>
-        <Button style={buttonStyle}
+        <Button
+          style={buttonStyle}
           type="default"
           onClick={() => router.push(`/watchparty/${id}/lobby`)}
         >
@@ -103,12 +103,7 @@ const WatchpartyDetail: React.FC = () => {
         </Button>
         <br />
         <br />
-        <Button
-          style={buttonStyle}
-          onClick={() => router.push("/watchparty")}
-        >
-          Back
-        </Button>
+        <Button style={buttonStyle} onClick={() => router.push("/watchparty")}>Back</Button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, CSSProperties } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Button, message, Spin, Rate, Input, List, Grid } from "antd";
 import { useApi } from "@/hooks/useApi";
@@ -44,6 +44,12 @@ interface UserGetDTO {
   username: string;
 }
 
+const buttonPrimaryStyle: CSSProperties = {
+  backgroundColor: "#007BFF",
+  color: "#ffffff",
+  borderColor: "#007BFF",
+};
+
 const DetailsPage: React.FC = () => {
   const isAuthed = useAuth();
   const screens = Grid.useBreakpoint();
@@ -53,13 +59,11 @@ const DetailsPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
 
-  const [ userId, ] = useSessionStorage<number>("userId", 0);
-  const [ token, ] = useSessionStorage<string>("token", "");
+  const [ userId ] = useSessionStorage<number>("userId", 0);
+  const [ token ] = useSessionStorage<string>("token", "");
 
   useEffect(() => {
-    if (!token) {
-      router.replace("/login");
-    }
+    if (!token) router.replace("/login");
   }, [token, router]);
 
   const [details, setDetails] = useState<MediaDetails | null>(null);
@@ -157,7 +161,7 @@ const DetailsPage: React.FC = () => {
     fetchUserRating();
     fetchAggregatedUserRating();
     fetchChatRatings();
-  }, [id, mediaType, userId, apiService]);
+  }, [id, mediaType, userId, apiService, router]);
 
   if (!isAuthed) return null;
 
@@ -168,7 +172,7 @@ const DetailsPage: React.FC = () => {
         movieId: details.id.toString(),
         title: details.title,
         posterPath: details.poster_path ?? "",
-        mediaType:  mediaType
+        mediaType
       });
       setInWatchlist(true);
     } catch {
@@ -250,7 +254,7 @@ const DetailsPage: React.FC = () => {
     return (
       <div style={{ padding: 20, textAlign: "center", color: "black" }}>
         <p>Error loading details.</p>
-        <Button type="primary" onClick={fetchDetails}>
+        <Button type="primary" onClick={fetchDetails} style={buttonPrimaryStyle}>
           Retry
         </Button>
       </div>
@@ -261,7 +265,7 @@ const DetailsPage: React.FC = () => {
     return (
       <div style={{ padding: 20, textAlign: "center", color: "black" }}>
         <p>No details available.</p>
-        <Button type="primary" onClick={() => router.back()}>
+        <Button type="primary" onClick={() => router.back()} style={buttonPrimaryStyle}>
           Back
         </Button>
       </div>
@@ -355,10 +359,7 @@ const DetailsPage: React.FC = () => {
             )}
             <Button
               onClick={inWatchlist ? handleRemove : handleAdd}
-              style={{
-                backgroundColor: inWatchlist ? "#ff4d4f" : "#1890ff",
-                color: "white",
-              }}
+              style={{ backgroundColor: inWatchlist ? "#ff4d4f" : "#1890ff", color: "white" }}
             >
               {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
             </Button>
@@ -370,10 +371,9 @@ const DetailsPage: React.FC = () => {
         <div style={{ marginTop: "20px" }}>
           {currentTextComment ? (
             <div>
-              <p>
-                <strong>Your review:</strong> {currentTextComment}
-              </p>
+              <p><strong>Your review:</strong> {currentTextComment}</p>
               <Button
+                style={buttonPrimaryStyle}
                 onClick={() => {
                   setEditCommentMode(true);
                   setTextRating(currentTextComment);
@@ -384,7 +384,7 @@ const DetailsPage: React.FC = () => {
             </div>
           ) : (
             !editCommentMode && (
-              <Button onClick={() => setEditCommentMode(true)}>
+              <Button style={buttonPrimaryStyle} onClick={() => setEditCommentMode(true)}>
                 Add review
               </Button>
             )
@@ -399,7 +399,7 @@ const DetailsPage: React.FC = () => {
                 onChange={e => setTextRating(e.target.value)}
               />
               <div style={{ marginTop: "10px" }}>
-                <Button type="primary" onClick={handleSubmitTextRating}>
+                <Button style={buttonPrimaryStyle} onClick={handleSubmitTextRating}>
                   Save review
                 </Button>
                 <Button style={{ marginLeft: "10px" }} onClick={() => setEditCommentMode(false)}>

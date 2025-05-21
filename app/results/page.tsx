@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, CSSProperties, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Table, Button, message, Input, Space, Select, Checkbox } from "antd";
+import { Table, Button, message, Space, Select, Checkbox, Input } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
@@ -128,7 +128,7 @@ const ResultsPage: React.FC = () => {
         movieId: record.id.toString(),
         title: record.media_type === "tv" ? record.name : record.title,
         posterPath: record.poster_path || "",
-        mediaType: record.media_type
+        mediaType: record.media_type,
       });
       message.success("Added to Watchlist");
       const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
@@ -293,14 +293,16 @@ const ResultsPage: React.FC = () => {
             <Button style={buttonPrimaryStyle} onClick={() => router.push("/home")}>Back to Home</Button>
           </div>
           <Space size="large" style={{ display: "flex", flexWrap: "wrap", marginBottom: 20 }}>
-            <Input
-              placeholder="Search for Movies & TV Shows"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onPressEnter={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
-              style={{ width: 300 }}
-              suffix={<Button type="primary" icon={<SearchOutlined />} loading={loading} onClick={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)} />}
-            />
+           <Input.Search
+            placeholder="Search for Movies & TV Shows"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onSearch={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
+            loading={loading}
+            style={{ width: 300 }}
+            enterButton={<Button style={buttonPrimaryStyle} icon={<SearchOutlined />} />}
+          />
+
             <Select value={sortOption} onChange={(v) => { setSortOption(v); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(v)}`); }} style={{ minWidth: 180 }}>
               <Select.Option value="popularity">Sort by Popularity</Select.Option>
               <Select.Option value="rating">Sort by Rating</Select.Option>
@@ -334,17 +336,6 @@ const ResultsPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <style jsx global>{`
-        .actions-space {
-          display: flex;
-          gap: 8px;
-        }
-        @media (max-width: 768px) {
-          .actions-space {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </div>
   );
 };

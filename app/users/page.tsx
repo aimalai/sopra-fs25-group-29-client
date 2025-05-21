@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
@@ -12,11 +12,17 @@ import { avatars } from "@/constants/avatars";
 import type { ColumnsType } from "antd/es/table";
 import useAuth from "@/hooks/useAuth";
 
+const buttonPrimaryStyle: CSSProperties = {
+  backgroundColor: "#007BFF",
+  color: "#ffffff",
+  borderColor: "#007BFF",
+};
+
 export default function SearchUsersPage() {
   const isAuthed = useAuth();
   const router = useRouter();
   const api = useApi();
-  const [ userId ] = useSessionStorage<number>("userId", 0);
+  const [userId] = useSessionStorage<number>("userId", 0);
 
   const [currentUsername, setCurrentUsername] = useState<string>("");
   useEffect(() => {
@@ -45,12 +51,13 @@ export default function SearchUsersPage() {
       const q = searchTerm.trim().toLowerCase();
       setResults(
         !q
-        ? all
-        : all.filter(u =>
-              (u.username?.toLowerCase().includes(q) ?? false) ||
-              (u.email?.toLowerCase().includes(q) ?? false)
-          )
-          );
+          ? all
+          : all.filter(
+              (u) =>
+                (u.username?.toLowerCase().includes(q) ?? false) ||
+                (u.email?.toLowerCase().includes(q) ?? false)
+            )
+      );
     } catch {
       message.error("Failed to search users.");
     }
@@ -69,9 +76,11 @@ export default function SearchUsersPage() {
   const fetchRequests = async () => {
     if (!userId) return;
     try {
-      const ids: (number | string)[] = await api.get(`/users/${userId}/friendrequests`);
+      const ids: (number | string)[] = await api.get(
+        `/users/${userId}/friendrequests`
+      );
       const reqs = await Promise.all(
-        ids.map(id => api.get<User>(`/users/${id}`))
+        ids.map((id) => api.get<User>(`/users/${id}`))
       );
       setRequests(reqs);
     } catch {
@@ -100,7 +109,7 @@ export default function SearchUsersPage() {
           <Space align="center">
             <Image
               src={
-              avatars.find(a => a.key === user.avatarKey)?.url ||
+                avatars.find((a) => a.key === user.avatarKey)?.url ||
                 user.profilePictureUrl ||
                 "/default-avatar.jpg"
               }
@@ -111,7 +120,7 @@ export default function SearchUsersPage() {
             />
             <a
               onClick={() => router.push(`/users/${user.id}`)}
-            style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
+              style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
             >
               {user.username}
               {isCurrent && <span style={{ marginLeft: 4 }}>(You)</span>}
@@ -145,7 +154,7 @@ export default function SearchUsersPage() {
             <Input
               placeholder="Search for new friends..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               suffix={<SearchOutlined />}
               style={{ marginBottom: 16 }}
             />
@@ -154,7 +163,7 @@ export default function SearchUsersPage() {
               rowKey="id"
               columns={commonColumns}
               pagination={{ pageSize: 5 }}
-              onRow={user => ({
+              onRow={(user) => ({
                 onClick: () => router.push(`/users/${user.id}`),
                 style: { cursor: "pointer" },
               })}
@@ -169,7 +178,7 @@ export default function SearchUsersPage() {
               rowKey="id"
               columns={commonColumns}
               pagination={{ pageSize: 5 }}
-              onRow={user => ({
+              onRow={(user) => ({
                 onClick: () => router.push(`/users/${user.id}`),
                 style: { cursor: "pointer" },
               })}
@@ -182,7 +191,7 @@ export default function SearchUsersPage() {
         {requests.length === 0 ? (
           <p>No incoming requests</p>
         ) : (
-          requests.map(req => (
+          requests.map((req) => (
             <div
               key={req.id}
               style={{
@@ -195,7 +204,7 @@ export default function SearchUsersPage() {
               <Space align="center">
                 <Image
                   src={
-                    avatars.find(a => a.key === req.avatarKey)?.url ||
+                    avatars.find((a) => a.key === req.avatarKey)?.url ||
                     req.profilePictureUrl ||
                     "/default-avatar.jpg"
                   }
@@ -214,9 +223,12 @@ export default function SearchUsersPage() {
               <div>
                 <Button
                   type="primary"
-                  style={{ marginRight: 8 }}
+                  style={{ ...buttonPrimaryStyle, marginRight: 8 }}
                   onClick={async () => {
-                    await api.put(`/users/${userId}/friendrequests/${req.id}/accept`, {});
+                    await api.put(
+                      `/users/${userId}/friendrequests/${req.id}/accept`,
+                      {}
+                    );
                     fetchRequests();
                     fetchFriends();
                   }}
@@ -227,7 +239,9 @@ export default function SearchUsersPage() {
                   danger
                   style={{ marginRight: 8 }}
                   onClick={async () => {
-                    await api.delete(`/users/${userId}/friendrequests/${req.id}`);
+                    await api.delete(
+                      `/users/${userId}/friendrequests/${req.id}`
+                    );
                     fetchRequests();
                   }}
                 >

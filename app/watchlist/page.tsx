@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
@@ -15,6 +15,7 @@ interface Movie {
   addedOn?: string;
   mediaType: "movie" | "tv";
 }
+
 interface TopRatedMovie {
   movieId: string;
   posterPath?: string;
@@ -29,6 +30,12 @@ export default function WatchlistPage() {
   const api = useApi();
   const [token] = useSessionStorage<string>("token", "");
   const [userId] = useSessionStorage<number>("userId", 0);
+
+  const buttonPrimaryStyle: CSSProperties = {
+    backgroundColor: "#007BFF",
+    color: "#ffffff",
+    borderColor: "#007BFF",
+  };
 
   useEffect(() => {
     if (!token) {
@@ -49,8 +56,8 @@ export default function WatchlistPage() {
   const [topRated, setTopRated] = useState<TopRatedMovie[]>([]);
 
   const watchlistScroll = watchlist.length > 0 ? { y: 600 } : undefined;
-  const topRatedScroll  = topRated.length  > 0 ? { y: 600 } : undefined;
-  const friendScroll    = friendWatchlist.length > 0 ? { y: 600 } : undefined;
+  const topRatedScroll = topRated.length > 0 ? { y: 600 } : undefined;
+  const friendScroll = friendWatchlist.length > 0 ? { y: 600 } : undefined;
 
   const loadWatchlist = async () => {
     if (!userId) return;
@@ -205,7 +212,10 @@ export default function WatchlistPage() {
         <Button
           type="primary"
           size="small"
-          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=${r.mediaType}`)}
+          style={buttonPrimaryStyle}
+          onClick={() =>
+            router.push(`/results/details?id=${r.movieId}&media_type=${r.mediaType}`)
+          }
         >
           Details
         </Button>
@@ -254,6 +264,7 @@ export default function WatchlistPage() {
         <Button
           type="primary"
           size="small"
+          style={buttonPrimaryStyle}
           onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=movie`)}
         >
           Details
@@ -285,7 +296,7 @@ export default function WatchlistPage() {
                 <Select<number | "all" | null>
                   placeholder="Select a friend…"
                   value={selectedFriendId}
-                  onChange={id => {
+                  onChange={(id) => {
                     if (id === null || id === undefined) {
                       setSelectedFriendId(null);
                       setFriendWatchlist([]);
@@ -305,7 +316,7 @@ export default function WatchlistPage() {
                   <Select.Option key="all" value="all">
                     All friends
                   </Select.Option>
-                  {friends.map(f => (
+                  {friends.map((f) => (
                     <Select.Option key={f.id} value={f.id}>
                       {f.username}
                     </Select.Option>
@@ -338,7 +349,7 @@ export default function WatchlistPage() {
           title={
             selectedFriendId === "all"
               ? "Friends' Watchlist"
-              : `${friends.find(f => f.id === selectedFriendId)?.username}'s Watchlist`
+              : `${friends.find((f) => f.id === selectedFriendId)?.username}'s Watchlist`
           }
           style={{ marginTop: 24 }}
         >
@@ -347,7 +358,7 @@ export default function WatchlistPage() {
               style={{
                 textAlign: "center",
                 padding: "40px 20px",
-                color: "#555",
+                color: "#555", 
                 fontStyle: "italic",
                 backgroundColor: "#f9f9f9",
                 borderRadius: 4,

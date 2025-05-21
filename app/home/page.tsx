@@ -36,12 +36,16 @@ const inputStyle: CSSProperties = {
   border: "none",
 };
 
+const searchButtonStyle: CSSProperties = {
+  backgroundColor: "#007BFF",
+  borderColor: "#007BFF",
+};
+
 const tutorialBoxStyle: CSSProperties = {
   marginTop: "48px",
   width: "100%",
   maxWidth: 1300,
   minHeight: 400,
-  backgroundColor: "#e0e0e0",
   padding: "24px",
   borderRadius: "16px",
   boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
@@ -88,6 +92,7 @@ export default function Dashboard() {
               icon={<SearchOutlined />}
               loading={loading}
               onClick={handleSearch}
+              style={searchButtonStyle}
             />
           }
         />
