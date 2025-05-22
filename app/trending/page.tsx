@@ -22,13 +22,14 @@ export default function TrendingPage() {
   const router = useRouter();
   const [data, setData] = useState<TrendingItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string|null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTrending = async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res = await api.get("/api/movies/trending");
-      const body = typeof res==="string"? JSON.parse(res): res;
+      const body = typeof res === "string" ? JSON.parse(res) : res;
       setData(body.results as TrendingItem[]);
     } catch {
       setError("Failed to load trending.");
@@ -47,6 +48,51 @@ export default function TrendingPage() {
 
   if (!isAuthed) return null;
 
+  let trendingContent;
+  if (loading) {
+    trendingContent = (
+      <div style={{ textAlign: "center", paddingTop: 50 }}>
+        <Spin size="large" />
+      </div>
+    );
+  } else if (error) {
+    trendingContent = (
+      <div style={{ textAlign: "center" }}>
+        <p style={{ color: "red" }}>{error}</p>
+        <Button onClick={fetchTrending}>Retry</Button>
+      </div>
+    );
+  } else {
+    trendingContent = (
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+        {data.map((item) => (
+          <Card
+            key={item.id}
+            hoverable
+            onClick={() => goToDetails(item)}
+            style={{ width: 200, cursor: "pointer" }}
+            cover={
+              item.poster_path ? (
+                <Image
+                  src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                  alt={item.title ?? item.name ?? "Poster"}
+                  width={200}
+                  height={300}
+                  style={{ objectFit: "cover" }}
+                />
+              ) : null
+            }
+          >
+            <Card.Meta
+              title={item.title || item.name}
+              description={(item.overview || "").slice(0, 80) + "..."}
+            />
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "100px 24px" }}>
       <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto" }}>
@@ -59,43 +105,7 @@ export default function TrendingPage() {
             padding: 16,
           }}
         >
-          {loading ? (
-            <div style={{ textAlign: "center", paddingTop: 50 }}>
-              <Spin size="large" />
-            </div>
-          ) : error ? (
-            <div style={{ textAlign: "center" }}>
-              <p style={{ color: "red" }}>{error}</p>
-              <Button onClick={fetchTrending}>Retry</Button>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
-              {data.map(item => (
-                <Card
-                  key={item.id}
-                  hoverable
-                  onClick={() => goToDetails(item)}
-                  style={{ width: 200, cursor: "pointer" }}
-                  cover={
-                    item.poster_path ? (
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
-                        alt={item.title ?? item.name ?? "Poster"}
-                        width={200}
-                        height={300}
-                        style={{ objectFit: "cover" }}
-                      />
-                    ) : null
-                  }
-                >
-                  <Card.Meta
-                    title={item.title || item.name}
-                    description={(item.overview || "").slice(0, 80) + "..."}
-                  />
-                </Card>
-              ))}
-            </div>
-          )}
+          {trendingContent}
         </Card>
       </div>
     </div>
