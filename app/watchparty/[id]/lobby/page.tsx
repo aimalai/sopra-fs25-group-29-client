@@ -71,14 +71,64 @@ export default function LobbyPage() {
   const splashTimeout = useRef<number | null>(null);
   const [toggleLocked, setToggleLocked] = useState(false);
 
-  useEffect(() => {
+  const fetchContentLink = async () => {
     if (!id) return;
-    api.get<Watchparty>(`/api/watchparties/${id}`)
-      .then(wp => {
-        if (wp.contentLink) setContentLink(wp.contentLink);
-      })
-      .catch(() => { });
-  }, [id, api]);
+    try {
+      const wp = await api.get<Watchparty>(`/api/watchparties/${id}`);
+      if (wp.contentLink) setContentLink(wp.contentLink);
+    } catch { }
+  };
+
+  const handleParticipantStateChange = (newParts: { username: string; ready: boolean }[]) => {
+    newParts.forEach(pNew => {
+      const pOld = prevParticipantsRef.current.find(p => p.username === pNew.username);
+      if (pOld?.ready && !pNew.ready && pNew.username !== username) {
+        setNotReadyMsg(`${pNew.username} is not ready`);
+        if (splashTimeout.current) clearTimeout(splashTimeout.current);
+        splashTimeout.current = window.setTimeout(() => setNotReadyMsg(null), 2000);
+      }
+    });
+    prevParticipantsRef.current = newParts;
+    setParticipants(newParts);
+  };
+
+  const handleSyncTime = (msgBody: string) => {
+    const { currentTime } = JSON.parse(msgBody);
+    const pl = playerRef.current;
+    if (pl?.seekTo) {
+      pl.seekTo(currentTime, true);
+      pl.playVideo();
+    }
+    const h = String(Math.floor(currentTime / 3600)).padStart(2, '0');
+    const mnt = String(Math.floor((currentTime % 3600) / 60)).padStart(2, '0');
+    const s = String(Math.floor(currentTime % 60)).padStart(2, '0');
+    setSyncMessage(`You are now synced to ${h}:${mnt}:${s}`);
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = window.setTimeout(() => {
+      setSyncMessage(null);
+    }, 3000);
+  };
+
+  const setupYouTubePlayer = (vid: string) => {
+    playerRef.current?.destroy?.();
+    playerRef.current = new window.YT.Player('yt-player', {
+      videoId: vid,
+      playerVars: { autoplay: 0 },
+      events: {
+        onReady: () => setVideoError(false),
+        onError: () => {
+          setVideoError(true);
+          if (videoRetries < maxVideoRetries) {
+            setTimeout(() => setVideoRetries(r => r + 1), 3000);
+          }
+        }
+      },
+    });
+  };
+
+  useEffect(() => {
+    fetchContentLink();
+  }, [id]);
 
   useEffect(() => {
     if (!contentLink) return;
@@ -94,20 +144,7 @@ export default function LobbyPage() {
     const vid = match[1];
 
     window.onYouTubeIframeAPIReady = () => {
-      playerRef.current?.destroy?.();
-      playerRef.current = new window.YT.Player('yt-player', {
-        videoId: vid,
-        playerVars: { autoplay: 0 },
-        events: {
-          onReady: () => setVideoError(false),
-          onError: () => {
-            setVideoError(true);
-            if (videoRetries < maxVideoRetries) {
-              setTimeout(() => setVideoRetries(r => r + 1), 3000);
-            }
-          }
-        },
-      });
+      setupYouTubePlayer(vid);
     };
 
     if (!window.YT) {
@@ -120,11 +157,10 @@ export default function LobbyPage() {
   }, [contentLink, videoRetries]);
 
   useEffect(() => {
-    if (!username) {
-      return;
-    }
+    if (!username) return;
+
     subscribedRef.current = false;
-    joinedRef.current     = false;
+    joinedRef.current = false;
 
     const sock = new SockJS(`${getApiDomain()}/ws`);
     const client = new Client({
@@ -132,56 +168,28 @@ export default function LobbyPage() {
       reconnectDelay: 5000,
       onConnect: () => {
         if (!subscribedRef.current) {
-          client.subscribe(
-            `/topic/syncReadyState/${roomId}`,
-            m => {
-              const state = JSON.parse(m.body) as {
-                participants: { username: string; ready: boolean }[];
-                hostUsername: string;
-              };
-              const parts = state.participants || [];
+          client.subscribe(`/topic/syncReadyState/${roomId}`, m => {
+            const state: {
+              participants: { username: string; ready: boolean }[];
+              hostUsername: string;
+            } = JSON.parse(m.body);
 
-              parts.forEach(pNew => {
-                const pOld = prevParticipantsRef.current.find(p => p.username === pNew.username);
-                if (pOld?.ready && !pNew.ready && pNew.username !== username) {
-                  setNotReadyMsg(`${pNew.username} is not ready`);
-                  if (splashTimeout.current) clearTimeout(splashTimeout.current);
-                  splashTimeout.current = window.setTimeout(() => setNotReadyMsg(null), 2000);
-                }
-              });
-              prevParticipantsRef.current = parts;
+            handleParticipantStateChange(state.participants || []);
+            setHostUsername(state.hostUsername || '');
 
-              setParticipants(parts);
-              setHostUsername(state.hostUsername || '');
-
-              if (!parts.every(p => p.ready)) {
-                playerRef.current?.pauseVideo();
-                countdownStarted.current = false;
-                setCountdown(null);
-              } else if (!countdownStarted.current) {
-                countdownStarted.current = true;
-                setCountdown(3);
-              }
+            if (!state.participants.every(p => p.ready)) {
+              playerRef.current?.pauseVideo();
+              countdownStarted.current = false;
+              setCountdown(null);
+            } else if (!countdownStarted.current) {
+              countdownStarted.current = true;
+              setCountdown(3);
             }
-          );
-          client.subscribe(`/topic/syncTime/${roomId}`, m => {
-            const { currentTime } = JSON.parse(m.body) as { currentTime: number };
-            const pl = playerRef.current;
-            if (pl?.seekTo) {
-              pl.seekTo(currentTime, true);
-              pl.playVideo();
-            }
-            const h = String(Math.floor(currentTime / 3600)).padStart(2, '0');
-            const mnt = String(Math.floor((currentTime % 3600) / 60)).padStart(2, '0');
-            const s = String(Math.floor(currentTime % 60)).padStart(2, '0');
-            setSyncMessage(`You are now synced to ${h}:${mnt}:${s}`);
-            if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-            syncTimeoutRef.current = window.setTimeout(() => {
-              setSyncMessage(null);
-            }, 3000);
           });
 
+          client.subscribe(`/topic/syncTime/${roomId}`, m => handleSyncTime(m.body));
           client.subscribe(`/topic/chat/${roomId}`, m => setChat(c => [...c, JSON.parse(m.body)]));
+
           subscribedRef.current = true;
         }
         if (!joinedRef.current) {
@@ -193,8 +201,10 @@ export default function LobbyPage() {
         }
       }
     });
+
     client.activate();
     stompRef.current = client;
+
     return () => {
       if (stompRef.current?.connected) {
         stompRef.current.publish({
@@ -257,6 +267,7 @@ export default function LobbyPage() {
 
   return (
     <>
+
       {notReadyMsg && (
         <div style={{
           position: 'fixed',
@@ -372,7 +383,7 @@ export default function LobbyPage() {
             backgroundColor: '#e5e5e5',
             color: '#000',
           }}>
-          Lobby (Host: {hostUsername}):<br/><br/>
+            Lobby (Host: {hostUsername}):<br /><br />
             {participants.map((p, i) => (
               <span key={i} style={{ marginRight: 8 }}>
                 {p.username}{p.ready ? ' ✅' : ' ⏳'}
