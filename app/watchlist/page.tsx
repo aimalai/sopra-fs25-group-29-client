@@ -275,6 +275,42 @@ export default function WatchlistPage() {
     },
   ];
 
+  const friendWatchlistTitle =
+    selectedFriendId === "all"
+      ? "Friends' Watchlist"
+      : `${friends.find((f) => f.id === selectedFriendId)?.username}'s Watchlist`;
+
+  let friendWatchlistContent: React.ReactNode;
+  if (!shareableAllowed) {
+    friendWatchlistContent = (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "40px 20px",
+          color: "#555",
+          fontStyle: "italic",
+          backgroundColor: "#f9f9f9",
+          borderRadius: 4,
+        }}
+      >
+        {shareableMessage}
+      </div>
+    );
+  } else if (loadingFriendWatch) {
+    friendWatchlistContent = <Spin />;
+  } else {
+    friendWatchlistContent = (
+      <Table<Movie>
+        dataSource={friendWatchlist}
+        rowKey="movieId"
+        columns={columns}
+        pagination={false}
+        scroll={friendScroll}
+        locale={{ emptyText: "No entries in your friend's watchlist." }}
+      />
+    );
+  }
+
   return (
     <>
       {contextHolder}
@@ -347,41 +383,9 @@ export default function WatchlistPage() {
             </Card>
           </div>
         </div>
-
         {selectedFriendId !== null && (
-          <Card
-            title={
-              selectedFriendId === "all"
-                ? "Friends' Watchlist"
-                : `${friends.find((f) => f.id === selectedFriendId)?.username}'s Watchlist`
-            }
-            style={{ marginTop: 24 }}
-          >
-            {!shareableAllowed ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px 20px",
-                  color: "#555",
-                  fontStyle: "italic",
-                  backgroundColor: "#f9f9f9",
-                  borderRadius: 4,
-                }}
-              >
-                {shareableMessage}
-              </div>
-            ) : loadingFriendWatch ? (
-              <Spin />
-            ) : (
-              <Table<Movie>
-                dataSource={friendWatchlist}
-                rowKey="movieId"
-                columns={columns}
-                pagination={false}
-                scroll={friendScroll}
-                locale={{ emptyText: "No entries in your friend's watchlist." }}
-              />
-            )}
+          <Card title={friendWatchlistTitle} style={{ marginTop: 24 }}>
+            {friendWatchlistContent}
           </Card>
         )}
       </div>
