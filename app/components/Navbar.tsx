@@ -25,7 +25,7 @@ export default function Navbar() {
 
   useEffect(() => {
     (async () => {
-      const id = userId || Number(sessionStorage.getItem("userId") ?? 0);
+      const id = userId ?? Number(sessionStorage.getItem("userId") ?? 0);
       if (!id) return;
       try {
         const u = await api.get<{
@@ -35,8 +35,8 @@ export default function Navbar() {
         }>(`/users/${id}`);
         setUsername(u.username ?? "Profile");
         const url =
-          avatars.find(a => a.key === u.avatarKey)?.url ||
-          u.profilePictureUrl ||
+          avatars.find(a => a.key === u.avatarKey)?.url ??
+          u.profilePictureUrl ??
           "/default-avatar.jpg";
         setProfileImage(url);
       } catch {
@@ -46,7 +46,7 @@ export default function Navbar() {
   }, [userId, api, pathname]);
 
   const handleLogout = async () => {
-    const id = userId || Number(sessionStorage.getItem("userId") ?? 0);
+    const id = userId ?? Number(sessionStorage.getItem("userId") ?? 0);
     if (!id) {
       messageApi.error("User ID missing, cannot logout.");
       return;
@@ -71,7 +71,7 @@ export default function Navbar() {
 
   const hidePaths = ["/", "/login", "/register", "/otpVerification"];
   const isLobby = /^\/watchparty\/[^/]+\/lobby$/.test(pathname);
-  if (hidePaths.includes(pathname) || isLobby) {
+  if (hidePaths.includes(pathname) ?? isLobby) {
     return null;
   }
 
@@ -144,9 +144,13 @@ export default function Navbar() {
           onClick={() => setDrawerVisible(true)}
           style={{ fontSize: 24, color: "#333", marginRight: 24 }}
         />
-        <div
+        <button
+          type="button"
           onClick={() => router.push("/home")}
           style={{
+            background: "none",
+            border: 0,
+            padding: 0,
             cursor: "pointer",
             marginRight: 48,
             position: "relative",
@@ -155,7 +159,7 @@ export default function Navbar() {
           }}
         >
           <Image src="/NiroLogo.png" alt="Logo" fill style={{ objectFit: "contain" }} />
-        </div>
+        </button>
         <Menu
           mode="horizontal"
           selectedKeys={activeKey === "profile" ? [] : [activeKey]}
@@ -171,7 +175,7 @@ export default function Navbar() {
             onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             <Avatar
-              src={profileImage || undefined}
+              src={profileImage ?? undefined}
               icon={!profileImage ? <UserOutlined /> : undefined}
               size={40}
             />
@@ -199,7 +203,7 @@ export default function Navbar() {
           onClick={() => setDrawerVisible(false)}
         />
       </Drawer>
-      <style jsx global>{`
+      <style>{`
         .custom-navbar-menu .ant-menu-item {
           transition: background-color 0.3s, color 0.3s;
         }
