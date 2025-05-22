@@ -6,7 +6,7 @@
 
 <br>
 
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript) ![React](https://img.shields.io/badge/React-19-blue?logo=react) ![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-Enabled-blue?logo=githubactions) ![H2 Database](https://img.shields.io/badge/H2%20Database-Enabled-blue?logo=h2) ![MIT License](https://img.shields.io/badge/license-MIT-green)
+[!TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/) ![React](https://img.shields.io/badge/React-19-blue?logo=react) ![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-Enabled-blue?logo=githubactions) ![H2 Database](https://img.shields.io/badge/H2%20Database-Enabled-blue?logo=h2) ![MIT License](https://img.shields.io/badge/license-MIT-green)
 
 ## Table of Contents
 
