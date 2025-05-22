@@ -50,7 +50,7 @@ This technology stack enables a responsive, scalable, and efficient frontend, en
 
 Our application is structured into five main high-level components, each representing a core part of the user experience and application logic. Below we describe their purpose, interactions, and provide links to the relevant files:
 
-#### 1. Dashboard Page
+#### 1. [Dashboard Page](./app/home/page.tsx)
 Role: Serves as the landing page and entry point for searching movies and TV shows. Users can input a query and are redirected to the results page.
 
 Responsibilities:
@@ -63,7 +63,7 @@ Responsibilities:
 
 - Related components: TutorialContent, useAuth
 
-#### 2. Results Page
+#### 2. [Results Page](./app/results/page.tsx)
 Role: Displays the results of a search query. Users can view details, add or remove items from their watchlist, and sort/filter results.
 
 Responsibilities:
@@ -76,7 +76,7 @@ Responsibilities:
 
 - Related hooks: useApi, useSessionStorage, useAuth
 
-#### 3. Watchlist Page
+#### 3. [Watchlist Page](./app/watchlist/page.tsx)
 Role: Shows the authenticated user’s watchlist, their friends' public watchlists, and a list of top-rated movies recommended by friends.
 
 Responsibilities:
@@ -89,7 +89,7 @@ Responsibilities:
 
 - Related APIs: /users/{id}/watchlist, /users/{id}/friends/watchlists
 
-#### 4. Watchparty System
+#### 4. [Watchparty System](./app/watchparty/page.tsx)
 - Create & Manage
 
 - Details View
@@ -108,7 +108,7 @@ Responsibilities:
 
 - Related tools: WebSocket (@stomp/stompjs), SockJS, YouTube Iframe API
 
-#### 5. User Management
+#### 5. [User Management](./app/users/page.tsx)
 - User Search & Friend List
 
 - Profile Page
