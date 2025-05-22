@@ -205,61 +205,61 @@ The following is the high-level user flow of our interface:
 
 #### Dashboard Page
 
-![Landing Page](public/Dashboard.png)
+![Landing Page](public/screenshots/Dashboard.png)
 
 The dashboard is the main entry point of the application. Users are welcomed with a prominent search bar that allows them to look for movies and TV shows by entering a query. Upon submitting a search, they are redirected to the results page. Below the search input, a short tutorial component provides helpful usage guidance. This page is designed to be minimalistic and accessible, offering a clear call to action for users to begin their experience.
 
 #### Results Page
 
-![Registration Page](public/Results.png)
+![Registration Page](public/screenshots/Results.png)
 
 After submitting a search query on the dashboard, users are redirected to the results page. This view presents a list of matching movies or TV shows, complete with posters, release dates, and short descriptions. Users can sort results by popularity, rating, or date, and filter for complete entries only. Each item offers direct actions: adding or removing it from the personal watchlist and accessing a detailed view. The interface also supports responsive pagination and quick search refinement.
 
 #### Detailed View with Reviews
 
-![Login Page](public/DetailedViewWithReviews.png)
+![Login Page](public/screenshots/DetailedViewWithReviews.png)
 
 The detailed view presents comprehensive information about a selected movie or TV show, including title, release date, genre, cast, and description. Users can view the official TMDB rating, submit their own star rating, and optionally add a written review (max. 200 characters). The page also aggregates community ratings and displays a live-updated “review chat” featuring other users’ comments. A dynamic button allows users to add or remove the item from their personal watchlist directly. This page bridges rich content presentation with interactive user feedback features.
 
 #### Users and Friends
 
-![2FA Page](public/UsersAndFriendRequests.png)
+![2FA Page](public/screenshots/UsersAndFriendRequests.png)
 
 This page allows users to discover other users, manage their friend list, and respond to incoming friend requests. The left section includes a search interface where users can look for others by username or email, with results displayed in a paginated table. The right section shows the current user's friends, and a third panel at the bottom lists pending friend requests with options to accept, decline, or view the sender’s profile. This feature fosters the social layer of the application and enables collaborative features like watchlist sharing and watchparty invitations.
 
 #### Profile Page of a potential Friend
 
-![Homepage](public/FriendsProfile.png)
+![Homepage](public/screenshots/FriendsProfile.png)
 
 This page shows a detailed profile view of another user. It displays public information such as username, email, biography, birthdate, and online status. Depending on the friendship status, users can either send or cancel a friend request, or, if already friends, remove the user and access a private chat through the integrated chatbox. The layout adapts dynamically based on whether the profile belongs to the current user or someone else. This view enhances transparency and supports social interaction by allowing contextual decisions about connecting with others.
 
 #### Trending Page
 
-![Trending Page](public/Trending.png)
+![Trending Page](public/screenshots/Trending.png)
 
 The trending page displays a curated list of currently popular movies and TV shows. Data is fetched from the backend and rendered in a scrollable, card-based layout. Each entry includes a poster, title, and short overview. Clicking on a card navigates the user to the detailed view of the selected item. This feature offers inspiration and highlights content that’s currently popular, helping users quickly discover relevant entertainment.
 
 #### Watchlist Page
 
-![Watchlist Page](public/Watchlist.png)
+![Watchlist Page](public/screenshots/Watchlist.png)
 
 The watchlist page gives users an organized overview of their saved movies and shows. It displays essential information such as title, poster, and date added, with quick access to each item's details. In addition, users can view watchlists of their friends, either individually or collectively, if they have chosen to share them. The page also features a personalized recommendation section showing top-rated content from friends (4 stars or higher), encouraging social discovery. The layout dynamically adapts to show helpful messages if a friend’s watchlist is private.
 
 #### WatchpartyManager
 
-![Watchlist Page](public/WatchpartyManager.png)
+![Watchlist Page](public/screenshots/WatchpartyManager.png)
 
 The watchparty manager allows users to create, schedule, and manage collaborative viewing sessions. Users can specify a title, time, and video link (e.g., YouTube), then invite friends to join. All upcoming parties are listed in a table with quick actions like viewing details or sending invitations. An additional panel shows live responses from invited participants. The system includes validation for scheduling and link input, ensuring a smooth and robust setup process. This page lays the foundation for real-time social viewing features.
 
 #### DetailedWatchparty
 
-![Watchlist Page](public/DetailedWatchparty.png)
+![Watchlist Page](public/screenshots/DetailedWatchparty.png)
 
 This page provides an overview of a specific watchparty. It displays the organizer's name, the scheduled time (automatically converted to the user's local time zone), an optional description, and the link to the shared content (e.g., a YouTube video). Users can directly proceed to the synchronized watchparty lobby from here. This detailed view helps participants quickly understand what the session is about and prepares them to join at the right time.
 
 #### Lobby
 
-![Watchlist Page](public/Lobby.png)
+![Watchlist Page](public/screenshots/Lobby.png)
 
 The watchparty lobby enables real-time synchronized video viewing and chat among invited participants. Users can mark themselves as “ready”, triggering a countdown once everyone is prepared. The video player (YouTube-based) is synced using WebSockets, and any desynchronization is corrected with a timestamp broadcast from the host. A chat panel facilitates live conversation, while status indicators show each participant’s readiness. The system also handles edge cases such as video load errors and provides fallbacks. This page embodies the collaborative core of the platform.
 
