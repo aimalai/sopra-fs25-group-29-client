@@ -48,57 +48,82 @@ This technology stack enables a responsive, scalable, and efficient frontend, en
 
 ## High-Level Components
 
-The Watchparty component of our frontend enables users to create and manage watch parties 🍿, invite friends, and track invitation responses. The central class for this functionality is <a href="app/watchparty/page.tsx" style="color: blue; text-decoration: underline;">WatchpartyPage</a>.
+Our application is structured into five main high-level components, each representing a core part of the user experience and application logic. Below we describe their purpose, interactions, and provide links to the relevant files:
 
-#### Key Features:
+#### 1. Dashboard Page
+Role: Serves as the landing page and entry point for searching movies and TV shows. Users can input a query and are redirected to the results page.
 
-- Handles the creation of new watch parties, displays existing ones, and allows users to invite friends.
+Responsibilities:
 
-#### State Management:
+- Capture search input
 
-- `watchparties`: Stores the list of fetched watch parties.
-- `username`, `userIdStr`: Retrieved from session storage to identify the current user.
-- `form`: Manages the form state for creating new watch parties.
-- `inviteModalVisible`: Controls the visibility of the invite friends modal.
-- `selectedWatchPartyId`: Stores the ID of the watch party selected for inviting friends.
+- Trigger navigation based on user query
 
-#### Functions:
+- Display tutorial/help content
 
-- `onFinish`: Handles the submission of the "Create Watchparty" form. It validates the input, converts the time to UTC, and sends a request to the backend API to create the watch party.
-- `disabledDate`, `disabledTime`: Functions to disable past dates and times in the form's date and time pickers, ensuring that watch parties are scheduled for the future.
-- `handleInviteClick`, `closeInviteModal`: Functions to show and close the InviteFriendsModal.
-- `fetchData`: Fetches watch parties organized by the user and watch parties the user is invited to.
+- Related components: TutorialContent, useAuth
 
-### InviteFriendsModal Component
+#### 2. Results Page
+Role: Displays the results of a search query. Users can view details, add or remove items from their watchlist, and sort/filter results.
 
-This component is responsible for inviting friends to a selected watch party. It is opened when the user clicks the "Invite Friends" button for a specific watch party.
+Responsibilities:
 
-- Imported as `InviteFriendsModal`
-- Takes `watchPartyId`, `visible`, and `onClose` as props.
-- Displays a list of friends and sends invitations to the backend.
+- Fetch and render search results
 
-### InviteResponsesPolling Component
+- Watchlist integration (add/remove)
 
-This component is responsible for polling for responses to invitations for watch parties created by the current user.
+- Navigation to detail pages
 
-- Imported as `InviteResponsesPolling`
-- Takes `watchParties` as a prop.
-- Fetches the responses from invited users and displays them.
+- Related hooks: useApi, useSessionStorage, useAuth
 
-### UI Elements
+#### 3. Watchlist Page
+Role: Shows the authenticated user’s watchlist, their friends' public watchlists, and a list of top-rated movies recommended by friends.
 
-This component uses a combination of state management, API calls, and UI elements to provide a functional interface for managing watch parties.
+Responsibilities:
 
-- **Ant Design components used**:
-  - `Form`
-  - `Input`
-  - `Button`
-  - `Card`
-  - `Table`
-  - `DatePicker`
-  - `TimePicker`
+- Load and display personal watchlist
 
----
+- Fetch and filter friends’ shared watchlists
+
+- Display social recommendations
+
+- Related APIs: /users/{id}/watchlist, /users/{id}/friends/watchlists
+
+#### 4. Watchparty System
+- Create & Manage
+
+- Details View
+
+- Lobby (Synchronized Viewing)
+
+Role: Enables users to create and participate in synchronized watch sessions with chat and readiness coordination.
+
+Responsibilities:
+
+- Schedule and invite friends to watchparties
+
+- Live chat and readiness synchronization
+
+- Embedded YouTube player with sync control (via WebSocket)
+
+- Related tools: WebSocket (@stomp/stompjs), SockJS, YouTube Iframe API
+
+#### 5. User Management
+- User Search & Friend List
+
+- Profile Page
+
+Role: Handles user discovery, friend requests, and profile management.
+
+Responsibilities:
+
+- Search users and manage friendships
+
+- View and edit user profile
+
+- Control watchlist visibility and privacy
+
+- Related components: avatars, ChatBox, useApi, useSessionStorage
 
 ##### [Back to Top](#table-of-contents)
 
@@ -110,19 +135,24 @@ This component uses a combination of state management, API calls, and UI element
 
 ```sh
 git clone https://github.com/aimalai/sopra-fs25-group-29-client.git
-cd sopra-fs25-group-29-client
 ```
 
-#### Navigate to the frontend directory:
+#### Navigate to the clientt directory:
 
 ```sh
-cd frontend
+cd sopra-fs25-group-29-client
 ```
 
 #### Install frontend dependencies:
 
 ```sh
 npm install
+```
+
+#### Build the frontend:
+
+```sh
+npm run build
 ```
 
 #### Run the frontend application:
@@ -137,18 +167,34 @@ The frontend application✨ should now be running, usually at [http://localhost:
 
 The frontend application uses the following main dependencies:
 
-- `@ant-design/nextjs-registry`: Integrates **Ant Design** components with **Next.js**.
-- `@ant-design/v5-patch-for-react-19`: Patch for **React 19** and **Ant Design v5** compatibility.
-- `@stomp/stompjs`: Enables **WebSocket communication** using STOMP.
-- `dayjs`: Provides **date and time manipulation** features.
-- `moment`: Another **date and time manipulation** library.
-- `next`: The **Next.js framework** for building React applications.
-- `node-localstorage`: Provides a **localStorage implementation** for Node.js.
-- `react`: The core **React library** for UI development.
-- `react-dom`: Provides **DOM-specific methods** for React.
-- `socket.io-client`: Supports **real-time communication** using Socket.IO.
-- `sockjs-client`: Acts as a **WebSocket fallback library**.
-
+```
+"dependencies": {
+    "@ant-design/nextjs-registry": "^1.0.2",
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@stomp/stompjs": "^6.1.0",
+    "axios": "^1.4.0",
+    "dayjs": "^1.11.13",
+    "moment": "^2.30.1",
+    "next": "^15.2.0",
+    "node-localstorage": "^3.0.5",
+    "process": "^0.11.10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "socket.io-client": "^4.7.2",
+    "sockjs-client": "^1.5.2",
+    "sopra-fs25-template-client": "file:"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.0",
+    "@types/moment": "^2.11.29",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "eslint": "^9.21.0",
+    "eslint-config-next": "^15.2.0",
+    "typescript": "^5"
+  }
+```
 ---
 
 ##### [Back to Top](#table-of-contents)
@@ -157,41 +203,112 @@ The frontend application uses the following main dependencies:
 
 The following is the high-level user flow of our interface:
 
-#### Landing Page
+#### Dashboard Page
 
-![Landing Page](public/1.%20landing%20page.png)
+![Landing Page](public/Dashboard.png)
 
-#### Registration Page
+The dashboard is the main entry point of the application. Users are welcomed with a prominent search bar that allows them to look for movies and TV shows by entering a query. Upon submitting a search, they are redirected to the results page. Below the search input, a short tutorial component provides helpful usage guidance. This page is designed to be minimalistic and accessible, offering a clear call to action for users to begin their experience.
 
-![Registration Page](public/2.%20registration%20page.png)
+#### Results Page
 
-#### Login Page
+![Registration Page](public/Results.png)
 
-![Login Page](public/3.%20login%20page.png)
+After submitting a search query on the dashboard, users are redirected to the results page. This view presents a list of matching movies or TV shows, complete with posters, release dates, and short descriptions. Users can sort results by popularity, rating, or date, and filter for complete entries only. Each item offers direct actions: adding or removing it from the personal watchlist and accessing a detailed view. The interface also supports responsive pagination and quick search refinement.
 
-#### 2FA Page
+#### Detailed View with Reviews
 
-![2FA Page](public/4.%202fa%20page.png)
+![Login Page](public/DetailedViewWithReviews.png)
 
-#### Homepage
+The detailed view presents comprehensive information about a selected movie or TV show, including title, release date, genre, cast, and description. Users can view the official TMDB rating, submit their own star rating, and optionally add a written review (max. 200 characters). The page also aggregates community ratings and displays a live-updated “review chat” featuring other users’ comments. A dynamic button allows users to add or remove the item from their personal watchlist directly. This page bridges rich content presentation with interactive user feedback features.
 
-![Homepage](public/5.%20homepage.png)
+#### Users and Friends
+
+![2FA Page](public/UsersAndFriendRequests.png)
+
+This page allows users to discover other users, manage their friend list, and respond to incoming friend requests. The left section includes a search interface where users can look for others by username or email, with results displayed in a paginated table. The right section shows the current user's friends, and a third panel at the bottom lists pending friend requests with options to accept, decline, or view the sender’s profile. This feature fosters the social layer of the application and enables collaborative features like watchlist sharing and watchparty invitations.
+
+#### Profile Page of a potential Friend
+
+![Homepage](public/FriendsProfile.png)
+
+This page shows a detailed profile view of another user. It displays public information such as username, email, biography, birthdate, and online status. Depending on the friendship status, users can either send or cancel a friend request, or, if already friends, remove the user and access a private chat through the integrated chatbox. The layout adapts dynamically based on whether the profile belongs to the current user or someone else. This view enhances transparency and supports social interaction by allowing contextual decisions about connecting with others.
 
 #### Trending Page
 
-![Trending Page](public/6.%20trending%20page.png)
+![Trending Page](public/Trending.png)
 
-#### Watchparty Page
-
-![Watchparty Page](public/7.%20watchparty%20page.png)
+The trending page displays a curated list of currently popular movies and TV shows. Data is fetched from the backend and rendered in a scrollable, card-based layout. Each entry includes a poster, title, and short overview. Clicking on a card navigates the user to the detailed view of the selected item. This feature offers inspiration and highlights content that’s currently popular, helping users quickly discover relevant entertainment.
 
 #### Watchlist Page
 
-![Watchlist Page](public/8.%20watchlist%20page.png)
+![Watchlist Page](public/Watchlist.png)
+
+The watchlist page gives users an organized overview of their saved movies and shows. It displays essential information such as title, poster, and date added, with quick access to each item's details. In addition, users can view watchlists of their friends, either individually or collectively, if they have chosen to share them. The page also features a personalized recommendation section showing top-rated content from friends (4 stars or higher), encouraging social discovery. The layout dynamically adapts to show helpful messages if a friend’s watchlist is private.
+
+#### WatchpartyManager
+
+![Watchlist Page](public/WatchpartyManager.png)
+
+The watchparty manager allows users to create, schedule, and manage collaborative viewing sessions. Users can specify a title, time, and video link (e.g., YouTube), then invite friends to join. All upcoming parties are listed in a table with quick actions like viewing details or sending invitations. An additional panel shows live responses from invited participants. The system includes validation for scheduling and link input, ensuring a smooth and robust setup process. This page lays the foundation for real-time social viewing features.
+
+#### DetailedWatchparty
+
+![Watchlist Page](public/DetailedWatchparty.png)
+
+This page provides an overview of a specific watchparty. It displays the organizer's name, the scheduled time (automatically converted to the user's local time zone), an optional description, and the link to the shared content (e.g., a YouTube video). Users can directly proceed to the synchronized watchparty lobby from here. This detailed view helps participants quickly understand what the session is about and prepares them to join at the right time.
+
+#### Lobby
+
+![Watchlist Page](public/Lobby.png)
+
+The watchparty lobby enables real-time synchronized video viewing and chat among invited participants. Users can mark themselves as “ready”, triggering a countdown once everyone is prepared. The video player (YouTube-based) is synced using WebSockets, and any desynchronization is corrected with a timestamp broadcast from the host. A chat panel facilitates live conversation, while status indicators show each participant’s readiness. The system also handles edge cases such as video load errors and provides fallbacks. This page embodies the collaborative core of the platform.
 
 ---
 
 ##### [Back to Top](#table-of-contents)
+
+## Roadmap
+
+New frontend contributors can enhance the user experience by implementing the following high-impact features:
+
+### 1. Interactive Watchparty Games / Activities 🎮
+Description: Add interactive elements such as movie-themed trivia or real-time mini games to the watchparty lobby. These features would make the synchronized viewing experience more social and entertaining.
+Frontend Focus:
+
+- UI components for game flow and scoring
+
+- Real-time interactions using WebSocket events
+
+- Visual feedback for players
+
+Complexity: High – Combines real-time communication, interactive UI design, and responsive feedback.
+Value: High – Increases engagement and differentiates the platform with a playful twist.
+
+### 2. Personalized Movie Recommendations Based on Social Graph 🔗
+Description: Replace generic recommendations with suggestions based on friends' watchlists, ratings, and shared interests.
+Frontend Focus:
+
+- Display algorithms' output in the watchlist or trending section
+
+- Interactive components for “Why was this recommended?”
+
+- Clear visual cues linking content to friends' preferences
+
+Complexity: Medium to High – Depends on backend API readiness, frontend must handle and interpret complex recommendation data.
+Value: High – Makes discovery more relevant and social.
+
+### 3. User-Generated Content (Clips & Reactions) 🎥
+Description: Let users capture short clips or submit text/video reactions during or after watchparties.
+Frontend Focus:
+
+- UI for selecting/capturing clip moments
+
+- Comment/reaction timeline overlay
+
+- Upload and playback integration with YouTube or in-app player
+
+Complexity: High – Involves video integration, UI overlays, and user feedback loops.
+Value: Very High – Encourages creativity and strengthens community features.
 
 ## Authors & Acknowledgment
 
