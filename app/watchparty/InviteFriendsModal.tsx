@@ -154,7 +154,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
           rules={[
         { required: true, message: "Enter username to invite!" },
         {
-          validator: (_, value) => invitedUsers.includes(value) ? Promise.reject("This friend has already been invited."): Promise.resolve(),},]}
+          validator: (_, value) => invitedUsers.includes(value) ? Promise.reject(new Error("This friend has already been invited.")): Promise.resolve(),},]}
           style={{ marginTop: "20px" }}
         >
           <AutoComplete

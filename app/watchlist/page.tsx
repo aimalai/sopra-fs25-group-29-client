@@ -7,6 +7,7 @@ import useSessionStorage from "@/hooks/useSessionStorage";
 import { Card, Table, Spin, Button, Select, Space, message } from "antd";
 import Image from "next/image";
 import useAuth from "@/hooks/useAuth";
+import Link from "next/link";
 
 interface Movie {
   movieId: string;
@@ -192,12 +193,12 @@ export default function WatchlistPage() {
       title: "Title",
       key: "title",
       render: (_: unknown, r: Movie) => (
-        <a
-          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=${r.mediaType}`)}
+        <Link
+          href={`/results/details?id=${r.movieId}&media_type=${r.mediaType}`}
           style={{ textDecoration: "underline", cursor: "pointer" }}
         >
           {r.title}
-        </a>
+        </Link>
       ),
     },
     {
@@ -245,12 +246,12 @@ export default function WatchlistPage() {
       title: "Title",
       key: "title",
       render: (_: unknown, r: TopRatedMovie) => (
-        <a
-          onClick={() => router.push(`/results/details?id=${r.movieId}&media_type=movie`)}
+        <Link
+          href={`/results/details?id=${r.movieId}&media_type=movie`}
           style={{ textDecoration: "underline", cursor: "pointer" }}
         >
           {r.title}
-        </a>
+        </Link>
       ),
     },
     {
