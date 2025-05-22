@@ -53,9 +53,9 @@ export default function WatchpartyPage() {
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   const [selectedWatchPartyId, setSelectedWatchPartyId] = useState<number | null>(null);
 
-  const disabledDate = (current: Dayjs) => {
-    return current && current.isBefore(dayjs().startOf("day"));
-  };
+  const disabledDate = (current: Dayjs | null) =>
+    current?.isBefore(dayjs().startOf("day")) ?? false;
+
 
   const disabledTime = () => {
     const selectedDate = form.getFieldValue("date");

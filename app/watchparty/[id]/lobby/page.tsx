@@ -385,8 +385,8 @@ export default function LobbyPage() {
             color: '#000',
           }}>
             Lobby (Host: {hostUsername}):<br /><br />
-            {participants.map((p, i) => (
-              <span key={i} style={{ marginRight: 8 }}>
+            {participants.map((p) => (
+              <span key={p.username} style={{ marginRight: 8 }}>
                 {p.username}{p.ready ? ' ✅' : ' ⏳'}
               </span>
             ))}
@@ -402,7 +402,7 @@ export default function LobbyPage() {
           }}>
             {chat.map((m, i) => (
               <div
-                key={i}
+                key={`${m.sender}-${i}`}
                 style={{ marginBottom: 8 }}
                 ref={el => {
                   if (i === chat.length - 1 && el) {
@@ -450,12 +450,11 @@ export default function LobbyPage() {
           </div>
         )}
       </div>
-      <style jsx global>{`
+      <style>{`
         @keyframes overlayFade {
-        from { background-color: rgba(0,0,0,0); }
-        to   { background-color: rgba(0,0,0,0.7); }
+          from { background-color: rgba(0,0,0,0); }
+          to   { background-color: rgba(0,0,0,0.7); }
         }
-
         @keyframes popInBounce {
           0%   { transform: scale(0.5);   opacity: 0; }
           60%  { transform: scale(1.1);   opacity: 1; }
