@@ -23,15 +23,13 @@ interface ChatBoxProps {
 const chatContainerStyle: CSSProperties = {
   width: "100%",
   maxWidth: "480px",
+  height: "545px",
   backgroundColor: "#f0f2f5",
   padding: "16px",
   borderRadius: "8px",
   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
   display: "flex",
   flexDirection: "column",
-  flex: 1,
-  maxHeight: "calc(100vh - 200px)",
-  overflow: "hidden",
 };
 
 const chatListStyle: CSSProperties = {
@@ -134,7 +132,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ friendId, currentUserId }) => {
         onChange={(e) => setMessage(e.target.value)}
         onPressEnter={sendMessage}
       />
-      <Button type="primary" onClick={sendMessage} disabled={!isConnected} style={{ marginTop: 10, width: "100%" }}>
+      <Button style={{ backgroundColor: "#007BFF", color: "#ffffff", marginTop: 10, width: "100%"}} onClick={sendMessage} disabled={!isConnected} >
         Send
       </Button>
     </div>

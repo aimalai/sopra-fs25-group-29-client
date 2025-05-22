@@ -18,7 +18,6 @@ body {
 
 body {
   color: var(--foreground);
-  /* Dein globales Hintergrundbild: bitte ggf. deinen Dateinamen anpassen */
   background: url("/BabaBild2.jpg") center center / cover no-repeat fixed;
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -42,7 +41,6 @@ a {
   }
 }
 
-/* Entfernt: background-color aus .auth-container, damit das globale Background greift */
 .auth-container {
   display: flex;
   justify-content: center;
@@ -50,7 +48,6 @@ a {
   min-height: 100vh;
 }
 
-/* Entfernt: background-color aus .card-container */
 .card-container {
   display: flex;
   justify-content: center;
@@ -58,19 +55,18 @@ a {
   min-height: 100vh;
 }
 
-/* spinner for global use */
 .spinner {
   width: 80px;
   height: 80px;
   border: 4px solid #ccc;
-  border-top: 4px solid #4caf50; /* Green for progress */
+  border-top: 4px solid #4caf50;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative; /* spinner position */
-  margin: 40px auto; /* Centers the spinner with spacing */
+  position: relative;
+  margin: 40px auto;
 }
 
 @keyframes spin {
@@ -80,4 +76,10 @@ a {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.ant-picker-footer .ant-btn-primary:not(.ant-btn-disabled) {
+  background-color: #007BFF !important;
+  border-color: #007BFF !important;
+  color: #fff !important;
 }

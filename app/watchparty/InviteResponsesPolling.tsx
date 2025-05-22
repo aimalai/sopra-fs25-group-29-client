@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
-import { Button, Card, List, Tag, Spin, Typography } from "antd";
+import { Button, Card, List, Tag, Spin, Typography, message } from "antd";
 
 const { Text } = Typography;
 
@@ -8,12 +8,19 @@ interface PollingProps {
   watchParties: { id: number; title: string }[];
 }
 
+const buttonStyle: CSSProperties = {
+  backgroundColor: "#007BFF",
+  color: "#ffffff",
+  width: "100%",
+};
+
 const InviteResponsesPolling: React.FC<PollingProps> = ({ watchParties }) => {
   const apiService = useApi();
   const [inviteResponses, setInviteResponses] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(false);
 
-  const fetchInviteResponses = async () => {
+  const [messageApi, contextHolder] = message.useMessage();
+  const fetchInviteResponses = async (showMessage: boolean) => {
     setLoading(true);
     try {
       const entries = await Promise.all(
@@ -25,8 +32,14 @@ const InviteResponsesPolling: React.FC<PollingProps> = ({ watchParties }) => {
         })
       );
       setInviteResponses(Object.fromEntries(entries));
+      if (showMessage) {
+        messageApi.success("Invite statuses reloaded successfully");
+      }
     } catch (error) {
       console.error("Error fetching invite responses:", error);
+      if (showMessage) {
+        messageApi.error("Failed to reload invite statuses");
+      }
     } finally {
       setLoading(false);
     }
@@ -34,16 +47,17 @@ const InviteResponsesPolling: React.FC<PollingProps> = ({ watchParties }) => {
 
   useEffect(() => {
     if (watchParties.length > 0) {
-      fetchInviteResponses();
+      fetchInviteResponses(false);
     }
   }, [watchParties, apiService]);
 
   return (
     <>
-      <Button 
-        size="small" 
-        onClick={fetchInviteResponses} 
-        style={{ marginBottom: 8 }}
+      {contextHolder}
+      <Button
+        size="small"
+        onClick={() => fetchInviteResponses(true)}
+        style={{ ...buttonStyle, width: "auto", marginBottom: 8 }}
       >
         Reload Status
       </Button>

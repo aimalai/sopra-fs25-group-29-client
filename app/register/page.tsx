@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useSessionStorage from "@/hooks/useSessionStorage";
 import { User } from "@/types/user";
-import { Button, Form, Input, message } from "antd";
+import { Button, Form, Input, message, Tooltip } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 interface FormFieldProps {
   username: string;
@@ -60,14 +61,6 @@ const inputStyle: CSSProperties = {
   backgroundColor: "#e0e0e0",
   border: "1px solid #ccc",
   color: "#000",
-};
-
-const infoTextStyle: CSSProperties = {
-  color: "#000",
-  fontSize: "1rem",
-  backgroundColor: "#e0e0e0",
-  padding: "8px",
-  borderRadius: "4px",
 };
 
 const Register: React.FC = () => {
@@ -126,11 +119,6 @@ const Register: React.FC = () => {
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Register below!</div>
-        <p style={infoTextStyle}>
-          Please register using a genuine email ID. A one-time password (OTP)
-          will be sent to your email each time you log in. Be sure to note your
-          chosen username—you'll need it to access your account in the future!
-        </p>
         <Form
           form={form}
           name="register"
@@ -189,7 +177,14 @@ const Register: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label={<span style={{ color: "#000" }}>Enter Your Email</span>}
+            label={
+          <span style={{ color: "#000", display: "flex", alignItems: "center", gap: 4 }}>
+            Enter Your Email
+            <Tooltip title="Please use a valid email address. An One-Time-Password (OTP) will be sent each time you log in.">
+              <InfoCircleOutlined style={{ color: "#888" }} />
+            </Tooltip>
+          </span>
+          }
             name="email"
             rules={[
               {

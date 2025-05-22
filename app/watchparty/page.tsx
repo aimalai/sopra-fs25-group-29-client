@@ -135,25 +135,30 @@ export default function WatchpartyPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const organizerId = Number(userIdStr);
-        const invitedUser = username;
-        const [own, invited] = await Promise.all([
-          apiService.get<Watchparty[]>(`/api/watchparties?organizerId=${organizerId}`),
-          apiService.get<Watchparty[]>(`/api/watchparties?username=${encodeURIComponent(invitedUser)}`),
-        ]);
-        const merged = [...own, ...invited].reduce<Watchparty[]>((acc, wp) => {
-          if (!acc.some((x) => x.id === wp.id)) acc.push(wp);
-          return acc;
-        }, []);
-        setWatchparties(merged);
-      } catch {
-        message.error("Error fetching watchparties.");
+  const fetchData = async (showMessage: boolean = false) => {
+    try {
+      const organizerId = Number(userIdStr);
+      const invitedUser = username;
+      const [own, invited] = await Promise.all([
+        apiService.get<Watchparty[]>(`/api/watchparties?organizerId=${organizerId}`),
+        apiService.get<Watchparty[]>(`/api/watchparties?username=${encodeURIComponent(invitedUser)}`),
+      ]);
+      const merged = [...own, ...invited].reduce<Watchparty[]>((acc, wp) => {
+        if (!acc.some((x) => x.id === wp.id)) acc.push(wp);
+        return acc;
+      }, []);
+      setWatchparties(merged);
+
+      if (showMessage) {
+        messageApi.success("Watchparties reloaded successfully");
       }
-    };
-    fetchData();
+    } catch {
+      message.error("Error fetching watchparties.");
+    }
+  };
+
+  useEffect(() => {
+    fetchData(false);
   }, [apiService, userIdStr, username]);
 
   if (!isAuthed) return null;
@@ -308,7 +313,15 @@ export default function WatchpartyPage() {
               </Form.Item>
             </Form>
           </Card>
-          <Card title="Watchparties" style={{ flex: "2 1 400px", marginBottom: 24 }}>
+          <Card
+            title="Watchparties"
+            extra={
+              <Button style={{ ...buttonStyle, width: "auto" }} onClick={() => fetchData(true)}>
+                Reload
+              </Button>
+            }
+            style={{ flex: "2 1 400px", marginBottom: 24 }}
+          >
             <Table
               dataSource={watchparties}
               columns={watchpartyColumns}
