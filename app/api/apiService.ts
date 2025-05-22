@@ -2,7 +2,7 @@ import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
 
 export class ApiService {
-  private baseURL: string;
+  private readonly baseURL: string;
 
   constructor() {
     this.baseURL = getApiDomain();
