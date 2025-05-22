@@ -169,17 +169,28 @@ export default function Navbar() {
           overflowedIndicator={<MenuOutlined style={{ color: "#333" }} />}
         />
         <Dropdown menu={{ items: userMenuItems }} trigger={["click"]}>
-          <div
-            style={{ cursor: "pointer", marginLeft: "auto", display: "inline-block", transition: "transform 0.2s" }}
+          <button
+            type="button"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              marginLeft: "auto",
+              display: "inline-block",
+              transition: "transform 0.2s",
+            }}
             onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
             onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+            onFocus={e => (e.currentTarget.style.transform = "scale(1.1)")}
+            onBlur={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             <Avatar
-              src={profileImage ?? undefined}
+              src={profileImage || undefined}
               icon={!profileImage ? <UserOutlined /> : undefined}
               size={40}
             />
-          </div>
+          </button>
         </Dropdown>
       </Header>
       <Drawer
