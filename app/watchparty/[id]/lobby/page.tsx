@@ -71,16 +71,23 @@ export default function LobbyPage() {
   const splashTimeout = useRef<number | null>(null);
   const [toggleLocked, setToggleLocked] = useState(false);
 
-  const fetchContentLink = async () => {
-    if (!id) return;
-    try {
-      const wp = await api.get<Watchparty>(`/api/watchparties/${id}`);
-      if (wp.contentLink) setContentLink(wp.contentLink);
-    } catch { }
-  };
+  function incrementVideoRetries() {
+    if (videoRetries < maxVideoRetries) {
+      setTimeout(() => setVideoRetries(r => r + 1), 3000);
+    }
+  }
+  function onVideoError() {
+    setVideoError(true);
+    incrementVideoRetries();
+  }
 
-  const handleParticipantStateChange = (newParts: { username: string; ready: boolean }[]) => {
-    newParts.forEach(pNew => {
+  function onSyncReadyState(message: string) {
+    const state: {
+      participants: { username: string; ready: boolean }[];
+      hostUsername: string;
+    } = JSON.parse(message);
+
+    state.participants.forEach(pNew => {
       const pOld = prevParticipantsRef.current.find(p => p.username === pNew.username);
       if (pOld?.ready && !pNew.ready && pNew.username !== username) {
         setNotReadyMsg(`${pNew.username} is not ready`);
@@ -88,26 +95,40 @@ export default function LobbyPage() {
         splashTimeout.current = window.setTimeout(() => setNotReadyMsg(null), 2000);
       }
     });
-    prevParticipantsRef.current = newParts;
-    setParticipants(newParts);
-  };
+    prevParticipantsRef.current = state.participants;
+    setParticipants(state.participants);
+    setHostUsername(state.hostUsername);
 
-  const handleSyncTime = (msgBody: string) => {
-    const { currentTime } = JSON.parse(msgBody);
-    const pl = playerRef.current;
-    if (pl?.seekTo) {
-      pl.seekTo(currentTime, true);
-      pl.playVideo();
+    if (!state.participants.every(p => p.ready)) {
+      playerRef.current?.pauseVideo();
+      countdownStarted.current = false;
+      setCountdown(null);
+    } else if (!countdownStarted.current) {
+      countdownStarted.current = true;
+      setCountdown(3);
     }
-    const h = String(Math.floor(currentTime / 3600)).padStart(2, '0');
-    const mnt = String(Math.floor((currentTime % 3600) / 60)).padStart(2, '0');
-    const s = String(Math.floor(currentTime % 60)).padStart(2, '0');
-    setSyncMessage(`You are now synced to ${h}:${mnt}:${s}`);
-    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-    syncTimeoutRef.current = window.setTimeout(() => {
-      setSyncMessage(null);
-    }, 3000);
-  };
+  }
+
+  function onChatMessage(message: string) {
+    const m = JSON.parse(message);
+    setChat(c => [...c, m]);
+  }
+
+  function onStompConnect(client: Client) {
+    if (!subscribedRef.current) {
+      client.subscribe(`/topic/syncReadyState/${roomId}`, m => onSyncReadyState(m.body));
+      client.subscribe(`/topic/syncTime/${roomId}`, m => handleSyncTime(m.body));
+      client.subscribe(`/topic/chat/${roomId}`, m => onChatMessage(m.body));
+      subscribedRef.current = true;
+    }
+    if (!joinedRef.current) {
+      client.publish({
+        destination: '/app/join',
+        body: JSON.stringify({ roomId, sender: username })
+      });
+      joinedRef.current = true;
+    }
+  }
 
   const setupYouTubePlayer = (vid: string) => {
     playerRef.current?.destroy?.();
@@ -116,36 +137,35 @@ export default function LobbyPage() {
       playerVars: { autoplay: 0 },
       events: {
         onReady: () => setVideoError(false),
-        onError: () => {
-          setVideoError(true);
-          if (videoRetries < maxVideoRetries) {
-            setTimeout(() => setVideoRetries(r => r + 1), 3000);
-          }
-        }
+        onError: onVideoError
       },
     });
   };
 
   useEffect(() => {
+    const fetchContentLink = async () => {
+      if (!id) return;
+      try {
+        const wp = await api.get<Watchparty>(`/api/watchparties/${id}`);
+        if (wp.contentLink) setContentLink(wp.contentLink);
+      } catch {}
+    };
     fetchContentLink();
-  }, [id]);
+  }, [id, api]);
 
   useEffect(() => {
     if (!contentLink) return;
 
     const regex = /(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/;
-    if (!contentLink.match(regex)) {
+    const match = contentLink.match(regex);
+    if (!match) {
       setVideoError(true);
       setVideoRetries(maxVideoRetries);
       return;
     }
-
-    const match = contentLink.match(regex)!;
     const vid = match[1];
 
-    window.onYouTubeIframeAPIReady = () => {
-      setupYouTubePlayer(vid);
-    };
+    window.onYouTubeIframeAPIReady = () => setupYouTubePlayer(vid);
 
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -166,40 +186,7 @@ export default function LobbyPage() {
     const client = new Client({
       webSocketFactory: () => sock,
       reconnectDelay: 5000,
-      onConnect: () => {
-        if (!subscribedRef.current) {
-          client.subscribe(`/topic/syncReadyState/${roomId}`, m => {
-            const state: {
-              participants: { username: string; ready: boolean }[];
-              hostUsername: string;
-            } = JSON.parse(m.body);
-
-            handleParticipantStateChange(state.participants || []);
-            setHostUsername(state.hostUsername || '');
-
-            if (!state.participants.every(p => p.ready)) {
-              playerRef.current?.pauseVideo();
-              countdownStarted.current = false;
-              setCountdown(null);
-            } else if (!countdownStarted.current) {
-              countdownStarted.current = true;
-              setCountdown(3);
-            }
-          });
-
-          client.subscribe(`/topic/syncTime/${roomId}`, m => handleSyncTime(m.body));
-          client.subscribe(`/topic/chat/${roomId}`, m => setChat(c => [...c, JSON.parse(m.body)]));
-
-          subscribedRef.current = true;
-        }
-        if (!joinedRef.current) {
-          client.publish({
-            destination: '/app/join',
-            body: JSON.stringify({ roomId, sender: username })
-          });
-          joinedRef.current = true;
-        }
-      }
+      onConnect: () => onStompConnect(client)
     });
 
     client.activate();
@@ -232,9 +219,22 @@ export default function LobbyPage() {
       });
     }
     setCountdown(null);
-  }, [countdown]);
+  }, [countdown, hostUsername, roomId, username]);
 
-  if (!isAuthed) return null;
+
+  const handleSyncTime = (msgBody: string) => {
+    const { currentTime } = JSON.parse(msgBody);
+    if (playerRef.current?.seekTo) {
+      playerRef.current.seekTo(currentTime, true);
+      playerRef.current.playVideo();
+    }
+    const h = String(Math.floor(currentTime / 3600)).padStart(2, '0');
+    const m = String(Math.floor((currentTime % 3600) / 60)).padStart(2, '0');
+    const s = String(Math.floor(currentTime % 60)).padStart(2, '0');
+    setSyncMessage(`You are now synced to ${h}:${m}:${s}`);
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = window.setTimeout(() => setSyncMessage(null), 3000);
+  };
 
   const toggleReady = () => {
     if (toggleLocked) return;
@@ -265,9 +265,10 @@ export default function LobbyPage() {
     setMsg('');
   };
 
+  if (!isAuthed) return null;
+
   return (
     <>
-
       {notReadyMsg && (
         <div style={{
           position: 'fixed',
@@ -458,9 +459,9 @@ export default function LobbyPage() {
         @keyframes popInBounce {
           0%   { transform: scale(0.5);   opacity: 0; }
           60%  { transform: scale(1.1);   opacity: 1; }
-          100% { transform: scale(1);     opacity: 1; }`
-      }
-      </style>
+          100% { transform: scale(1);     opacity: 1; }
+        }
+      `}</style>
     </>
   );
 }
