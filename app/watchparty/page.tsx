@@ -58,24 +58,15 @@ export default function WatchpartyPage() {
   };
 
   const disabledTime = () => {
-    const selectedDate: Dayjs | undefined = form.getFieldValue("date");
-    if (selectedDate && selectedDate.isSame(dayjs(), "day")) {
+    const selectedDate = form.getFieldValue("date");
+    if (selectedDate?.isSame(dayjs(), "day")) {
+      const now = dayjs();
       return {
-        disabledHours: (): number[] => {
-          const nowHour = dayjs().hour();
-          const hours: number[] = [];
-          for (let i = 0; i < nowHour; i++) hours.push(i);
-          return hours;
-        },
-        disabledMinutes: (selectedHour: number): number[] => {
-          if (selectedHour === dayjs().hour()) {
-            const nowMinute = dayjs().minute();
-            const minutes: number[] = [];
-            for (let i = 0; i < nowMinute; i++) minutes.push(i);
-            return minutes;
-          }
-          return [];
-        },
+        disabledHours: () => Array.from({ length: now.hour() }, (_, i) => i),
+        disabledMinutes: (selectedHour: number) =>
+          selectedHour === now.hour()
+            ? Array.from({ length: now.minute() }, (_, i) => i)
+            : [],
       };
     }
     return {};
@@ -259,20 +250,20 @@ export default function WatchpartyPage() {
                       try {
                         url = new URL(value);
                       } catch {
-                        return Promise.reject("Please enter a valid URL.");
+                        return Promise.reject(new Error("Please enter a valid URL."));
                       }
                       if (!/^https?:$/.test(url.protocol)) {
-                        return Promise.reject("Link must start with http:// or https://.");
+                        return Promise.reject(new Error("Link must start with http:// or https://."));
                       }
                       if (value.length > 512) {
-                        return Promise.reject("Link is too long (max 512 characters).");
+                        return Promise.reject(new Error("Link is too long (max 512 characters)."));
                       }
                       const host = url.hostname.replace(/^www\./, "");
                       if (host.includes("youtube.com") || host === "youtu.be") {
                         const id =
                           host === "youtu.be" ? url.pathname.slice(1) : url.searchParams.get("v");
                         if (!id || !/^[-_A-Za-z0-9]{11}$/.test(id)) {
-                          return Promise.reject("Invalid YouTube video ID.");
+                          return Promise.reject(new Error("Invalid YouTube video ID."));
                         }
                       }
                       return Promise.resolve();
