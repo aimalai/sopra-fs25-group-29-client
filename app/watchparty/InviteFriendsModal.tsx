@@ -5,6 +5,14 @@ import { useApi } from "@/hooks/useApi";
 import { Modal, Button, Form, AutoComplete, List } from "antd";
 import useWatchPartyLocalStorage from "../hooks/useWatchPartyLocalStorage";
 
+
+const buttonStyle: React.CSSProperties = {
+  backgroundColor: "#007BFF",
+  color: "#ffffff",
+  width: "100%",
+  borderColor: "#007BFF",
+};
+
 interface InviteFriendsProps {
   watchPartyId: number;
   visible: boolean;
@@ -123,7 +131,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
             fontSize: "20px",
             fontWeight: "bold",
             color: "white",
-            backgroundColor: "red",
+            backgroundColor: "#007BFF",
             padding: "10px",
             borderRadius: "5px",
             textAlign: "center",
@@ -142,7 +150,7 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
       >
         <Form.Item
           name="username"
-          label="Enter friend's username or copy-paste from list below:"
+          label="Enter friend's username:"
           rules={[
         { required: true, message: "Enter username to invite!" },
         {
@@ -172,29 +180,11 @@ const InviteFriendsModal: React.FC<InviteFriendsProps> = ({
         )}
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading}>
+          <Button type="primary" htmlType="submit" loading={loading} style={buttonStyle} >
             Send Invitation
           </Button>
         </Form.Item>
       </Form>
-
-      <h4>Friends List:</h4>
-      <List
-        dataSource={friends}
-        renderItem={(friend) => (
-          <List.Item
-            style={{ display: "flex", alignItems: "center", gap: "15px" }}
-          >
-            <span>{friend}</span>
-            <Button
-              type="link"
-              onClick={() => navigator.clipboard.writeText(friend)}
-            >
-              Copy
-            </Button>
-          </List.Item>
-        )}
-      />
 
       <h4>Invited Users:</h4>
       <List

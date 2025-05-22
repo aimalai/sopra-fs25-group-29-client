@@ -247,7 +247,7 @@ export default function SearchUsersPage() {
                 <div>
                   <Button
                     type="primary"
-                    style={{ marginRight: 8 }}
+                    style={{ ...buttonStyle, marginRight: 8 }}
                     onClick={async () => {
                       await api.put(
                         `/users/${userId}/friendrequests/${req.id}/accept`,
