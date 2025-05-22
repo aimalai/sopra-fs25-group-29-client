@@ -71,9 +71,10 @@ export default function Navbar() {
 
   const hidePaths = ["/", "/login", "/register", "/otpVerification"];
   const isLobby = /^\/watchparty\/[^/]+\/lobby$/.test(pathname);
-  if (hidePaths.includes(pathname) ?? isLobby) {
+  if (hidePaths.includes(pathname) || isLobby) {
     return null;
   }
+
 
   if (["/", "/login", "/register", "/otpVerification"].includes(pathname)) {
     return null;
