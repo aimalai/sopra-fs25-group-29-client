@@ -11,6 +11,7 @@ import Image from "next/image";
 import { avatars } from "@/constants/avatars";
 import type { ColumnsType } from "antd/es/table";
 import useAuth from "@/hooks/useAuth";
+import Link from "next/link";
 
 const buttonStyle: CSSProperties = {
   backgroundColor: "#007BFF",
@@ -126,13 +127,20 @@ export default function SearchUsersPage() {
               height={32}
               style={{ borderRadius: "50%" }}
             />
-            <a
-              onClick={() => router.push(`/users/${user.id}`)}
-              style={{ textDecoration: "underline", color: "blue", cursor: "pointer" }}
+            <Link
+              href={`/users/${user.id}`}
+              style={{
+                textDecoration: "underline",
+                color: "blue",
+                cursor: "pointer"
+              }}
+              onClick={e => {
+                e.stopPropagation();
+              }}
             >
               {user.username}
               {isCurrent && <span style={{ marginLeft: 4 }}>(You)</span>}
-            </a>
+            </Link>
           </Space>
         );
       },
@@ -237,12 +245,13 @@ export default function SearchUsersPage() {
                     height={32}
                     style={{ borderRadius: "50%" }}
                   />
-                  <a
-                    onClick={() => router.push(`/users/${req.id}`)}
-                  style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}
+                  <Link
+                    href={`/users/${req.id}`}
+                    style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}
+                    onClick={e => e.stopPropagation()}
                   >
                     {req.username}
-                  </a>
+                  </Link>
                 </Space>
                 <div>
                   <Button
