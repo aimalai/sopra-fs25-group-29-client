@@ -62,6 +62,14 @@ const inputStyle: CSSProperties = {
   color: "#000",
 };
 
+const infoTextStyle: CSSProperties = {
+  color: "#000",
+  fontSize: "1rem",
+  backgroundColor: "#e0e0e0",
+  padding: "8px",
+  borderRadius: "4px",
+};
+
 const Register: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
@@ -118,6 +126,11 @@ const Register: React.FC = () => {
       </div>
       <div style={formBoxStyle}>
         <div style={headingStyle}>Register below!</div>
+        <p style={infoTextStyle}>
+          Please register using a genuine email ID. A one-time password (OTP)
+          will be sent to your email each time you log in. Be sure to note your
+          chosen username—you'll need it to access your account in the future!
+        </p>
         <Form
           form={form}
           name="register"
