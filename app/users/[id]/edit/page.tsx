@@ -149,6 +149,7 @@ export default function EditUser() {
   const [hover, setHover] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | undefined>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [token] = useSessionStorage<string>("token", "");
   const [storedUserId] = useSessionStorage<number>("userId", 0);
@@ -181,7 +182,7 @@ export default function EditUser() {
         });
         setSelectedAvatar(fetchedUser.avatarKey ?? undefined);
       } catch {
-        message.error("Error loading user data");
+        messageApi.error("Error loading user data");
       }
     })();
   }, [isOwnProfile, apiService, id, form]);
@@ -209,193 +210,196 @@ export default function EditUser() {
         payload.password = values.password;
       }
       await apiService.put(`/users/${id}`, payload);
-      message.success("Profile updated successfully.");
+      messageApi.success("Profile updated successfully.");
       router.replace(`/users/${id}`);
     } catch (error: unknown) {
-      message.error(`Update Failed: ${(error as Error).message}`);
+      messageApi.error(`Update Failed: ${(error as Error).message}`);
     }
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={logoContainerStyle}>
-        <Image
-          src="/NiroLogo.png"
-          alt="App Logo"
-          width={160}
-          height={100}
-          style={logoStyle}
-        />
-      </div>
+    <>
+      {contextHolder}
+      <div style={containerStyle}>
+        <div style={logoContainerStyle}>
+          <Image
+            src="/NiroLogo.png"
+            alt="App Logo"
+            width={160}
+            height={100}
+            style={logoStyle}
+          />
+        </div>
 
-      {user && (
-        <div style={contentStyle}>
-          <div style={topRowStyle}>
-            <div
-              style={profilePictureWrapper}
-              onMouseEnter={() => setHover(true)}
-              onMouseLeave={() => setHover(false)}
-              onClick={() => setIsModalVisible(true)}
-            >
-              <Image
-                src={
-                  avatars.find((a) => a.key === selectedAvatar)?.url ||
-                  user.profilePictureUrl ||
-                  "/default-avatar.jpg"
-                }
-                alt="Profile Picture"
-                width={80}
-                height={80}
-                style={profilePictureStyle}
-              />
-              {hover && <div style={overlayStyle}>Edit</div>}
+        {user && (
+          <div style={contentStyle}>
+            <div style={topRowStyle}>
+              <div
+                style={profilePictureWrapper}
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
+                onClick={() => setIsModalVisible(true)}
+              >
+                <Image
+                  src={
+                    avatars.find((a) => a.key === selectedAvatar)?.url ||
+                    user.profilePictureUrl ||
+                    "/default-avatar.jpg"
+                  }
+                  alt="Profile Picture"
+                  width={80}
+                  height={80}
+                  style={profilePictureStyle}
+                />
+                {hover && <div style={overlayStyle}>Edit</div>}
+              </div>
+              <div style={headingStyle}>Edit Your Profile</div>
             </div>
-            <div style={headingStyle}>Edit Your Profile</div>
+
+            <Form form={form} layout="vertical" onFinish={onFinish}>
+              <Form.Item name="avatarKey" style={{ display: "none" }}>
+                <Input />
+              </Form.Item>
+
+              <div style={fieldContainer}>
+                <Form.Item
+                  name="username"
+                  label={<span style={labelStyle}>Username:</span>}
+                  rules={[{ required: true }]}
+                >
+                  <Input style={inputBoxStyle} />
+                </Form.Item>
+              </div>
+
+              <div style={fieldContainer}>
+                <Form.Item
+                  name="email"
+                  label={<span style={labelStyle}>Email:</span>}
+                >
+                  <Input style={inputBoxStyle} />
+                </Form.Item>
+              </div>
+
+              <div style={fieldContainer}>
+                <Form.Item
+                  name="birthday"
+                  label={<span style={labelStyle}>Birthday:</span>}
+                  rules={[
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        const regex = /^\d{4}-\d{2}-\d{2}$/;
+                        if (!regex.test(value)) {
+                          return Promise.reject(new Error("Use YYYY-MM-DD"));
+                        }
+                        const inputDate = new Date(value);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (inputDate > today) {
+                          return Promise.reject(
+                            new Error("Birthday cannot be in the future.")
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input style={inputBoxStyle} placeholder="YYYY-MM-DD" />
+                </Form.Item>
+              </div>
+
+              <div style={fieldContainer}>
+                <Form.Item label={<span style={labelStyle}>Current Password:</span>}>
+                  <Input.Password style={inputBoxStyle} value="**********" readOnly />
+                </Form.Item>
+              </div>
+
+              <div style={fieldContainer}>
+                <Form.Item
+                  name="password"
+                  label={<span style={labelStyle}>New Password (optional):</span>}
+                  rules={[
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        const valid =
+                          value.length >= 8 &&
+                          /[A-Za-z]/.test(value) &&
+                          /[^A-Za-z0-9]/.test(value);
+                        if (!valid) {
+                          return Promise.reject(
+                            new Error(
+                              "At least 8 characters, letters & special chars."
+                            )
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input.Password
+                    style={inputBoxStyle}
+                    placeholder="Leave empty to keep current"
+                  />
+                </Form.Item>
+              </div>
+
+              <div style={fieldContainer}>
+                <Form.Item
+                  name="biography"
+                  label={<span style={labelStyle}>Biography:</span>}
+                >
+                  <Input.TextArea
+                    showCount
+                    maxLength={200}
+                    rows={4}
+                    style={{
+                      ...inputBoxStyle,
+                      resize: "none",
+                      lineHeight: "1.5",
+                      height: "auto",
+                      overflow: "hidden",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  />
+                </Form.Item>
+              </div>
+
+              <div style={sectionHeadingStyle}>Privacy Settings</div>
+              <div style={fieldContainer}>
+                <Form.Item name="sharable" valuePropName="checked">
+                  <Checkbox>Share your Watchlist with Friends</Checkbox>
+                </Form.Item>
+              </div>
+              <Form.Item>
+                <Button style={buttonStyle} htmlType="submit">
+                  Save
+                </Button>
+              </Form.Item>
+              <Form.Item>
+                <Button style={buttonStyle} onClick={() => router.replace(`/users/${id}`)}>
+                  Cancel
+                </Button>
+              </Form.Item>
+            </Form>
           </div>
-
-          <Form form={form} layout="vertical" onFinish={onFinish}>
-            <Form.Item name="avatarKey" style={{ display: "none" }}>
-              <Input />
-            </Form.Item>
-
-            <div style={fieldContainer}>
-              <Form.Item
-                name="username"
-                label={<span style={labelStyle}>Username:</span>}
-                rules={[{ required: true }]}
+        )}
+        <Modal open={isModalVisible} title="Select a Profile Picture" onCancel={() => setIsModalVisible(false)} footer={null}>
+          <div style={avatarGridContainer}>
+            {avatars.map((a) => (
+              <div
+                key={a.key}
+                style={{ ...avatarItem, borderColor: selectedAvatar === a.key ? "#007BFF" : "transparent" }}
+                onClick={() => handleAvatarSelect(a.key)}
               >
-                <Input style={inputBoxStyle} />
-              </Form.Item>
-            </div>
-
-            <div style={fieldContainer}>
-              <Form.Item
-                name="email"
-                label={<span style={labelStyle}>Email:</span>}
-              >
-                <Input style={inputBoxStyle} />
-              </Form.Item>
-            </div>
-
-            <div style={fieldContainer}>
-              <Form.Item
-                name="birthday"
-                label={<span style={labelStyle}>Birthday:</span>}
-                rules={[
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      const regex = /^\d{4}-\d{2}-\d{2}$/;
-                      if (!regex.test(value)) {
-                        return Promise.reject(new Error("Use YYYY-MM-DD"));
-                      }
-                      const inputDate = new Date(value);
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      if (inputDate > today) {
-                        return Promise.reject(
-                          new Error("Birthday cannot be in the future.")
-                        );
-                      }
-                      return Promise.resolve();
-                    },
-                  },
-                ]}
-              >
-                <Input style={inputBoxStyle} placeholder="YYYY-MM-DD" />
-              </Form.Item>
-            </div>
-
-            <div style={fieldContainer}>
-              <Form.Item label={<span style={labelStyle}>Current Password:</span>}>
-                <Input.Password style={inputBoxStyle} value="**********" readOnly />
-              </Form.Item>
-            </div>
-
-            <div style={fieldContainer}>
-              <Form.Item
-                name="password"
-                label={<span style={labelStyle}>New Password (optional):</span>}
-                rules={[
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      const valid =
-                        value.length >= 8 &&
-                        /[A-Za-z]/.test(value) &&
-                        /[^A-Za-z0-9]/.test(value);
-                      if (!valid) {
-                        return Promise.reject(
-                          new Error(
-                            "At least 8 characters, letters & special chars."
-                          )
-                        );
-                      }
-                      return Promise.resolve();
-                    },
-                  },
-                ]}
-              >
-                <Input.Password
-                  style={inputBoxStyle}
-                  placeholder="Leave empty to keep current"
-                />
-              </Form.Item>
-            </div>
-
-            <div style={fieldContainer}>
-              <Form.Item
-                name="biography"
-                label={<span style={labelStyle}>Biography:</span>}
-              >
-                <Input.TextArea
-                  showCount
-                  maxLength={200}
-                  rows={4}
-                  style={{
-                    ...inputBoxStyle,
-                    resize: "none",
-                    lineHeight: "1.5",
-                    height: "auto",
-                    overflow: "hidden",
-                    whiteSpace: "pre-wrap",
-                  }}
-                />
-              </Form.Item>
-            </div>
-
-            <div style={sectionHeadingStyle}>Privacy Settings</div>
-            <div style={fieldContainer}>
-              <Form.Item name="sharable" valuePropName="checked">
-                <Checkbox>Share your Watchlist with Friends</Checkbox>
-              </Form.Item>
-            </div>
-            <Form.Item>
-              <Button style={buttonStyle} htmlType="submit">
-                Save
-              </Button>
-            </Form.Item>
-            <Form.Item>
-              <Button style={buttonStyle} onClick={() => router.replace(`/users/${id}`)}>
-                Cancel
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-      )}
-      <Modal open={isModalVisible} title="Select a Profile Picture" onCancel={() => setIsModalVisible(false)} footer={null}>
-        <div style={avatarGridContainer}>
-          {avatars.map((a) => (
-            <div
-              key={a.key}
-              style={{ ...avatarItem, borderColor: selectedAvatar === a.key ? "#007BFF" : "transparent" }}
-              onClick={() => handleAvatarSelect(a.key)}
-            >
-              <Image src={a.url} width={80} height={80} style={{ borderRadius: "50%" }} alt={a.key} />
-            </div>
-          ))}
-        </div>
-      </Modal>
-    </div>
+                <Image src={a.url} width={80} height={80} style={{ borderRadius: "50%" }} alt={a.key} />
+              </div>
+            ))}
+          </div>
+        </Modal>
+      </div>
+    </>
   );
 }

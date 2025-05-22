@@ -91,6 +91,7 @@ const ResultsPage: React.FC = () => {
   const [totalItems, setTotalItems] = useState<number>(0);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [mobileScroll, setMobileScroll] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const check = () => setMobileScroll(window.innerWidth <= 430);
@@ -130,11 +131,11 @@ const ResultsPage: React.FC = () => {
         posterPath: record.poster_path || "",
         mediaType: record.media_type,
       });
-      message.success("Added to Watchlist");
+      messageApi.success("Added to Watchlist");
       const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
       if (Array.isArray(res)) setWatchlist(res);
     } catch {
-      message.error("Could not add to Watchlist.");
+      messageApi.error("Could not add to Watchlist.");
     }
   };
 
@@ -142,11 +143,11 @@ const ResultsPage: React.FC = () => {
     if (!userId) return;
     try {
       await apiService.delete(`/users/${userId}/watchlist/${record.id}`);
-      message.success("Removed from Watchlist");
+      messageApi.success("Removed from Watchlist");
       const res = await apiService.get<string[]>(`/users/${userId}/watchlist`);
       if (Array.isArray(res)) setWatchlist(res);
     } catch {
-      message.error("Could not remove from Watchlist.");
+      messageApi.error("Could not remove from Watchlist.");
     }
   };
 
@@ -270,7 +271,7 @@ const ResultsPage: React.FC = () => {
         setResults(fetched);
         setTotalItems(resp.totalCount || 0);
       } catch {
-        message.error("Error fetching search results.");
+        messageApi.error("Error fetching search results.");
       } finally {
         setLoading(false);
       }
@@ -285,58 +286,61 @@ const ResultsPage: React.FC = () => {
   if (!isAuthed) return null;
 
   return (
-    <div style={containerStyle}>
-      <div style={contentStyle}>
-        <div style={boxStyle}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div style={headingStyle}>Search Results for "{initialQuery}"</div>
-            <Button style={buttonPrimaryStyle} onClick={() => router.push("/home")}>Back to Home</Button>
-          </div>
-          <Space size="large" style={{ display: "flex", flexWrap: "wrap", marginBottom: 20 }}>
-           <Input.Search
-            placeholder="Search for Movies & TV Shows"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onSearch={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
-            loading={loading}
-            style={{ width: 300 }}
-            enterButton={<Button style={buttonPrimaryStyle} icon={<SearchOutlined />} />}
-          />
+    <>
+      {contextHolder}
+      <div style={containerStyle}>
+        <div style={contentStyle}>
+          <div style={boxStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={headingStyle}>Search Results for "{initialQuery}"</div>
+              <Button style={buttonPrimaryStyle} onClick={() => router.push("/home")}>Back to Home</Button>
+            </div>
+            <Space size="large" style={{ display: "flex", flexWrap: "wrap", marginBottom: 20 }}>
+              <Input.Search
+                placeholder="Search for Movies & TV Shows"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onSearch={() => router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(sortOption)}`)}
+                loading={loading}
+                style={{ width: 300 }}
+                enterButton={<Button style={buttonPrimaryStyle} icon={<SearchOutlined />} />}
+              />
 
-            <Select value={sortOption} onChange={(v) => { setSortOption(v); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(v)}`); }} style={{ minWidth: 180 }}>
-              <Select.Option value="popularity">Sort by Popularity</Select.Option>
-              <Select.Option value="rating">Sort by Rating</Select.Option>
-              <Select.Option value="newest">Sort by Newest</Select.Option>
-              <Select.Option value="oldest">Sort by Oldest</Select.Option>
-            </Select>
-            <Checkbox checked={onlyCompleteResults} onChange={(e) => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>
-              Complete Results Only
-            </Checkbox>
-          </Space>
-          <div style={tableContainerStyle}>
-            <Table
-              columns={columns}
-              scroll={mobileScroll ? { x: "max-content" } : undefined}
-              dataSource={results}
-              rowKey="id"
-              loading={loading}
-              pagination={{
-                current: currentPage,
-                pageSize,
-                total: totalItems,
-                showSizeChanger: true,
-                pageSizeOptions: ["5", "10", "20"],
-                onChange: (p, s) => { setCurrentPage(p); if (s) setPageSize(s); }
-              }}
-              onRow={(record) => ({
-                onClick: () => router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`),
-                style: { cursor: 'pointer' }
-              })}
-            />
+              <Select value={sortOption} onChange={(v) => { setSortOption(v); router.push(`/results?query=${encodeURIComponent(searchQuery)}&sort=${encodeURIComponent(v)}`); }} style={{ minWidth: 180 }}>
+                <Select.Option value="popularity">Sort by Popularity</Select.Option>
+                <Select.Option value="rating">Sort by Rating</Select.Option>
+                <Select.Option value="newest">Sort by Newest</Select.Option>
+                <Select.Option value="oldest">Sort by Oldest</Select.Option>
+              </Select>
+              <Checkbox checked={onlyCompleteResults} onChange={(e) => setOnlyCompleteResults(e.target.checked)} style={{ marginTop: 4 }}>
+                Complete Results Only
+              </Checkbox>
+            </Space>
+            <div style={tableContainerStyle}>
+              <Table
+                columns={columns}
+                scroll={mobileScroll ? { x: "max-content" } : undefined}
+                dataSource={results}
+                rowKey="id"
+                loading={loading}
+                pagination={{
+                  current: currentPage,
+                  pageSize,
+                  total: totalItems,
+                  showSizeChanger: true,
+                  pageSizeOptions: ["5", "10", "20"],
+                  onChange: (p, s) => { setCurrentPage(p); if (s) setPageSize(s); }
+                }}
+                onRow={(record) => ({
+                  onClick: () => router.push(`/results/details?id=${record.id}&media_type=${record.media_type}`),
+                  style: { cursor: 'pointer' }
+                })}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

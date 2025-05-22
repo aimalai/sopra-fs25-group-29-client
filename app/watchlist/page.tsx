@@ -54,6 +54,7 @@ export default function WatchlistPage() {
   const [loadingFriendWatch, setLoadingFriendWatch] = useState(false);
   const [loadingTopRated, setLoadingTopRated] = useState(false);
   const [topRated, setTopRated] = useState<TopRatedMovie[]>([]);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const watchlistScroll = watchlist.length > 0 ? { y: 600 } : undefined;
   const topRatedScroll = topRated.length > 0 ? { y: 600 } : undefined;
@@ -72,7 +73,7 @@ export default function WatchlistPage() {
       );
       setWatchlist(unique);
     } catch {
-      message.error("Failed to load your watchlist.");
+      messageApi.error("Failed to load your watchlist.");
     } finally {
       setLoadingWatchlist(false);
     }
@@ -84,7 +85,7 @@ export default function WatchlistPage() {
       const f = await api.get<{ id: number; username: string }[]>(`/users/${userId}/friends`);
       setFriends(f);
     } catch {
-      message.error("Failed to load friends list.");
+      messageApi.error("Failed to load friends list.");
     }
   };
 
@@ -108,7 +109,7 @@ export default function WatchlistPage() {
         setFriendWatchlist(parsed);
       }
     } catch {
-      message.error("Failed to load friend's watchlist.");
+      messageApi.error("Failed to load friend's watchlist.");
     } finally {
       setLoadingFriendWatch(false);
     }
@@ -132,7 +133,7 @@ export default function WatchlistPage() {
       setShareableMessage("");
       setFriendWatchlist(unique);
     } catch {
-      message.error("Failed to load all friends' watchlists.");
+      messageApi.error("Failed to load all friends' watchlists.");
     } finally {
       setLoadingFriendWatch(false);
     }
@@ -148,7 +149,7 @@ export default function WatchlistPage() {
       );
       setTopRated(unique);
     } catch {
-      message.error("Failed to load recommended movies.");
+      messageApi.error("Failed to load recommended movies.");
     } finally {
       setLoadingTopRated(false);
     }
@@ -274,112 +275,115 @@ export default function WatchlistPage() {
   ];
 
   return (
-    <div style={{ padding: 24, paddingTop: 100, maxWidth: 1200, margin: "0 auto" }}>
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
-          <Card title="Your Watchlist" style={{ marginBottom: 24 }}>
-            {loadingWatchlist ? (
+    <>
+      {contextHolder}
+      <div style={{ padding: 24, paddingTop: 100, maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+          <div style={{ flex: 1 }}>
+            <Card title="Your Watchlist" style={{ marginBottom: 24 }}>
+              {loadingWatchlist ? (
+                <Spin />
+              ) : (
+                <Table<Movie>
+                  dataSource={watchlist}
+                  rowKey="movieId"
+                  columns={columns}
+                  pagination={false}
+                  scroll={watchlistScroll}
+                  locale={{ emptyText: "No entries in your watchlist." }}
+                />
+              )}
+              <div style={{ marginTop: 16 }}>
+                <strong>Want to view your friend's watchlist? 👀</strong>
+                <Space style={{ marginTop: 8 }}>
+                  <Select<number | "all" | null>
+                    placeholder="Select a friend…"
+                    value={selectedFriendId}
+                    onChange={(id) => {
+                      if (id === null || id === undefined) {
+                        setSelectedFriendId(null);
+                        setFriendWatchlist([]);
+                        return;
+                      }
+                      if (id === "all") {
+                        setSelectedFriendId("all");
+                        loadAllFriendsWatchlists();
+                      } else {
+                        setSelectedFriendId(id);
+                        loadFriendWatchlist(id);
+                      }
+                    }}
+                    allowClear
+                    style={{ width: 200 }}
+                  >
+                    <Select.Option key="all" value="all">
+                      All friends
+                    </Select.Option>
+                    {friends.map((f) => (
+                      <Select.Option key={f.id} value={f.id}>
+                        {f.username}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Space>
+              </div>
+            </Card>
+          </div>
+          <div style={{ flex: 1 }}>
+            <Card title="Films & Shows rated above 4 stars by friends" style={{ marginBottom: 24 }}>
+              {loadingTopRated ? (
+                <Spin />
+              ) : (
+                <Table<TopRatedMovie>
+                  dataSource={topRated}
+                  rowKey="movieId"
+                  columns={columnsRecommended}
+                  pagination={false}
+                  scroll={topRatedScroll}
+                  locale={{ emptyText: "No recommended movies." }}
+                />
+              )}
+            </Card>
+          </div>
+        </div>
+
+        {selectedFriendId !== null && (
+          <Card
+            title={
+              selectedFriendId === "all"
+                ? "Friends' Watchlist"
+                : `${friends.find((f) => f.id === selectedFriendId)?.username}'s Watchlist`
+            }
+            style={{ marginTop: 24 }}
+          >
+            {!shareableAllowed ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px 20px",
+                  color: "#555",
+                  fontStyle: "italic",
+                  backgroundColor: "#f9f9f9",
+                  borderRadius: 4,
+                }}
+              >
+                {shareableMessage}
+              </div>
+            ) : loadingFriendWatch ? (
               <Spin />
             ) : (
               <Table<Movie>
-                dataSource={watchlist}
+                dataSource={friendWatchlist}
                 rowKey="movieId"
                 columns={columns}
                 pagination={false}
-                scroll={watchlistScroll}
-                locale={{ emptyText: "No entries in your watchlist." }}
-              />
-            )}
-            <div style={{ marginTop: 16 }}>
-              <strong>Want to view your friend's watchlist? 👀</strong>
-              <Space style={{ marginTop: 8 }}>
-                <Select<number | "all" | null>
-                  placeholder="Select a friend…"
-                  value={selectedFriendId}
-                  onChange={(id) => {
-                    if (id === null || id === undefined) {
-                      setSelectedFriendId(null);
-                      setFriendWatchlist([]);
-                      return;
-                    }
-                    if (id === "all") {
-                      setSelectedFriendId("all");
-                      loadAllFriendsWatchlists();
-                    } else {
-                      setSelectedFriendId(id);
-                      loadFriendWatchlist(id);
-                    }
-                  }}
-                  allowClear
-                  style={{ width: 200 }}
-                >
-                  <Select.Option key="all" value="all">
-                    All friends
-                  </Select.Option>
-                  {friends.map((f) => (
-                    <Select.Option key={f.id} value={f.id}>
-                      {f.username}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Space>
-            </div>
-          </Card>
-        </div>
-        <div style={{ flex: 1 }}>
-          <Card title="Films & Shows rated above 4 stars by friends" style={{ marginBottom: 24 }}>
-            {loadingTopRated ? (
-              <Spin />
-            ) : (
-              <Table<TopRatedMovie>
-                dataSource={topRated}
-                rowKey="movieId"
-                columns={columnsRecommended}
-                pagination={false}
-                scroll={topRatedScroll}
-                locale={{ emptyText: "No recommended movies." }}
+                scroll={friendScroll}
+                locale={{ emptyText: "No entries in your friend's watchlist." }}
               />
             )}
           </Card>
-        </div>
+        )}
       </div>
-
-      {selectedFriendId !== null && (
-        <Card
-          title={
-            selectedFriendId === "all"
-              ? "Friends' Watchlist"
-              : `${friends.find((f) => f.id === selectedFriendId)?.username}'s Watchlist`
-          }
-          style={{ marginTop: 24 }}
-        >
-          {!shareableAllowed ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px 20px",
-                color: "#555", 
-                fontStyle: "italic",
-                backgroundColor: "#f9f9f9",
-                borderRadius: 4,
-              }}
-            >
-              {shareableMessage}
-            </div>
-          ) : loadingFriendWatch ? (
-            <Spin />
-          ) : (
-            <Table<Movie>
-              dataSource={friendWatchlist}
-              rowKey="movieId"
-              columns={columns}
-              pagination={false}
-              scroll={friendScroll}
-              locale={{ emptyText: "No entries in your friend's watchlist." }}
-            />
-          )}
-        </Card>
-      )}
-    </div>
+    </>
   );
 }

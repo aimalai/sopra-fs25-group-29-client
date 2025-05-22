@@ -104,7 +104,7 @@ export default function WatchpartyPage() {
         "YYYY-MM-DD HH:mm"
       );
       if (!localDateTime.isAfter(dayjs())) {
-        message.error("Please select a future time for the watch party.");
+        messageApi.error("Please select a future time for the watch party.");
         return;
       }
       const utcDateTime = localDateTime.utc();
@@ -112,7 +112,7 @@ export default function WatchpartyPage() {
 
       const organizerIdStr = sessionStorage.getItem("userId") || localStorage.getItem("userId");
       if (!organizerIdStr) {
-        message.error("Organizer ID not found. Please log in.");
+        messageApi.error("Organizer ID not found. Please log in.");
         return;
       }
       const organizerId = Number(organizerIdStr);
@@ -127,11 +127,11 @@ export default function WatchpartyPage() {
       console.log("Sending payload to backend:", payload);
       const response = await apiService.post<Watchparty>("/api/watchparties", payload);
       setWatchparties((prev) => [...prev, response]);
-      message.success("Watchparty created!");
+      messageApi.success("Watchparty created!");
       form.resetFields();
     } catch (error: unknown) {
-      if (error instanceof Error) message.error("Error creating watchparty: " + error.message);
-      else message.error("Error creating watchparty");
+      if (error instanceof Error) messageApi.error("Error creating watchparty: " + error.message);
+      else messageApi.error("Error creating watchparty");
     }
   };
 
@@ -153,7 +153,7 @@ export default function WatchpartyPage() {
         messageApi.success("Watchparties reloaded successfully");
       }
     } catch {
-      message.error("Error fetching watchparties.");
+      messageApi.error("Error fetching watchparties.");
     }
   };
 

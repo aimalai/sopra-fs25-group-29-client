@@ -60,10 +60,11 @@ const Login: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [form] = Form.useForm();
-  const [ , setToken ] = useSessionStorage<string>("token", "");
-  const [ , setUserId ] = useSessionStorage<number>("userId", 0);
+  const [, setToken] = useSessionStorage<string>("token", "");
+  const [, setUserId] = useSessionStorage<number>("userId", 0);
   const [, setUsername] = useSessionStorage<string>("username", "");
   const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleLogin = async (values: FormFieldProps) => {
     setLoading(true);
@@ -78,85 +79,88 @@ const Login: React.FC = () => {
       if (response.username) {
         setUsername(response.username);
       }
-      message.success("You can now proceed to OTP Verification.");
+      messageApi.success("You can now proceed to OTP Verification.");
       router.push("/otpVerification");
     } catch (error: unknown) {
       const status = (error as { response?: { status?: number } })?.response?.status;
       if (status === 500) {
-        message.error("An internal server error occurred. Please try again.");
+        messageApi.error("An internal server error occurred. Please try again.");
       } else {
-        message.error("Invalid username or password.");
+        messageApi.error("Invalid username or password.");
       }
     }
     setLoading(false);
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={logoContainerStyle}>
-        <Image
-          src="/NiroLogo_white.png"
-          alt="App Logo"
-          style={logoStyle}
-          width={200}
-          height={200}
-        />
-      </div>
-      <div style={formBoxStyle}>
-        <div style={headingStyle}>Login below!</div>
-        {loading && <div className="spinner"></div>}
-        <Form
-          form={form}
-          name="login"
-          size="large"
-          onFinish={handleLogin}
-          layout="vertical"
-        >
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Enter your Username</span>}
-            name="username"
-            rules={[{ required: true, message: "Please input your username!" }]}
+    <>
+      {contextHolder}
+      <div style={containerStyle}>
+        <div style={logoContainerStyle}>
+          <Image
+            src="/NiroLogo_white.png"
+            alt="App Logo"
+            style={logoStyle}
+            width={200}
+            height={200}
+          />
+        </div>
+        <div style={formBoxStyle}>
+          <div style={headingStyle}>Login below!</div>
+          {loading && <div className="spinner"></div>}
+          <Form
+            form={form}
+            name="login"
+            size="large"
+            onFinish={handleLogin}
+            layout="vertical"
           >
-            <Input style={inputStyle} placeholder="Enter username" />
-          </Form.Item>
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Enter your Password</span>}
-            name="password"
-            rules={[{ required: true, message: "Please input your password!" }]}
-          >
-            <Input.Password style={inputStyle} placeholder="Enter password" />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              style={buttonStyle}
-              htmlType="submit"
-              disabled={loading}
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Enter your Username</span>}
+              name="username"
+              rules={[{ required: true, message: "Please input your username!" }]}
             >
-              Login
-            </Button>
-          </Form.Item>
-          <Form.Item>
-            <Button
-              style={buttonStyle}
-              onClick={() => router.push("/register")}
-              disabled={loading}
+              <Input style={inputStyle} placeholder="Enter username" />
+            </Form.Item>
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Enter your Password</span>}
+              name="password"
+              rules={[{ required: true, message: "Please input your password!" }]}
             >
-              Not registered yet? Register now!
-            </Button>
-          </Form.Item>
-          <Form.Item>
-            <Button
-              style={buttonStyle}
-              onClick={() => router.push("/")}
-              disabled={loading}
-            >
-              Back
-            </Button>
-          </Form.Item>
-        </Form>
+              <Input.Password style={inputStyle} placeholder="Enter password" />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                style={buttonStyle}
+                htmlType="submit"
+                disabled={loading}
+              >
+                Login
+              </Button>
+            </Form.Item>
+            <Form.Item>
+              <Button
+                style={buttonStyle}
+                onClick={() => router.push("/register")}
+                disabled={loading}
+              >
+                Not registered yet? Register now!
+              </Button>
+            </Form.Item>
+            <Form.Item>
+              <Button
+                style={buttonStyle}
+                onClick={() => router.push("/")}
+                disabled={loading}
+              >
+                Back
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
-    </div>
-);
+    </>
+  );
 };
 
 export default Login;

@@ -59,8 +59,8 @@ const DetailsPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
 
-  const [ userId ] = useSessionStorage<number>("userId", 0);
-  const [ token ] = useSessionStorage<string>("token", "");
+  const [userId] = useSessionStorage<number>("userId", 0);
+  const [token] = useSessionStorage<string>("token", "");
 
   useEffect(() => {
     if (!token) router.replace("/login");
@@ -76,6 +76,7 @@ const DetailsPage: React.FC = () => {
   const [editCommentMode, setEditCommentMode] = useState<boolean>(false);
   const [textRating, setTextRating] = useState<string>("");
   const [chatRatings, setChatRatings] = useState<ChatRating[]>([]);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const getCurrentUsername = async (): Promise<string | null> => {
     if (!userId) return null;
@@ -89,7 +90,7 @@ const DetailsPage: React.FC = () => {
 
   const fetchDetails = async () => {
     if (!id) {
-      message.error("No ID provided.");
+      messageApi.error("No ID provided.");
       return;
     }
     setLoading(true);
@@ -125,7 +126,7 @@ const DetailsPage: React.FC = () => {
           }
         });
         setInWatchlist(exists);
-      } catch {}
+      } catch { }
     };
 
     const fetchUserRating = async () => {
@@ -136,7 +137,7 @@ const DetailsPage: React.FC = () => {
         );
         setUserRating(resp.rating);
         if (resp.comment) setCurrentTextComment(resp.comment);
-      } catch {}
+      } catch { }
     };
 
     const fetchAggregatedUserRating = async () => {
@@ -146,7 +147,7 @@ const DetailsPage: React.FC = () => {
           `/api/movies/${id}/userRatings`
         );
         setAggregatedUserRating(resp.averageRating);
-      } catch {}
+      } catch { }
     };
 
     const fetchChatRatings = async () => {
@@ -154,7 +155,7 @@ const DetailsPage: React.FC = () => {
       try {
         const resp = await apiService.get<ChatRating[]>(`/api/movies/${id}/ratings`);
         setChatRatings(resp);
-      } catch {}
+      } catch { }
     };
 
     checkWatchlist();
@@ -176,7 +177,7 @@ const DetailsPage: React.FC = () => {
       });
       setInWatchlist(true);
     } catch {
-      message.error("Error adding to Watchlist.");
+      messageApi.error("Error adding to Watchlist.");
     }
   };
 
@@ -186,7 +187,7 @@ const DetailsPage: React.FC = () => {
       await apiService.delete(`/users/${userId}/watchlist/${details.id}`);
       setInWatchlist(false);
     } catch {
-      message.error("Error removing from Watchlist.");
+      messageApi.error("Error removing from Watchlist.");
     }
   };
 
@@ -194,7 +195,7 @@ const DetailsPage: React.FC = () => {
     if (!userId || !id) return;
     const username = await getCurrentUsername();
     if (!username) {
-      message.error("Please log in to submit your review.");
+      messageApi.error("Please log in to submit your review.");
       return;
     }
     try {
@@ -209,19 +210,19 @@ const DetailsPage: React.FC = () => {
       );
       setAggregatedUserRating(agg.averageRating);
     } catch {
-      message.error("Error updating rating.");
+      messageApi.error("Error updating rating.");
     }
   };
 
   const handleSubmitTextRating = async () => {
     if (textRating.length > 200) {
-      message.error("Max 200 characters.");
+      messageApi.error("Max 200 characters.");
       return;
     }
     if (!userId || !id) return;
     const username = await getCurrentUsername();
     if (!username) {
-      message.error("Please log in to submit your review.");
+      messageApi.error("Please log in to submit your review.");
       return;
     }
     try {
@@ -236,7 +237,7 @@ const DetailsPage: React.FC = () => {
       const updated = await apiService.get<ChatRating[]>(`/api/movies/${id}/ratings`);
       setChatRatings(updated);
     } catch {
-      message.error("Error submitting review.");
+      messageApi.error("Error submitting review.");
     }
   };
 
@@ -275,164 +276,167 @@ const DetailsPage: React.FC = () => {
   const ratingOutOfFive = (details.ratings / 2).toFixed(1);
 
   return (
-    <Card
-      title={`Detailed View for "${details.title}"`}
-      headStyle={{ color: "black" }}
-      extra={
-        <Button
-          onClick={() => router.back()}
-          style={{ backgroundColor: "#1890ff", color: "white" }}
-        >
-          Back
-        </Button>
-      }
-      style={{
-        backgroundColor: "#ddd",
-        border: "1px solid #bbb",
-        margin: "20px auto",
-        marginTop: "200px",
-        maxWidth: 800,
-      }}
-    >
-      <div
+    <>
+      {contextHolder}
+      <Card
+        title={`Detailed View for "${details.title}"`}
+        headStyle={{ color: "black" }}
+        extra={
+          <Button
+            onClick={() => router.back()}
+            style={{ backgroundColor: "#1890ff", color: "white" }}
+          >
+            Back
+          </Button>
+        }
         style={{
-          backgroundColor: "#ccc",
-          padding: "20px",
-          borderRadius: "4px",
-          display: "flex",
-          gap: "20px",
-          flexDirection: screens.lg ? "row" : "column",
-          alignItems: screens.lg ? "flex-start" : "center",
+          backgroundColor: "#ddd",
+          border: "1px solid #bbb",
+          margin: "20px auto",
+          marginTop: "200px",
+          maxWidth: 800,
         }}
       >
-        {details.poster_path && (
-          <div style={{ flex: "0 0 200px" }}>
-            <Image
-              alt="Poster"
-              src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
-              width={200}
-              height={300}
-              style={{ borderRadius: 4, width: "100%", height: "auto" }}
+        <div
+          style={{
+            backgroundColor: "#ccc",
+            padding: "20px",
+            borderRadius: "4px",
+            display: "flex",
+            gap: "20px",
+            flexDirection: screens.lg ? "row" : "column",
+            alignItems: screens.lg ? "flex-start" : "center",
+          }}
+        >
+          {details.poster_path && (
+            <div style={{ flex: "0 0 200px" }}>
+              <Image
+                alt="Poster"
+                src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
+                width={200}
+                height={300}
+                style={{ borderRadius: 4, width: "100%", height: "auto" }}
+              />
+            </div>
+          )}
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div>
+              <p>
+                <strong>Release Date:</strong> {details.release_date}
+              </p>
+              <p>
+                <strong>Genre:</strong> {details.genre}
+              </p>
+              <p>
+                <strong>Cast:</strong> {details.cast}
+              </p>
+              <p>
+                <strong>Description:</strong>
+              </p>
+              <p>{details.description}</p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span>TMDB Rating:</span>
+                <Rate disabled allowHalf defaultValue={Number(ratingOutOfFive)} />
+                <span>({ratingOutOfFive}/5)</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <span>Your Rating:</span>
+                <Rate allowHalf value={userRating} onChange={handleUserRatingChange} />
+                <span>({userRating}/5)</span>
+              </div>
+              {aggregatedUserRating !== null && (
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <span>Average User Rating:</span>
+                  <span>{aggregatedUserRating.toFixed(1)}/5</span>
+                </div>
+              )}
+              <Button
+                onClick={inWatchlist ? handleRemove : handleAdd}
+                style={{ backgroundColor: inWatchlist ? "#ff4d4f" : "#1890ff", color: "white" }}
+              >
+                {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {userRating > 0 && (
+          <div style={{ marginTop: "20px" }}>
+            {currentTextComment ? (
+              <div>
+                <p><strong>Your review:</strong> {currentTextComment}</p>
+                <Button
+                  style={buttonPrimaryStyle}
+                  onClick={() => {
+                    setEditCommentMode(true);
+                    setTextRating(currentTextComment);
+                  }}
+                >
+                  Edit review
+                </Button>
+              </div>
+            ) : (
+              !editCommentMode && (
+                <Button style={buttonPrimaryStyle} onClick={() => setEditCommentMode(true)}>
+                  Add review
+                </Button>
+              )
+            )}
+            {editCommentMode && (
+              <div style={{ marginTop: "10px" }}>
+                <Input.TextArea
+                  placeholder="Enter your text rating (optional, max. 200 characters)"
+                  maxLength={200}
+                  rows={4}
+                  value={textRating}
+                  onChange={e => setTextRating(e.target.value)}
+                />
+                <div style={{ marginTop: "10px" }}>
+                  <Button style={buttonPrimaryStyle} onClick={handleSubmitTextRating}>
+                    Save review
+                  </Button>
+                  <Button style={{ marginLeft: "10px" }} onClick={() => setEditCommentMode(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {reviewChat.length > 0 && (
+          <div style={{ marginTop: "20px" }}>
+            <h3>Review Chat</h3>
+            <List
+              dataSource={reviewChat}
+              renderItem={item => (
+                <List.Item key={item.id}>
+                  <List.Item.Meta
+                    title={
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <strong>{item.username}</strong>
+                        <Rate disabled allowHalf value={item.rating} />
+                      </div>
+                    }
+                    description={item.comment}
+                  />
+                </List.Item>
+              )}
             />
           </div>
         )}
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <p>
-              <strong>Release Date:</strong> {details.release_date}
-            </p>
-            <p>
-              <strong>Genre:</strong> {details.genre}
-            </p>
-            <p>
-              <strong>Cast:</strong> {details.cast}
-            </p>
-            <p>
-              <strong>Description:</strong>
-            </p>
-            <p>{details.description}</p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-              <span>TMDB Rating:</span>
-              <Rate disabled allowHalf defaultValue={Number(ratingOutOfFive)} />
-              <span>({ratingOutOfFive}/5)</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-              <span>Your Rating:</span>
-              <Rate allowHalf value={userRating} onChange={handleUserRatingChange} />
-              <span>({userRating}/5)</span>
-            </div>
-            {aggregatedUserRating !== null && (
-              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <span>Average User Rating:</span>
-                <span>{aggregatedUserRating.toFixed(1)}/5</span>
-              </div>
-            )}
-            <Button
-              onClick={inWatchlist ? handleRemove : handleAdd}
-              style={{ backgroundColor: inWatchlist ? "#ff4d4f" : "#1890ff", color: "white" }}
-            >
-              {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {userRating > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          {currentTextComment ? (
-            <div>
-              <p><strong>Your review:</strong> {currentTextComment}</p>
-              <Button
-                style={buttonPrimaryStyle}
-                onClick={() => {
-                  setEditCommentMode(true);
-                  setTextRating(currentTextComment);
-                }}
-              >
-                Edit review
-              </Button>
-            </div>
-          ) : (
-            !editCommentMode && (
-              <Button style={buttonPrimaryStyle} onClick={() => setEditCommentMode(true)}>
-                Add review
-              </Button>
-            )
-          )}
-          {editCommentMode && (
-            <div style={{ marginTop: "10px" }}>
-              <Input.TextArea
-                placeholder="Enter your text rating (optional, max. 200 characters)"
-                maxLength={200}
-                rows={4}
-                value={textRating}
-                onChange={e => setTextRating(e.target.value)}
-              />
-              <div style={{ marginTop: "10px" }}>
-                <Button style={buttonPrimaryStyle} onClick={handleSubmitTextRating}>
-                  Save review
-                </Button>
-                <Button style={{ marginLeft: "10px" }} onClick={() => setEditCommentMode(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {reviewChat.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Review Chat</h3>
-          <List
-            dataSource={reviewChat}
-            renderItem={item => (
-              <List.Item key={item.id}>
-                <List.Item.Meta
-                  title={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <strong>{item.username}</strong>
-                      <Rate disabled allowHalf value={item.rating} />
-                    </div>
-                  }
-                  description={item.comment}
-                />
-              </List.Item>
-            )}
-          />
-        </div>
-      )}
-    </Card>
+      </Card>
+    </>
   );
 };
 

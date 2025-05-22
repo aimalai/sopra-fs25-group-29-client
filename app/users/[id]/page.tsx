@@ -122,7 +122,7 @@ const UserProfile: React.FC = () => {
         const fetchedUser = await apiService.get<User>(`/users/${id}`);
         setUser(fetchedUser);
       } catch (err) {
-        message.error(
+        messageApi.error(
           err instanceof Error
             ? `Error loading user data: ${err.message}`
             : "Error loading user data"
@@ -291,10 +291,10 @@ const UserProfile: React.FC = () => {
                       try {
                       await apiService.delete(`/users/${loggedInUserId}/friends/${user.id}`);
                       await apiService.delete(`/chat/conversation/${loggedInUserId}/${user.id}`);
-                        message.success("User has been unfriended");
+                        messageApi.success("User has been unfriended");
                         setIsFriend(false);
                       } catch {
-                        message.error("Error unfriending user");
+                        messageApi.error("Error unfriending user");
                       }
                     }}
                   >
@@ -332,10 +332,10 @@ const UserProfile: React.FC = () => {
                       onClick={async () => {
                         try {
                         await apiService.delete(`/users/${user.id}/friendrequests/${loggedInUserId}`);
-                          message.success("Friend request canceled");
+                          messageApi.success("Friend request canceled");
                           setIsPending(false);
                         } catch {
-                          message.error("Error canceling friend request");
+                          messageApi.error("Error canceling friend request");
                         }
                       }}
                     >
@@ -348,10 +348,10 @@ const UserProfile: React.FC = () => {
                       onClick={async () => {
                         try {
                         await apiService.post(`/users/${user.id}/friendrequests`, { fromUserId: loggedInUserId });
-                          message.success("Friend request sent!");
+                          messageApi.success("Friend request sent!");
                           setIsPending(true);
                         } catch {
-                          message.error("Error sending friend request");
+                          messageApi.error("Error sending friend request");
                         }
                       }}
                     >

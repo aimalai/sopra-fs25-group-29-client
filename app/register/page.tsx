@@ -68,6 +68,7 @@ const Register: React.FC = () => {
   const apiService = useApi();
   const [form] = Form.useForm<FormFieldProps>();
   const [isLoading, setIsLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [, setToken] = useSessionStorage<string>("token", "");
   const [, setUserId] = useSessionStorage<number>("userId", 0);
@@ -86,18 +87,18 @@ const Register: React.FC = () => {
         setUsername(response.username);
       }
 
-      message.success(
+      messageApi.success(
         "Registration Successful: You have been successfully registered and logged in."
       );
       router.push("/home");
     } catch (error) {
       if (error instanceof Error) {
-        message.error(
+        messageApi.error(
           "Registration Failed: " +
-            (error.message || "An error occurred during registration.")
+          (error.message || "An error occurred during registration.")
         );
       } else {
-        message.error(
+        messageApi.error(
           "Registration Failed: An unknown error occurred during registration."
         );
       }
@@ -107,116 +108,119 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={logoContainerStyle}>
-        <Image
-          src="/NiroLogo_white.png"
-          alt="App Logo"
-          style={logoStyle}
-          width={200}
-          height={200}
-        />
-      </div>
-      <div style={formBoxStyle}>
-        <div style={headingStyle}>Register below!</div>
-        <Form
-          form={form}
-          name="register"
-          size="large"
-          onFinish={(values) => handleRegister(values)}
-          layout="vertical"
-        >
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Choose a Username</span>}
-            name="username"
-            rules={[{ required: true, message: "Please input your username!" }]}
+    <>
+      {contextHolder}
+      <div style={containerStyle}>
+        <div style={logoContainerStyle}>
+          <Image
+            src="/NiroLogo_white.png"
+            alt="App Logo"
+            style={logoStyle}
+            width={200}
+            height={200}
+          />
+        </div>
+        <div style={formBoxStyle}>
+          <div style={headingStyle}>Register below!</div>
+          <Form
+            form={form}
+            name="register"
+            size="large"
+            onFinish={(values) => handleRegister(values)}
+            layout="vertical"
           >
-            <Input style={inputStyle} placeholder="Enter username" />
-          </Form.Item>
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Choose a Username</span>}
+              name="username"
+              rules={[{ required: true, message: "Please input your username!" }]}
+            >
+              <Input style={inputStyle} placeholder="Enter username" />
+            </Form.Item>
 
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Choose a Password</span>}
-            name="password"
-            rules={[
-              { required: true, message: "Please input your password!" },
-              {
-                pattern:
-                  /^(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
-                message:
-                  "Password must be at least 8 characters and contain letters and special characters.",
-              },
-            ]}
-            hasFeedback
-          >
-            <Input.Password style={inputStyle} placeholder="Enter password" />
-          </Form.Item>
-
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Confirm Password</span>}
-            name="confirmPassword"
-            dependencies={["password"]}
-            hasFeedback
-            rules={[
-              { required: true, message: "Please confirm your password!" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("The two passwords do not match!")
-                  );
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Choose a Password</span>}
+              name="password"
+              rules={[
+                { required: true, message: "Please input your password!" },
+                {
+                  pattern:
+                    /^(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+                  message:
+                    "Password must be at least 8 characters and contain letters and special characters.",
                 },
-              }),
-            ]}
-          >
-            <Input.Password
-              style={inputStyle}
-              placeholder="Re-enter your password"
-            />
-          </Form.Item>
+              ]}
+              hasFeedback
+            >
+              <Input.Password style={inputStyle} placeholder="Enter password" />
+            </Form.Item>
 
-          <Form.Item
-            label={
-          <span style={{ color: "#000", display: "flex", alignItems: "center", gap: 4 }}>
-            Enter Your Email
-            <Tooltip title="Please use a valid email address. An One-Time-Password (OTP) will be sent each time you log in.">
-              <InfoCircleOutlined style={{ color: "#888" }} />
-            </Tooltip>
-          </span>
-          }
-            name="email"
-            rules={[
-              {
-                required: true,
-                type: "email",
-                message: "Please input a valid email address!",
-              },
-            ]}
-          >
-            <Input style={inputStyle} placeholder="Enter email address" />
-          </Form.Item>
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Confirm Password</span>}
+              name="confirmPassword"
+              dependencies={["password"]}
+              hasFeedback
+              rules={[
+                { required: true, message: "Please confirm your password!" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error("The two passwords do not match!")
+                    );
+                  },
+                }),
+              ]}
+            >
+              <Input.Password
+                style={inputStyle}
+                placeholder="Re-enter your password"
+              />
+            </Form.Item>
 
-          <Form.Item>
-            <Button style={buttonStyle} htmlType="submit" loading={isLoading}>
-              Register
-            </Button>
-          </Form.Item>
+            <Form.Item
+              label={
+                <span style={{ color: "#000", display: "flex", alignItems: "center", gap: 4 }}>
+                  Enter Your Email
+                  <Tooltip title="Please use a valid email address. An One-Time-Password (OTP) will be sent each time you log in.">
+                    <InfoCircleOutlined style={{ color: "#888" }} />
+                  </Tooltip>
+                </span>
+              }
+              name="email"
+              rules={[
+                {
+                  required: true,
+                  type: "email",
+                  message: "Please input a valid email address!",
+                },
+              ]}
+            >
+              <Input style={inputStyle} placeholder="Enter email address" />
+            </Form.Item>
 
-          <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/login")}>
-              Already have an account? Login
-            </Button>
-          </Form.Item>
+            <Form.Item>
+              <Button style={buttonStyle} htmlType="submit" loading={isLoading}>
+                Register
+              </Button>
+            </Form.Item>
 
-          <Form.Item>
-            <Button style={buttonStyle} onClick={() => router.push("/")}>
-              Back
-            </Button>
-          </Form.Item>
-        </Form>
+            <Form.Item>
+              <Button style={buttonStyle} onClick={() => router.push("/login")}>
+                Already have an account? Login
+              </Button>
+            </Form.Item>
+
+            <Form.Item>
+              <Button style={buttonStyle} onClick={() => router.push("/")}>
+                Back
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
