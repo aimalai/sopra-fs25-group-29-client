@@ -144,7 +144,7 @@ const Register: React.FC = () => {
                 { required: true, message: "Please input your password!" },
                 {
                   pattern:
-                  /^(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]).{8,}$/,
+                  /^(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/,
                   message:
                     "Password must be at least 8 characters and contain letters and special characters.",
                 },
