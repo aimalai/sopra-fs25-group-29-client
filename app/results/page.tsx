@@ -9,6 +9,7 @@ import useSessionStorage from "@/hooks/useSessionStorage";
 import Image from "next/image";
 import type { ColumnsType } from "antd/es/table";
 import useAuth from "@/hooks/useAuth";
+import Link from "next/link";
 
 interface SearchResult {
   id: number;
@@ -173,19 +174,18 @@ const ResultsPage: React.FC = () => {
     {
       title: "Title",
       key: "title",
-      render: (_: unknown, record: SearchResult) => (
-        <a
+      render: (_: unknown, record: SearchResult) => {
+      const href = `/results/details?id=${record.id}&media_type=${record.media_type}`;
+      return (
+        <Link
+          href={href}
+          onClick={e => e.stopPropagation()}
           style={{ color: "blue" }}
-          onClick={(e) => {
-            e.stopPropagation();
-            router.push(
-              `/results/details?id=${record.id}&media_type=${record.media_type}`
-            );
-          }}
         >
           {record.media_type === "tv" ? record.name : record.title}
-        </a>
-      ),
+        </Link>
+      );
+    },
     },
     {
       title: "Release Date",
