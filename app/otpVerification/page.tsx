@@ -63,7 +63,7 @@ export default function OTPVerification() {
   const api = useApi();
   const [form] = Form.useForm<OTPForm>();
   const [loading, setLoading] = useState(false);
-
+  const [messageApi, contextHolder] = message.useMessage();
   const [, setToken] = useSessionStorage<string>("token", "");
   const [, setUserId] = useSessionStorage<number>("userId", 0);
 
@@ -79,63 +79,66 @@ export default function OTPVerification() {
       ) {
         setToken(response.token as string);
         setUserId(Number(response.userId));
-        message.success("OTP Verified Successfully.");
+        messageApi.success("OTP Verified Successfully.");
         router.push("/home");
       } else {
         throw new Error("Unexpected response: " + JSON.stringify(response));
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "An error occurred.";
-      message.error("OTP Verification Failed: " + msg);
+      messageApi.error("OTP Verification Failed: " + msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={formBoxStyle}>
-        <div style={headingStyle}>Verify OTP</div>
-        <Form
-          form={form}
-          name="verifyOTP"
-          layout="vertical"
-          size="large"
-          onFinish={handleVerify}
-        >
-          <p style={otpInstructionStyle}>
-            An email with a One-Time Password (OTP) was sent to your registered
-            email address. Please check your email and enter the OTP below to
-            complete your login!
-          </p>
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Enter your Username</span>}
-            name="username"
-            rules={[{ required: true, message: "Please input your username!" }]}
+    <>
+      {contextHolder}
+      <div style={containerStyle}>
+        <div style={formBoxStyle}>
+          <div style={headingStyle}>Verify OTP</div>
+          <Form
+            form={form}
+            name="verifyOTP"
+            layout="vertical"
+            size="large"
+            onFinish={handleVerify}
           >
-            <Input style={inputStyle} placeholder="Enter username" />
-          </Form.Item>
-
-          <Form.Item
-            label={<span style={{ color: "#000" }}>Enter your OTP</span>}
-            name="otp"
-            rules={[{ required: true, message: "Please input your OTP!" }]}
-          >
-            <Input style={inputStyle} placeholder="Enter OTP" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              style={buttonStyle}
+            <p style={otpInstructionStyle}>
+              An email with a One-Time Password (OTP) was sent to your registered
+              email address. Please check your email and enter the OTP below to
+              complete your login!
+            </p>
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Enter your Username</span>}
+              name="username"
+              rules={[{ required: true, message: "Please input your username!" }]}
             >
-              Verify OTP
-            </Button>
-          </Form.Item>
-        </Form>
+              <Input style={inputStyle} placeholder="Enter username" />
+            </Form.Item>
+
+            <Form.Item
+              label={<span style={{ color: "#000" }}>Enter your OTP</span>}
+              name="otp"
+              rules={[{ required: true, message: "Please input your OTP!" }]}
+            >
+              <Input style={inputStyle} placeholder="Enter OTP" />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                style={buttonStyle}
+              >
+                Verify OTP
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

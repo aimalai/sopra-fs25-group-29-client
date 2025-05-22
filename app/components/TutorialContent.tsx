@@ -58,13 +58,14 @@ export default function TutorialWizard() {
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [showReview, setShowReview] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
   const screens = useBreakpoint();
 
   const next = () => setCurrent((prev) => prev + 1);
   const prev = () => setCurrent((prev) => prev - 1);
 
   const handleReviewSubmit = () => {
-    message.success("Review submitted!");
+    messageApi.success("Review submitted!");
   };
 
   const steps = [
@@ -316,27 +317,30 @@ export default function TutorialWizard() {
   ];
 
   return (
-    <div style={{ backgroundColor: "#fff", padding: 24, borderRadius: 8 }}>
-      <Steps current={current} style={{ marginBottom: 24 }}>
-        {steps.map((item) => (
-          <Step key={item.title} title={item.title} />
-        ))}
-      </Steps>
-      <div style={{ minHeight: 300 }}>{steps[current].content}</div>
-      <div style={{ textAlign: "center", marginTop: 24 }}>
-        <Space>
-          {current > 0 && (
-            <Button style={buttonStyle} onClick={prev}>
-              Previous
-            </Button>
-          )}
-          {current < steps.length - 1 && (
-            <Button style={buttonStyle} onClick={next}>
-              Next
-            </Button>
-          )}
-        </Space>
+    <>
+      {contextHolder}
+      <div style={{ backgroundColor: "#fff", padding: 24, borderRadius: 8 }}>
+        <Steps current={current} style={{ marginBottom: 24 }}>
+          {steps.map((item) => (
+            <Step key={item.title} title={item.title} />
+          ))}
+        </Steps>
+        <div style={{ minHeight: 300 }}>{steps[current].content}</div>
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <Space>
+            {current > 0 && (
+              <Button style={buttonStyle} onClick={prev}>
+                Previous
+              </Button>
+            )}
+            {current < steps.length - 1 && (
+              <Button style={buttonStyle} onClick={next}>
+                Next
+              </Button>
+            )}
+          </Space>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

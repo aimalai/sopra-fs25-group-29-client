@@ -21,6 +21,7 @@ export default function Navbar() {
   const [username, setUsername] = useState("");
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     (async () => {
@@ -47,14 +48,14 @@ export default function Navbar() {
   const handleLogout = async () => {
     const id = userId || Number(sessionStorage.getItem("userId") ?? 0);
     if (!id) {
-      message.error("User ID missing, cannot logout.");
+      messageApi.error("User ID missing, cannot logout.");
       return;
     }
     try {
       await api.put(`/users/${id}/logout`, {});
-      message.success("Logged out successfully.");
+      messageApi.success("Logged out successfully.");
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : "Unknown error.");
+      messageApi.error(error instanceof Error ? error.message : "Unknown error.");
     } finally {
       sessionStorage.removeItem("token");
       localStorage.removeItem("token");
@@ -122,6 +123,7 @@ export default function Navbar() {
 
   return (
     <>
+      {contextHolder}
       <Header
         style={{
           position: "fixed",
