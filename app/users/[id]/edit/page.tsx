@@ -231,30 +231,39 @@ export default function EditUser() {
           />
         </div>
 
-        {user && (
-          <div style={contentStyle}>
-            <div style={topRowStyle}>
-              <div
-                style={profilePictureWrapper}
-                onMouseEnter={() => setHover(true)}
-                onMouseLeave={() => setHover(false)}
-                onClick={() => setIsModalVisible(true)}
-              >
-                <Image
-                  src={
-                    avatars.find((a) => a.key === selectedAvatar)?.url ||
-                    user.profilePictureUrl ||
-                    "/default-avatar.jpg"
-                  }
-                  alt="Profile Picture"
-                  width={80}
-                  height={80}
-                  style={profilePictureStyle}
-                />
-                {hover && <div style={overlayStyle}>Edit</div>}
-              </div>
-              <div style={headingStyle}>Edit Your Profile</div>
-            </div>
+      {user && (
+        <div style={contentStyle}>
+          <div style={topRowStyle}>
+            <button
+              type="button"
+              style={{
+                ...profilePictureWrapper,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+              }}
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
+              onFocus={() => setHover(true)}
+              onBlur={() => setHover(false)}
+              onClick={() => setIsModalVisible(true)}
+            >
+              <Image
+                src={
+                  avatars.find((a) => a.key === selectedAvatar)?.url ||
+                  user.profilePictureUrl ||
+                  "/default-avatar.jpg"
+                }
+                alt="Profile Picture"
+                width={80}
+                height={80}
+                style={profilePictureStyle}
+              />
+              {hover && <div style={overlayStyle}>Edit</div>}
+            </button>
+            <div style={headingStyle}>Edit Your Profile</div>
+          </div>
 
             <Form form={form} layout="vertical" onFinish={onFinish}>
               <Form.Item name="avatarKey" style={{ display: "none" }}>
@@ -389,13 +398,27 @@ export default function EditUser() {
         <Modal open={isModalVisible} title="Select a Profile Picture" onCancel={() => setIsModalVisible(false)} footer={null}>
           <div style={avatarGridContainer}>
             {avatars.map((a) => (
-              <div
+              <button
                 key={a.key}
-                style={{ ...avatarItem, borderColor: selectedAvatar === a.key ? "#007BFF" : "transparent" }}
+                type="button"
+                style={{
+                  ...avatarItem,
+                  borderColor: selectedAvatar === a.key ? "#007BFF" : "transparent",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
                 onClick={() => handleAvatarSelect(a.key)}
               >
-                <Image src={a.url} width={80} height={80} style={{ borderRadius: "50%" }} alt={a.key} />
-              </div>
+                <Image
+                  src={a.url}
+                  width={80}
+                  height={80}
+                  style={{ borderRadius: "50%" }}
+                  alt={a.key}
+                />
+              </button>
             ))}
           </div>
         </Modal>
