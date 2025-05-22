@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, CSSProperties } from "react";
 import SockJS from "sockjs-client";
-import { Client } from "@stomp/stompjs";
+import { Client, IMessage } from "@stomp/stompjs";
 import { Input, Button, List } from "antd";
 import axios from "axios";
 import { getApiDomain } from "@/utils/domain";
@@ -47,53 +47,73 @@ const ChatBox: React.FC<ChatBoxProps> = ({ friendId, currentUserId }) => {
   const [usernames, setUsernames] = useState<Record<number, string>>({});
   const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const handleReceivedMessage = (msg: IMessage) => {
+    const received = JSON.parse(msg.body) as ChatMessage;
+    const isRelevant =
+      (received.senderId === friendId && received.receiverId === currentUserId) ||
+      (received.senderId === currentUserId && received.receiverId === friendId);
+
+    if (isRelevant) {
+      setChatHistory((prev) => [...prev, received]);
+    }
+  };
+
+  const initWebSocket = () => {
     const stompClient = new Client({
       webSocketFactory: () => new SockJS(`${getApiDomain()}/ws`),
       reconnectDelay: 5000,
     });
+
     stompClient.onConnect = () => {
       setIsConnected(true);
-      stompClient.subscribe("/topic/messages", (msg) => {
-        const received = JSON.parse(msg.body) as ChatMessage;
-        if (
-          (received.senderId === friendId && received.receiverId === currentUserId) ||
-          (received.senderId === currentUserId && received.receiverId === friendId)
-        ) {
-          setChatHistory((prev) => [...prev, received]);
-        }
-      });
+      stompClient.subscribe("/topic/messages", handleReceivedMessage);
     };
-    stompClient.onStompError = (frame) => console.error(frame.headers["message"], frame.body);
+
+    stompClient.onStompError = (frame) =>
+      console.error(frame.headers["message"], frame.body);
     stompClient.onWebSocketError = (error) => console.error(error);
+
     stompClient.activate();
     setClient(stompClient);
-    return () => void stompClient.deactivate();
+
+    return stompClient;
+  };
+
+  const fetchChatHistory = async () => {
+    try {
+      const res = await axios.get<ChatMessage[]>(`${getApiDomain()}/chat/history/${currentUserId}/${friendId}`);
+      setChatHistory(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchUsernames = async () => {
+    try {
+      const [meRes, frRes] = await Promise.all([
+        axios.get(`${getApiDomain()}/users/${currentUserId}`),
+        axios.get(`${getApiDomain()}/users/${friendId}`),
+      ]);
+      setUsernames({
+        [currentUserId]: meRes.data.username,
+        [friendId]: frRes.data.username,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    const stompClient = initWebSocket();
+    return () => {
+      stompClient.deactivate();
+    };
   }, [friendId, currentUserId]);
 
   useEffect(() => {
-    axios
-      .get<ChatMessage[]>(`${getApiDomain()}/chat/history/${currentUserId}/${friendId}`)
-      .then((res) => setChatHistory(res.data))
-      .catch(console.error);
+    fetchChatHistory();
+    fetchUsernames();
   }, [friendId, currentUserId]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [meRes, frRes] = await Promise.all([
-          axios.get(`${getApiDomain()}/users/${currentUserId}`),
-          axios.get(`${getApiDomain()}/users/${friendId}`),
-        ]);
-        setUsernames({
-          [currentUserId]: meRes.data.username,
-          [friendId]: frRes.data.username,
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-  }, [currentUserId, friendId]);
 
   useEffect(() => {
     const el = listRef.current;
@@ -132,7 +152,11 @@ const ChatBox: React.FC<ChatBoxProps> = ({ friendId, currentUserId }) => {
         onChange={(e) => setMessage(e.target.value)}
         onPressEnter={sendMessage}
       />
-      <Button style={{ backgroundColor: "#007BFF", color: "#ffffff", marginTop: 10, width: "100%"}} onClick={sendMessage} disabled={!isConnected} >
+      <Button
+        style={{ backgroundColor: "#007BFF", color: "#ffffff", marginTop: 10, width: "100%" }}
+        onClick={sendMessage}
+        disabled={!isConnected}
+      >
         Send
       </Button>
     </div>
