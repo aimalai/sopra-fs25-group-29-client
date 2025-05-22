@@ -179,6 +179,7 @@ const DetailsPage: React.FC = () => {
     } catch {
       messageApi.error("Error adding to Watchlist.");
     }
+    messageApi.success("Added movie to Watchlist!");
   };
 
   const handleRemove = async () => {
@@ -189,6 +190,7 @@ const DetailsPage: React.FC = () => {
     } catch {
       messageApi.error("Error removing from Watchlist.");
     }
+    messageApi.success("Removed from Watchlist!");
   };
 
   const handleUserRatingChange = async (value: number) => {
@@ -212,6 +214,7 @@ const DetailsPage: React.FC = () => {
     } catch {
       messageApi.error("Error updating rating.");
     }
+    messageApi.success("Your rating has been updated.");
   };
 
   const handleSubmitTextRating = async () => {
